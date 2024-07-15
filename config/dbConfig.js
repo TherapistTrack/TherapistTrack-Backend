@@ -1,7 +1,12 @@
 const mongoose = require('mongoose')
 
 const connectDB = async () => {
-  const dbUri = process.env.DB_URI
+  const user = process.env.DB_USER
+  const password = process.env.DB_USER_PASSWORD
+  const dbName = process.env.DB_NAME
+  const host = process.env.DB_HOST
+  const port = process.env.DB_PORT
+  const dbUri = `mongodb://${user}:${password}@${host}:${port}/${dbName}`
   try {
     await mongoose.connect(dbUri)
     console.log('Successfully connected to MongoDB')
