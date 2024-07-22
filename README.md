@@ -79,6 +79,23 @@ Para reconstruir los contenedores después de realizar cambios
 docker-compose build
 ```
 
+### Uso de compose.test.yaml
+
+1. Primero apagar y eliminar volúmenes para actualizar
+   ```bash
+   docker compose -f compose.test.yaml down -v
+   ```
+
+2. Iniciar y construir la base de datos
+   ```bash
+   docker compose -f compose.test.yaml up database --build
+   ```
+
+3. Iniciar el backend
+   ```bash
+   npm start
+   ```
+
 ## Uso de la API
 
 La API permite realizar operaciones autenticadas relacionadas con la gestión de usuarios y pacientes. Las rutas principales incluyen:
