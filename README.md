@@ -26,7 +26,6 @@ DB_USER=administrator
 DB_USER_PASSWORD=1234
 DB_PORT=27017
 
-DB_URI='mongodb://admin:1234@localhost:27017/therapisttrack'
 API_PORT=3001
 JWT_SECRET='LocalPassword'
 ```
@@ -84,11 +83,13 @@ docker-compose build
 ### Uso de compose.test.yaml
 
 1. Primero apagar y eliminar volúmenes para actualizar
+
    ```bash
    docker compose -f compose.test.yaml down -v
    ```
 
 2. Iniciar y construir la base de datos
+
    ```bash
    docker compose -f compose.test.yaml up database --build
    ```
