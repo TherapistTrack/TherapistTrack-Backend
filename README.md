@@ -18,9 +18,11 @@ El `compose.yaml` necesita de ciertas variables de entorno para inicializar la B
 BUCKET_HOST=none
 
 # DATABASE
+DB_ADMIN_USER=root
+DB_ADMIN_PASSWORD=1234
 DB_HOST=localhost
 DB_NAME=therapisttrack
-DB_USER=admin
+DB_USER=administrator
 DB_USER_PASSWORD=1234
 DB_PORT=27017
 
