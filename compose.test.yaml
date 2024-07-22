@@ -1,0 +1,38 @@
+name: therapisttrack-backend-test
+
+services:
+  database:
+    image: therapisttrackapp/tt-db-dev
+    ports:
+      - '${DB_PORT}:27017'
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: '${DB_ADMIN_USER}'
+      MONGO_INITDB_ROOT_PASSWORD: '${DB_ADMIN_PASSWORD}'
+      MONGO_INITDB_DATABASE: '${DB_NAME}'
+      DB_NAME: '$DB_NAME'
+      DB_USER: '$DB_USER'
+      DB_USER_PASSWORD: '$DB_USER_PASSWORD'
+    volumes:
+      - mongo_data:/data/db
+
+  backend:
+    build:
+      dockerfile: Dockerfile
+    ports:
+      - '${API_PORT}:${API_PORT}'
+    environment:
+      DB_HOST: '${DB_HOST}'
+      DB_NAME: '${DB_NAME}'
+      DB_USER: '${DB_USER}'
+      DB_USER_PASSWORD: '${DB_USER_PASSWORD}'
+      DB_PORT: '${DB_PORT}'
+      JWT_SECRET: '${JWT_SECRET}'
+      API_PORT: '${API_PORT}'
+    volumes:
+      - node_modules:/backend/node_modules
+
+volumes:
+  mongo_data:
+    driver: local
+  node_modules:
+    driver: local

@@ -133,7 +133,7 @@ const config = {
   // runner: "jest-runner",
 
   // The paths to modules that run some code to configure or set up the testing environment before each test
-  setupFiles: [],
+  setupFiles: ['./tests/jest.setup.js'],
 
   // A list of paths to modules that run some code to configure or set up the testing framework before each test
   // setupFilesAfterEnv: [],
@@ -165,7 +165,7 @@ const config = {
   // ],
 
   // The regexp pattern or array of patterns that Jest uses to detect test files
-  // testRegex: [],
+  // testRegex: ['./test/.*\\.(test|spec)?\\.(js|js)$']
 
   // This option allows the use of a custom results processor
   // testResultsProcessor: undefined,
