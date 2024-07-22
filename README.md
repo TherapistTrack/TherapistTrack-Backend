@@ -18,9 +18,11 @@ El `compose.yaml` necesita de ciertas variables de entorno para inicializar la B
 BUCKET_HOST=none
 
 # DATABASE
+DB_ADMIN_USER=root
+DB_ADMIN_PASSWORD=1234
 DB_HOST=localhost
 DB_NAME=therapisttrack
-DB_USER=admin
+DB_USER=administrator
 DB_USER_PASSWORD=1234
 DB_PORT=27017
 
@@ -78,6 +80,23 @@ Para reconstruir los contenedores después de realizar cambios
 ```bash
 docker-compose build
 ```
+
+### Uso de compose.test.yaml
+
+1. Primero apagar y eliminar volúmenes para actualizar
+   ```bash
+   docker compose -f compose.test.yaml down -v
+   ```
+
+2. Iniciar y construir la base de datos
+   ```bash
+   docker compose -f compose.test.yaml up database --build
+   ```
+
+3. Iniciar el backend
+   ```bash
+   npm start
+   ```
 
 ## Uso de la API
 
