@@ -361,10 +361,10 @@ paths:
                   message:
                     type: string
 
-  /doctor/createPatientTemplate:
+  /doctor/PatientTemplate:
     post:
       tags:
-        - Gestión de usuarios
+        - Doctor Configuration
       summary: Crear plantilla de paciente
       description: Permite a los doctores crear una plantilla de paciente personalizada.
       parameters:
@@ -465,7 +465,7 @@ paths:
                     type: string
 
   /doctor/addFieldToPatientTemplate:
-    put:
+    post:
       tags:
         - Doctor Configuration
       summary: Agregar campo a la plantilla de paciente
@@ -1116,7 +1116,7 @@ paths:
                     type: string
 
   /doctor/deleteFileTemplateField:
-    put:
+    delete:
       tags:
         - Doctor Configuration
       summary: Eliminar un campo de la plantilla de archivo
