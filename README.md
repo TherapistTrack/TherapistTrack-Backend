@@ -28,8 +28,11 @@ DB_PORT=27017
 
 DB_URI='mongodb://admin:1234@localhost:27017/therapisttrack'
 API_PORT=3001
+DELAY_START=8000
 JWT_SECRET='LocalPassword'
 ```
+
+💡**NOTA:** Si el DB_HOST cambiara dependiendo si el backend se corre dentro de un contenedor, en esos casos el host será `database` o como lo indique el archivo `compose.yaml` usado.
 
 ### Instalación
 
@@ -39,14 +42,12 @@ Sigue estos pasos para iniciar el proyecto en tu máquina local:
 
    ```bash
    git clone https://github.com/TherapistTrack/therapistTrackApp.git
-
    ```
 
 2. Instalar las dependencias del proyecto:
 
    ```bash
    npm install
-
    ```
 
 3. Copiar el archivo .env.example a .env y ajustar las variables de entorno necesarias.
@@ -84,16 +85,19 @@ docker-compose build
 ### Uso de compose.test.yaml
 
 1. Primero apagar y eliminar volúmenes para actualizar
+
    ```bash
    docker compose -f compose.test.yaml down -v
    ```
 
 2. Iniciar y construir la base de datos
+
    ```bash
    docker compose -f compose.test.yaml up database --build
    ```
 
 3. Iniciar el backend
+
    ```bash
    npm start
    ```
