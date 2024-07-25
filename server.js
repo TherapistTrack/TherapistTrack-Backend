@@ -21,9 +21,9 @@ async function main() {
   const authRoutes = require('./routes/authRoutes')
 
   // Use Routes
-  app.use('/api/users', userRoutes)
-  app.use('/api/files', fileRoutes)
-  app.use('/api/auth', authRoutes)
+  app.use('/users', userRoutes)
+  app.use('/files', fileRoutes)
+  app.use('/auth', authRoutes)
 
   // Error Handling Middleware
   app.use((err, req, res, next) => {
@@ -32,7 +32,7 @@ async function main() {
   })
 
   // Start the Server
-  const PORT = process.env.API_PORT || 3000
+  const PORT = process.env.API_PORT || 3001
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
   })
