@@ -385,6 +385,10 @@ paths:
                   type: string
                   description: Identificador único del doctor que crea la plantilla.
                   example: "60d5ec49d8a0c540d8d6d8b5"
+                name:
+                  type: string
+                  description: Name of the template.
+                  example: "Plantilla2024"
                 patientTemplate:
                   type: object
                   properties:
@@ -407,7 +411,7 @@ paths:
                             type: array
                             items:
                               type: string
-                          value:
+                          description:
                             type: string
                           required:
                             type: boolean
@@ -488,7 +492,11 @@ paths:
                   type: string
                   description: Identificador único del doctor.
                   example: "60d5ec49d8a0c540d8d6d8b5"
-                patientTemplate:
+                templateID:
+                  type: string
+                  description: ID de la plantilla a modificar.
+                  example: "42038caasdlj3234j255k"
+                field:
                   type: object
                   properties:
                     name:
@@ -528,7 +536,7 @@ paths:
                     properties:
                       doctorId:
                         type: string
-                      patientTemplate:
+                      field:
                         type: object
                         properties:
                           name:
@@ -598,6 +606,10 @@ paths:
                   type: string
                   description: Identificador único del doctor.
                   example: "60d5ec49d8a0c540d8d6d8b5"
+                templateID:
+                  type: string
+                  description: ID de la plantilla a modificar.
+                  example: "42038caasdlj3234j255k"
                 updatedFields:
                   type: array
                   description: Lista de campos actualizados en la plantilla.
@@ -644,6 +656,10 @@ paths:
                     properties:
                       doctorId:
                         type: string
+                      templateID:
+                        type: string
+                        description: ID de la plantilla a modificar.
+                        example: "42038caasdlj3234j255k"
                       updatedFields:
                         type: array
                         items:
@@ -718,6 +734,10 @@ paths:
                   type: string
                   description: Identificador único del doctor que realiza la eliminación.
                   example: "60d5ec49d8a0c540d8d6d8b5"
+                templateID:
+                  type: string
+                  description: ID de la plantilla a modificar.
+                  example: "42038caasdlj3234j255k"
                 fieldId:
                   type: string
                   description: Identificador único del campo a eliminar de la plantilla.
@@ -738,6 +758,8 @@ paths:
                     type: object
                     properties:
                       doctorId:
+                        type: string
+                      templateID:
                         type: string
                       fieldId:
                         type: string
@@ -799,6 +821,10 @@ paths:
                   type: string
                   description: Identificador único del doctor que crea la plantilla.
                   example: "60d5ec49d8a0c540d8d6d8b5"
+                name:
+                  type: string
+                  description: Name of the template.
+                  example: "Plantilla 2024"
                 categories:
                   type: array
                   items:
@@ -839,6 +865,8 @@ paths:
                     type: object
                     properties:
                       doctorId:
+                        type: string
+                      templateID:
                         type: string
                       fileTemplate:
                         type: object
@@ -921,6 +949,10 @@ paths:
                   type: string
                   description: Identificador único del doctor que añade el campo.
                   example: "60d5ec49d8a0c540d8d6d8b5"
+                templateID:
+                  type: string
+                  description: ID de la plantilla a modificar.
+                  example: "42038caasdlj3234j255k"
                 fileTemplate:
                   type: object
                   properties:
@@ -956,6 +988,8 @@ paths:
                     type: object
                     properties:
                       doctorId:
+                        type: string
+                      templateID:
                         type: string
                       fileTemplate:
                         type: object
@@ -1025,6 +1059,10 @@ paths:
                   type: string
                   description: Identificador único del doctor que edita la plantilla.
                   example: "60d5ec49d8a0c540d8d6d8b5"
+                templateID:
+                  type: string
+                  description: ID de la plantilla a modificar.
+                  example: "42038caasdlj3234j255k"
                 updatedFields:
                   type: array
                   description: Lista de campos actualizados en la plantilla.
@@ -1062,6 +1100,8 @@ paths:
                     type: object
                     properties:
                       doctorId:
+                        type: string
+                      templateID:
                         type: string
                       updatedFields:
                         type: array
@@ -1135,7 +1175,11 @@ paths:
                   type: string
                   description: Identificador único del doctor que realiza la eliminación.
                   example: "60d5ec49d8a0c540d8d6d8b5"
-                fieldId:
+                templateID:
+                  type: string
+                  description: ID de la plantilla a modificar.
+                  example: "42038caasdlj3234j255k"
+                fieldName:
                   type: string
                   description: Identificador único del campo a eliminar de la plantilla.
                   example: "60d5ec49d8a0c540d8d6d8b9"
