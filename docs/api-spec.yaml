@@ -88,7 +88,7 @@ paths:
     post:
       tags:
         - Gestión de usuarios
-      summary: Crear usuario
+      summary: Crear usuario [Hecho]
       description: Permite a los administradores crear un nuevo usuario en el sistema.
       requestBody:
         required: true
@@ -137,7 +137,7 @@ paths:
     delete:
       tags:
         - Gestión de usuarios
-      summary: Eliminar usuario
+      summary: Eliminar usuario [Hecho]
       description: Cambia el estado de un usuario a inactivo en lugar de eliminar completamente sus datos.
       requestBody:
         required: true
@@ -158,7 +158,7 @@ paths:
     put:
       tags:
         - Gestión de usuarios
-      summary: Actualizar información de usuario
+      summary: Actualizar información de usuario [Hecho]
       description: Permite a los administradores actualizar la información existente de un usuario.
       requestBody:
         required: true
@@ -201,7 +201,7 @@ paths:
     get:
       tags:
         - Gestión de usuarios
-      summary: Listar usuarios
+      summary: Listar usuarios [Hecho]
       description: Recupera una lista de todos los usuarios en el sistema.
       responses:
         '200':
@@ -464,7 +464,7 @@ paths:
                   message:
                     type: string
 
-  /doctor/addFieldToPatientTemplate:
+  /doctor/PatientTemplate/fields:
     post:
       tags:
         - Doctor Configuration
@@ -574,8 +574,7 @@ paths:
                     type: integer
                   message:
                     type: string
-
-  /doctor/editPatientTemplateFields:
+  
     put:
       tags:
         - Doctor Configuration
@@ -694,9 +693,89 @@ paths:
                   status:
                     type: integer
                   message:
+                    type: string    
+
+    delete:
+      tags:
+        - Doctor Configuration
+      summary: Eliminar un campo de la plantilla de paciente
+      description: Permite a los doctores eliminar un campo específico de la plantilla de paciente.
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          schema:
+            type: string
+          description: JWT Token necesario para la autenticación.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                doctorId:
+                  type: string
+                  description: Identificador único del doctor que realiza la eliminación.
+                  example: "60d5ec49d8a0c540d8d6d8b5"
+                fieldId:
+                  type: string
+                  description: Identificador único del campo a eliminar de la plantilla.
+                  example: "60d5ec49d8a0c540d8d6d8b9"
+      responses:
+        '200':
+          description: Campo de la plantilla de paciente eliminado exitosamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      doctorId:
+                        type: string
+                      fieldId:
+                        type: string
+        '400':
+          description: Solicitud incorrecta: Faltan campos o son inválidos en el cuerpo de la solicitud.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  message:
+                    type: string
+        '404':
+          description: Doctor no encontrado o el campo especificado no se encuentra en la plantilla de paciente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  message:
+                    type: string
+        '500':
+          description: Error interno del servidor: No se puede eliminar el campo de la plantilla de paciente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  message:
                     type: string
 
-  /doctor/createFileTemplate:
+  /doctor/FileTemplate:
     post:
       tags:
         - Doctor Configuration
@@ -818,7 +897,7 @@ paths:
                   message:
                     type: string
 
-  /doctor/addFieldToFileTemplate:
+  /doctor/FileTemplate/fields:
     post:
       tags:
         - Doctor Configuration
@@ -923,7 +1002,6 @@ paths:
                   message:
                     type: string
 
-  /doctor/editFileTemplateFields:
     put:
       tags:
         - Doctor Configuration
@@ -1034,88 +1112,6 @@ paths:
                   message:
                     type: string
 
-  /doctor/deletePatientTemplateField:
-    delete:
-      tags:
-        - Doctor Configuration
-      summary: Eliminar un campo de la plantilla de paciente
-      description: Permite a los doctores eliminar un campo específico de la plantilla de paciente.
-      parameters:
-        - in: header
-          name: Authorization
-          required: true
-          schema:
-            type: string
-          description: JWT Token necesario para la autenticación.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                doctorId:
-                  type: string
-                  description: Identificador único del doctor que realiza la eliminación.
-                  example: "60d5ec49d8a0c540d8d6d8b5"
-                fieldId:
-                  type: string
-                  description: Identificador único del campo a eliminar de la plantilla.
-                  example: "60d5ec49d8a0c540d8d6d8b9"
-      responses:
-        '200':
-          description: Campo de la plantilla de paciente eliminado exitosamente.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                  message:
-                    type: string
-                  data:
-                    type: object
-                    properties:
-                      doctorId:
-                        type: string
-                      fieldId:
-                        type: string
-        '400':
-          description: Solicitud incorrecta: Faltan campos o son inválidos en el cuerpo de la solicitud.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                  message:
-                    type: string
-        '404':
-          description: Doctor no encontrado o el campo especificado no se encuentra en la plantilla de paciente.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                  message:
-                    type: string
-        '500':
-          description: Error interno del servidor: No se puede eliminar el campo de la plantilla de paciente.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                  message:
-                    type: string
-
-  /doctor/deleteFileTemplateField:
     delete:
       tags:
         - Doctor Configuration
