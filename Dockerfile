@@ -7,7 +7,7 @@ WORKDIR /backend
 COPY package*.json ./
 
 # Install dependencies
-RUN npm install --omit=dev
+RUN npm install --omit=dev --no-fund --no-audit
 
 # Copy the rest of the application code
 COPY . .
