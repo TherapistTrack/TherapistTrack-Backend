@@ -13,7 +13,7 @@ jobs:
       BUCKET_HOST: none
       DB_ADMIN_USER: root
       DB_ADMIN_PASSWORD: 1234
-      DB_HOST: 0.0.0.0
+      DB_HOST: database
       DB_NAME: therapisttrack
       DB_USER: adminstrator
       DB_USER_PASSWORD: 1234
