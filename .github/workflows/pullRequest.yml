@@ -38,7 +38,7 @@ jobs:
         run: npm install
 
       - name: awa
-        run: netstat -ano | grep LISTENING
+        run: netstat -ano | grep 3001
       - name: owo
         run: curl -X GET http://localhost:3001/health
       - name: Run tests
