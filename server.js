@@ -24,6 +24,10 @@ async function main() {
   app.use('/users', userRoutes)
   app.use('/files', fileRoutes)
   app.use('/auth', authRoutes)
+  app.get('/health', async (req, res) => {
+    res.status(200)
+    res.send({ message: 'API is up!' })
+  })
 
   // Error Handling Middleware
   app.use((err, req, res, next) => {
