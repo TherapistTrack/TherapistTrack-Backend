@@ -13,19 +13,28 @@ jobs:
       BUCKET_HOST: none
       DB_ADMIN_USER: root
       DB_ADMIN_PASSWORD: 1234
-      DB_HOST: localhost
+      DB_HOST: database
       DB_NAME: therapisttrack
       DB_USER: adminstrator
       DB_USER_PASSWORD: 1234
       DB_PORT: 27017
+      DELAY_START: 8000
 
       API_PORT: 3001
+      SHOW_API_DOCS: 'false'
       JWT_SECRET: 'LocalPassword'
     steps:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Start containers
         run: docker compose -f "compose.test.yaml" up -d --build
+
+      - name: Wait the containers to be ready
+        run: |
+          while ! curl -s http://localhost:3001/health > /dev/null; do
+            echo "Waiting for server..."
+            sleep 5
+          done
 
       - name: Install node
         uses: actions/setup-node@v4
@@ -41,4 +50,4 @@ jobs:
 
       - name: Stop containers
         if: always()
-        run: docker compose -f "compose.test.yaml" down
+        run: docker compose -f "compose.test.yaml" down -v

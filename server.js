@@ -1,7 +1,6 @@
 require('dotenv').config()
 const express = require('express')
 const cors = require('cors')
-const setupSwagger = require('./docs/swaggerConfig')
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms))
@@ -12,8 +11,12 @@ async function main() {
   app.use(express.json())
   app.use(cors())
 
+  const showApiDocs = process.env.SHOW_API_DOCS || 'false'
   // Swagger setup
-  setupSwagger(app)
+  if (showApiDocs == 'true') {
+    const setupSwagger = require('./docs/swaggerConfig')
+    setupSwagger(app)
+  }
 
   // Import Routes
   const userRoutes = require('./routes/userRoutes')
@@ -21,9 +24,12 @@ async function main() {
   const authRoutes = require('./routes/authRoutes')
 
   // Use Routes
-  app.use('/api/users', userRoutes)
-  app.use('/api/files', fileRoutes)
-  app.use('/api/auth', authRoutes)
+  app.use('/users', userRoutes)
+  app.use('/files', fileRoutes)
+  app.use('/auth', authRoutes)
+  app.get('/health', async (req, res) => {
+    res.status(200).send({ message: 'API is up!' })
+  })
 
   // Error Handling Middleware
   app.use((err, req, res, next) => {
@@ -32,7 +38,7 @@ async function main() {
   })
 
   // Start the Server
-  const PORT = process.env.API_PORT || 3000
+  const PORT = process.env.API_PORT || 3001
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
   })
