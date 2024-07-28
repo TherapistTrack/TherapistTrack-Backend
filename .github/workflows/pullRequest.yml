@@ -13,7 +13,7 @@ jobs:
       BUCKET_HOST: none
       DB_ADMIN_USER: root
       DB_ADMIN_PASSWORD: 1234
-      DB_HOST: localhost
+      DB_HOST: 0.0.0.0
       DB_NAME: therapisttrack
       DB_USER: adminstrator
       DB_USER_PASSWORD: 1234
@@ -38,7 +38,7 @@ jobs:
         run: npm install
 
       - name: owo
-        run: curl -X GET http://127.0.0.1:3001/health
+        run: curl -X GET http://0.0.0.0:3001/health
       - name: Run tests
         run: npm run test
 
