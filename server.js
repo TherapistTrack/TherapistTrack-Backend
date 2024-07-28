@@ -1,7 +1,7 @@
 require('dotenv').config()
 const express = require('express')
 const cors = require('cors')
-const setupSwagger = require('./docs/swaggerConfig')
+// const setupSwagger = require('./docs/swaggerConfig')
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms))
@@ -13,7 +13,7 @@ async function main() {
   app.use(cors())
 
   // Swagger setup
-  setupSwagger(app)
+  // setupSwagger(app)
 
   // Import Routes
   const userRoutes = require('./routes/userRoutes')
