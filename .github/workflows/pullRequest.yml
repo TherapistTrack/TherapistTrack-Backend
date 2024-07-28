@@ -28,6 +28,13 @@ jobs:
       - name: Start containers
         run: docker compose -f "compose.test.yaml" up -d --build
 
+      - name: Wait the containers to be ready
+        run: |
+          while ! curl -s http://localhost:3001/health > /dev/null; do
+            echo "Waiting for server..."
+            sleep 5
+          done
+
       - name: Install node
         uses: actions/setup-node@v4
         with:
@@ -37,10 +44,6 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: awa
-        run: netstat -ano | grep 3001
-      - name: owo
-        run: curl -X GET http://localhost:3001/health
       - name: Run tests
         run: npm run test
 
