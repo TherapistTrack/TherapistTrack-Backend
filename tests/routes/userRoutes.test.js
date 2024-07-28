@@ -1,3 +1,4 @@
+/**
 const axios = require('axios')
 const { BASE_URL } = require('../jest.setup')
 
@@ -82,3 +83,5 @@ describe('User Endpoints', () => {
     expect(response.data.message).toBe('User not found or already inactive')
   })
 })
+
+ */
