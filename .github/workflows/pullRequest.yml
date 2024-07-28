@@ -37,6 +37,8 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: owo
+        run: curl -X GET http://localhost:3001/health
       - name: Run tests
         run: npm run test
 
