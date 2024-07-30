@@ -224,16 +224,15 @@ paths:
           schema:
             type: string
           description: JWT Token necesario para la autenticación.
-        - in: body
-          name: body
-          required: true
-          description: Nombre de usuario necesario para el logout.
-          schema:
-            type: object
-            properties:
-              username:
-                type: string
-                example: 'JhonDoe09'
+      requestBody:
+        required: true
+        description: Nombre de usuario necesario para el logout.
+        schema:
+          type: object
+          properties:
+            username:
+              type: string
+              example: 'JhonDoe09'
       responses:
         '200':
           description: Logout exitoso.
@@ -295,16 +294,15 @@ paths:
           schema:
             type: string
           description: JWT Token necesario para la autenticación.
-        - in: body
-          name: body
-          required: true
-          description: Nombre de usuario necesario para recuperar las credenciales.
-          schema:
-            type: object
-            properties:
-              username:
-                type: string
-                example: 'JhonDoe09'
+      requestBody:
+        required: true
+        description: Nombre de usuario necesario para recuperar las credenciales.
+        schema:
+          type: object
+          properties:
+            username:
+              type: string
+              example: 'JhonDoe09'
       responses:
         '200':
           description: Credenciales recuperadas exitosamente.
