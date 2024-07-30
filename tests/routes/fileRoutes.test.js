@@ -1,9 +1,10 @@
 const request = require('supertest')
+const { BASE_URL } = require('../jest.setup')
 
 describe('File Controller Tests', () => {
-  const baseUrl = 'http://localhost:3001/api/files'
+  const baseUrl = BASE_URL + '/files'
 
-  it('should create a new file and patient', async () => {
+  it('should create a new file for a  patient', async () => {
     const fileData = {
       record: '64c1e2c8a5d4a8f8b3b9e1e3',
       name: 'testfile',
