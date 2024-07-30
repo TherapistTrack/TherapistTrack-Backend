@@ -227,12 +227,14 @@ paths:
       requestBody:
         required: true
         description: Nombre de usuario necesario para el logout.
-        schema:
-          type: object
-          properties:
-            username:
-              type: string
-              example: 'JhonDoe09'
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: 'JhonDoe09'
       responses:
         '200':
           description: Logout exitoso.
