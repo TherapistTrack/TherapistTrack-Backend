@@ -29,7 +29,6 @@ services:
       JWT_SECRET: '${JWT_SECRET}'
       API_PORT: '${API_PORT}'
       DELAY_START: '${DELAY_START}'
-      SHOW_API_DOCS: '${SHOW_API_DOCS}'
     volumes:
       - node_modules:/backend/node_modules
 

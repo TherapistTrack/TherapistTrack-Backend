@@ -11,13 +11,6 @@ async function main() {
   app.use(express.json())
   app.use(cors())
 
-  const showApiDocs = process.env.SHOW_API_DOCS || 'false'
-  // Swagger setup
-  if (showApiDocs == 'true') {
-    const setupSwagger = require('./docs/swaggerConfig')
-    setupSwagger(app)
-  }
-
   // Import Routes
   const userRoutes = require('./routes/userRoutes')
   const fileRoutes = require('./routes/fileRoutes')
