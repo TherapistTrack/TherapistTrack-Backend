@@ -1,0 +1,42 @@
+paths:
+  /upload:
+    post:
+      tags:
+        - Operaciones de archivo
+      summary: Sube un archivo PDF
+      description: Permite a los usuarios subir un archivo PDF al servidor.
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                pdf:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Archivo subido correctamente.
+        '400':
+          description: Error al subir el archivo.
+
+  /pdf/{filename}:
+    get:
+      tags:
+        - Operaciones de archivo
+      summary: Descarga un archivo PDF
+      description: Permite a los usuarios descargar un archivo PDF por nombre de archivo.
+      parameters:
+        - in: path
+          name: filename
+          schema:
+            type: string
+          required: true
+          description: Nombre del archivo PDF para descargar.
+      responses:
+        '200':
+          description: Archivo descargado correctamente.
+        '404':
+          description: Archivo no encontrado.
+        '500':
+          description: Error al procesar la solicitud.

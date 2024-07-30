@@ -1,0 +1,88 @@
+/login:
+  post:
+    tags:
+      - Autenticación
+    summary: Inicia sesión
+    description: Permite a los usuarios iniciar sesión proporcionando credenciales.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              username:
+                type: string
+              password:
+                type: string
+    responses:
+      '200':
+        description: Login exitoso.
+      '401':
+        description: Credenciales inválidas.
+
+/userLogout:
+  post:
+    tags:
+      - Autenticación
+    summary: Cerrar sesión
+    description: Permite a los usuarios cerrar su sesión activa utilizando un token JWT.
+    parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+        description: JWT Token necesario para la autenticación.
+      - in: body
+        name: body
+        required: true
+        description: Nombre de usuario necesario para el logout.
+        schema:
+          type: object
+          properties:
+            username:
+              type: string
+              example: "JhonDoe09"
+    responses:
+      '200':
+        description: Logout exitoso.
+      '400':
+        description: Solicitud incorrecta: El nombre de usuario es obligatorio.
+      '404':
+        description: Usuario no encontrado.
+      '500':
+        description: Error interno del servidor: No se puede procesar el cierre de sesión.
+
+/userCredentials:
+  post:
+    tags:
+      - Autenticación
+    summary: Obtener credenciales
+    description: Permite a los usuarios obtener sus credenciales de usuario de forma segura.
+    parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+        description: JWT Token necesario para la autenticación.
+      - in: body
+        name: body
+        required: true
+        description: Nombre de usuario necesario para recuperar las credenciales.
+        schema:
+          type: object
+          properties:
+            username:
+              type: string
+              example: "JhonDoe09"
+    responses:
+      '200':
+        description: Credenciales recuperadas exitosamente.
+      '400':
+        description: Solicitud incorrecta: El nombre de usuario es obligatorio.
+      '404':
+        description: Usuario no encontrado.
+      '500':
+        description: Error interno del servidor: No se pueden recuperar las credenciales.
