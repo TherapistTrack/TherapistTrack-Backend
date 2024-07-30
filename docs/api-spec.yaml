@@ -210,7 +210,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/UserInfoResponse'
-  
+
   /user/logout:
     post:
       tags:
@@ -233,7 +233,7 @@ paths:
             properties:
               username:
                 type: string
-                example: "JhonDoe09"
+                example: 'JhonDoe09'
       responses:
         '200':
           description: Logout exitoso.
@@ -249,7 +249,7 @@ paths:
                   data:
                     type: object
         '400':
-          description: Solicitud incorrecta: El nombre de usuario es obligatorio.
+          description: 'Solicitud incorrecta: El nombre de usuario es obligatorio.'
           content:
             application/json:
               schema:
@@ -271,7 +271,7 @@ paths:
                   message:
                     type: string
         '500':
-          description: Error interno del servidor: No se puede procesar el cierre de sesión.
+          description: 'Error interno del servidor: No se puede procesar el cierre de sesión.'
           content:
             application/json:
               schema:
@@ -304,7 +304,7 @@ paths:
             properties:
               username:
                 type: string
-                example: "JhonDoe09"
+                example: 'JhonDoe09'
       responses:
         '200':
           description: Credenciales recuperadas exitosamente.
@@ -324,9 +324,9 @@ paths:
                         type: string
                       password:
                         type: string
-                        example: "P****v****"
+                        example: 'P****v****'
         '400':
-          description: Solicitud incorrecta: El nombre de usuario es obligatorio.
+          description: 'Solicitud incorrecta: El nombre de usuario es obligatorio.'
           content:
             application/json:
               schema:
@@ -348,7 +348,7 @@ paths:
                   message:
                     type: string
         '500':
-          description: Error interno del servidor: No se pueden recuperar las credenciales.
+          description: 'Error interno del servidor: No se pueden recuperar las credenciales.'
           content:
             application/json:
               schema:
@@ -382,7 +382,7 @@ paths:
                 doctorId:
                   type: string
                   description: Identificador único del doctor que crea la plantilla.
-                  example: "60d5ec49d8a0c540d8d6d8b5"
+                  example: '60d5ec49d8a0c540d8d6d8b5'
                 patientTemplate:
                   type: object
                   properties:
@@ -429,7 +429,7 @@ paths:
                       patientTemplateId:
                         type: string
         '400':
-          description: Solicitud incorrecta: Faltan campos o son inválidos en el cuerpo de la solicitud.
+          description: 'Solicitud incorrecta: Faltan campos o son inválidos en el cuerpo de la solicitud.'
           content:
             application/json:
               schema:
@@ -451,7 +451,7 @@ paths:
                   message:
                     type: string
         '500':
-          description: Error interno del servidor: No se puede crear la plantilla de paciente.
+          description: 'Error interno del servidor: No se puede crear la plantilla de paciente.'
           content:
             application/json:
               schema:
@@ -485,22 +485,22 @@ paths:
                 doctorId:
                   type: string
                   description: Identificador único del doctor.
-                  example: "60d5ec49d8a0c540d8d6d8b5"
+                  example: '60d5ec49d8a0c540d8d6d8b5'
                 patientTemplate:
                   type: object
                   properties:
                     name:
                       type: string
                       description: Nombre del campo a añadir.
-                      example: "Allergies"
+                      example: 'Allergies'
                     type:
                       type: string
                       description: Tipo de dato del campo (ej., TEXTO).
-                      example: "TEXT"
+                      example: 'TEXT'
                     value:
                       type: string
                       description: Valor inicial del campo.
-                      example: ""
+                      example: ''
                     required:
                       type: boolean
                       description: Indica si el campo es obligatorio.
@@ -540,7 +540,7 @@ paths:
                           description:
                             type: string
         '400':
-          description: Solicitud incorrecta: Faltan campos o son inválidos en el cuerpo de la solicitud.
+          description: 'Solicitud incorrecta: Faltan campos o son inválidos en el cuerpo de la solicitud.'
           content:
             application/json:
               schema:
@@ -562,7 +562,7 @@ paths:
                   message:
                     type: string
         '500':
-          description: Error interno del servidor: No se puede añadir el campo a la plantilla de paciente.
+          description: 'Error interno del servidor: No se puede añadir el campo a la plantilla de paciente.'
           content:
             application/json:
               schema:
@@ -572,7 +572,7 @@ paths:
                     type: integer
                   message:
                     type: string
-  
+
   /doctor/editPatientTemplateFields:
     put:
       tags:
@@ -596,7 +596,7 @@ paths:
                 doctorId:
                   type: string
                   description: Identificador único del doctor.
-                  example: "60d5ec49d8a0c540d8d6d8b5"
+                  example: '60d5ec49d8a0c540d8d6d8b5'
                 updatedFields:
                   type: array
                   description: Lista de campos actualizados en la plantilla.
@@ -661,7 +661,7 @@ paths:
                             description:
                               type: string
         '400':
-          description: Solicitud incorrecta: Faltan campos o son inválidos en el cuerpo de la solicitud.
+          description: 'Solicitud incorrecta: Faltan campos o son inválidos en el cuerpo de la solicitud.'
           content:
             application/json:
               schema:
@@ -683,7 +683,7 @@ paths:
                   message:
                     type: string
         '500':
-          description: Error interno del servidor: No se pueden actualizar los campos de la plantilla de paciente.
+          description: 'Error interno del servidor: No se pueden actualizar los campos de la plantilla de paciente.'
           content:
             application/json:
               schema:
@@ -717,13 +717,13 @@ paths:
                 doctorId:
                   type: string
                   description: Identificador único del doctor que crea la plantilla.
-                  example: "60d5ec49d8a0c540d8d6d8b5"
+                  example: '60d5ec49d8a0c540d8d6d8b5'
                 categories:
                   type: array
                   items:
                     type: string
                   description: Categorías del archivo, como registros médicos o prescripciones.
-                  example: ["Medical Records", "Prescriptions"]
+                  example: ['Medical Records', 'Prescriptions']
                 metadata:
                   type: array
                   description: Metadatos para incluir en la plantilla del archivo.
@@ -783,7 +783,7 @@ paths:
                             type: string
                             format: date-time
         '400':
-          description: Solicitud incorrecta: Faltan campos o son inválidos en el cuerpo de la solicitud.
+          description: 'Solicitud incorrecta: Faltan campos o son inválidos en el cuerpo de la solicitud.'
           content:
             application/json:
               schema:
@@ -805,7 +805,7 @@ paths:
                   message:
                     type: string
         '500':
-          description: Error interno del servidor: No se puede crear la plantilla de archivo.
+          description: 'Error interno del servidor: No se puede crear la plantilla de archivo.'
           content:
             application/json:
               schema:
@@ -839,18 +839,18 @@ paths:
                 doctorId:
                   type: string
                   description: Identificador único del doctor que añade el campo.
-                  example: "60d5ec49d8a0c540d8d6d8b5"
+                  example: '60d5ec49d8a0c540d8d6d8b5'
                 fileTemplate:
                   type: object
                   properties:
                     name:
                       type: string
                       description: Nombre del campo a añadir.
-                      example: "Diagnosis"
+                      example: 'Diagnosis'
                     type:
                       type: string
                       description: Tipo de dato del campo (ej., TEXTO).
-                      example: "TEXT"
+                      example: 'TEXT'
                     required:
                       type: boolean
                       description: Indica si el campo es obligatorio.
@@ -888,7 +888,7 @@ paths:
                           description:
                             type: string
         '400':
-          description: Solicitud incorrecta: Faltan campos o son inválidos en el cuerpo de la solicitud.
+          description: 'Solicitud incorrecta: Faltan campos o son inválidos en el cuerpo de la solicitud.'
           content:
             application/json:
               schema:
@@ -910,7 +910,7 @@ paths:
                   message:
                     type: string
         '500':
-          description: Error interno del servidor: No se puede añadir el campo a la plantilla de archivo.
+          description: 'Error interno del servidor: No se puede añadir el campo a la plantilla de archivo.'
           content:
             application/json:
               schema:
@@ -944,7 +944,7 @@ paths:
                 doctorId:
                   type: string
                   description: Identificador único del doctor que edita la plantilla.
-                  example: "60d5ec49d8a0c540d8d6d8b5"
+                  example: '60d5ec49d8a0c540d8d6d8b5'
                 updatedFields:
                   type: array
                   description: Lista de campos actualizados en la plantilla.
@@ -999,7 +999,7 @@ paths:
                             description:
                               type: string
         '400':
-          description: Solicitud incorrecta: Faltan campos o son inválidos en el cuerpo de la solicitud.
+          description: 'Solicitud incorrecta: Faltan campos o son inválidos en el cuerpo de la solicitud.'
           content:
             application/json:
               schema:
@@ -1021,7 +1021,7 @@ paths:
                   message:
                     type: string
         '500':
-          description: Error interno del servidor: No se pueden actualizar los campos de la plantilla de archivo.
+          description: 'Error interno del servidor: No se pueden actualizar los campos de la plantilla de archivo.'
           content:
             application/json:
               schema:
@@ -1055,11 +1055,11 @@ paths:
                 doctorId:
                   type: string
                   description: Identificador único del doctor que realiza la eliminación.
-                  example: "60d5ec49d8a0c540d8d6d8b5"
+                  example: '60d5ec49d8a0c540d8d6d8b5'
                 fieldId:
                   type: string
                   description: Identificador único del campo a eliminar de la plantilla.
-                  example: "60d5ec49d8a0c540d8d6d8b9"
+                  example: '60d5ec49d8a0c540d8d6d8b9'
       responses:
         '200':
           description: Campo de la plantilla de paciente eliminado exitosamente.
@@ -1080,7 +1080,7 @@ paths:
                       fieldId:
                         type: string
         '400':
-          description: Solicitud incorrecta: Faltan campos o son inválidos en el cuerpo de la solicitud.
+          description: 'Solicitud incorrecta: Faltan campos o son inválidos en el cuerpo de la solicitud.'
           content:
             application/json:
               schema:
@@ -1102,7 +1102,7 @@ paths:
                   message:
                     type: string
         '500':
-          description: Error interno del servidor: No se puede eliminar el campo de la plantilla de paciente.
+          description: 'Error interno del servidor: No se puede eliminar el campo de la plantilla de paciente.'
           content:
             application/json:
               schema:
@@ -1136,11 +1136,11 @@ paths:
                 doctorId:
                   type: string
                   description: Identificador único del doctor que realiza la eliminación.
-                  example: "60d5ec49d8a0c540d8d6d8b5"
+                  example: '60d5ec49d8a0c540d8d6d8b5'
                 fieldId:
                   type: string
                   description: Identificador único del campo a eliminar de la plantilla.
-                  example: "60d5ec49d8a0c540d8d6d8b9"
+                  example: '60d5ec49d8a0c540d8d6d8b9'
       responses:
         '200':
           description: Campo de la plantilla de archivo eliminado exitosamente.
@@ -1161,7 +1161,7 @@ paths:
                       fieldId:
                         type: string
         '400':
-          description: Solicitud incorrecta: Faltan campos o son inválidos en el cuerpo de la solicitud.
+          description: 'Solicitud incorrecta: Faltan campos o son inválidos en el cuerpo de la solicitud.'
           content:
             application/json:
               schema:
@@ -1183,7 +1183,7 @@ paths:
                   message:
                     type: string
         '500':
-          description: Error interno del servidor: No se puede eliminar el campo de la plantilla de archivo.
+          description: 'Error interno del servidor: No se puede eliminar el campo de la plantilla de archivo.'
           content:
             application/json:
               schema:
@@ -1225,4 +1225,3 @@ components:
           type: string
         DPI:
           type: string
-
