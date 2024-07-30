@@ -47,35 +47,3 @@ paths:
     $ref: './paths/doctor_configuration.yaml#/doctorFileTemplate'
   /doctor/FileTemplate/fields:
     $ref: './paths/doctor_configuration.yaml#/doctorFileTemplateFields'
-
-components:
-  schemas:
-    UserInfoResponse:
-      type: object
-      properties:
-        username:
-          type: string
-        name:
-          type: string
-        lastName:
-          type: string
-        phones:
-          type: array
-          items:
-            type: string
-        role:
-          type: string
-        mails:
-          type: array
-          items:
-            type: string
-        collegiateNumber:
-          type: string
-        specialty:
-          type: string
-        startDate:
-          type: string
-        endDate:
-          type: string
-        DPI:
-          type: string
