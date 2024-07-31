@@ -13,6 +13,9 @@ jobs:
         with:
           ref: 'dev'
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
       - name: setup docker buildx
         uses: docker/setup-buildx-action@v3
 
@@ -28,5 +31,8 @@ jobs:
         with:
           context: .
           file: Dockerfile
+          platforms: linux/amd64,linux/arm64,linux/arm64/v8
           push: true
-          tags: therapisttrackapp/tt-backend-dev:latest
+          tags: |
+            therapisttrackapp/tt-backend-dev:latest
+            therapisttrackapp/tt-backend-dev:${{ github.sha }}
