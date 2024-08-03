@@ -46,7 +46,11 @@ exports.createFile = async (req, res) => {
 
     res
       .status(201)
-      .send({ status: 'success', message: 'File created successfully' })
+      .send({
+        status: 'success',
+        message: 'File created successfully',
+        data: { _id: file._id }
+      })
   } catch (error) {
     res.status(400).send({ status: 'error', message: error.message })
   }
@@ -55,8 +59,8 @@ exports.createFile = async (req, res) => {
 //Edit a file
 exports.updateFile = async (req, res) => {
   try {
-    const { name } = req.params
-    const file = await File.findOneAndUpdate({ name }, req.body, { new: true })
+    const { id } = req.params
+    const file = await File.findByIdAndUpdate(id, req.body, { new: true })
     if (!file) {
       return res
         .status(404)
@@ -71,8 +75,8 @@ exports.updateFile = async (req, res) => {
 //Delete file
 exports.deleteFile = async (req, res) => {
   try {
-    const { name } = req.params
-    const file = await File.findOneAndDelete({ name })
+    const { id } = req.params
+    const file = await File.findByIdAndDelete(id)
     if (!file) {
       return res
         .status(404)
@@ -104,8 +108,8 @@ exports.listFiles = async (req, res) => {
 //Get file by id
 exports.getFileById = async (req, res) => {
   try {
-    const { name } = req.params
-    const file = await File.findOne({ name }).populate('record')
+    const { id } = req.params
+    const file = await File.findById(id).populate('record')
     if (!file) {
       return res
         .status(404)
