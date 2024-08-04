@@ -5,11 +5,12 @@ Utiliza Node.js y Express para proporcionar una API REST que interactúa con una
 
 Estas instrucciones te permitirán obtener una copia del proyecto en funcionamiento en tu máquina local para fines de desarrollo y pruebas.
 
-### Prerrequisitos
+# Requerimientos
 
-Necesitas tener instalado Node.js y npm en tu computadora. Opcionalmente, puedes usar Docker para contenerizar la aplicación.
+- Docker
+- NodeJS
 
-## Environment variables
+# Environment variables
 
 El `compose.yaml` necesita de ciertas variables de entorno para inicializar la BD correctamente. Este es un ejemplo un archivo `.env` con dichas variables (debe ser colocado en la raiz del proyecto):
 
@@ -34,7 +35,7 @@ JWT_SECRET='LocalPassword'
 
 💡**NOTA:** Si el DB_HOST cambiara dependiendo si el backend se corre dentro de un contenedor, en esos casos el host será `database` o como lo indique el archivo `compose.yaml` usado.
 
-### Instalación
+# ⬇️ Instalación
 
 Sigue estos pasos para iniciar el proyecto en tu máquina local:
 
@@ -52,55 +53,33 @@ Sigue estos pasos para iniciar el proyecto en tu máquina local:
 
 3. Copiar el archivo .env.example a .env y ajustar las variables de entorno necesarias.
 
-### Ejecución
+# 🏃‍♂️ Ejecución
 
 Para ejecutar la aplicación en un entorno de desarrollo, puedes utilizar Node.js o Docker Compose:
 
-#### Usando Node.js:
+## Usando Node.js:
+
+Para esto es necesario, tener un BD operacional, en algún lado. El host de dicha DB se especifica en el archivo `.env` como se dijo arriba.
 
 ```bash
 npm start
 ```
 
-#### Usando Docker Compose:
+## Usando Docker Compose:
 
-Para iniciar los servicios
+Se cuentan con 2 archivos de `compose`. Pero para propositos de desarrollo te bastará con `compose.test.yaml`, este te levantara una BD y una Backend funcional.
 
-```bash
-docker-compose up
-```
+- **Apagar y eliminar volúmenes para actualizar**
 
-Para detener y eliminar los contenedores creados
+  ```bash
+  docker compose -f compose.test.yaml down -v
+  ```
 
-```bash
-docker-compose down -v
-```
+- **Iniciar y construir la base de datos**
 
-Para reconstruir los contenedores después de realizar cambios
-
-```bash
-docker-compose build
-```
-
-### Uso de compose.test.yaml
-
-1. Primero apagar y eliminar volúmenes para actualizar
-
-   ```bash
-   docker compose -f compose.test.yaml down -v
-   ```
-
-2. Iniciar y construir la base de datos
-
-   ```bash
-   docker compose -f compose.test.yaml up database --build
-   ```
-
-3. Iniciar el backend
-
-   ```bash
-   npm start
-   ```
+  ```bash
+  docker compose -f compose.test.yaml up --build
+  ```
 
 ## Uso de la API
 
@@ -117,21 +96,17 @@ Body:
 }
 ```
 
-### Ejemplo de Uso
+# 📚 Documentación de la API
 
-Para ver ejemplos detallados de cómo interactuar con la API, consulta la sección de documentación de Swagger.
-
-## Documentación de la API
-
-Accede a la documentación interactiva de la API generada con Swagger visitando:
+Esta generada con Redocly, el siguiente comando levantará un página web con la documentación
 
 ```bash
-http://localhost:3001/api-docs
+npx redocly preview-docs ./docs/api-spec.yaml
 ```
 
 Esta documentación proporciona una interfaz para probar todas las rutas disponibles y ver sus especificaciones.
 
-### Construido con
+# 🔨 Construido con
 
 - Node.js - El entorno de ejecución para JavaScript.
 - Express - El framework web utilizado.

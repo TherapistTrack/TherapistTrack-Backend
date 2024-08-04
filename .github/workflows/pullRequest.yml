@@ -21,7 +21,6 @@ jobs:
       DELAY_START: 8000
 
       API_PORT: 3001
-      SHOW_API_DOCS: 'false'
       JWT_SECRET: 'LocalPassword'
     steps:
       - name: Checkout

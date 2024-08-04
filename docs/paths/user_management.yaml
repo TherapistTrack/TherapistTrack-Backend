@@ -1,0 +1,159 @@
+userRegister:
+  post:
+    tags:
+      - Gestión de usuarios
+    summary: Crear usuario
+    description: Permite a los administradores crear un nuevo usuario en el sistema.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              username:
+                type: string
+              password:
+                type: string
+              salt:
+                type: string
+              name:
+                type: string
+              lastName:
+                type: string
+              phones:
+                type: array
+                items:
+                  type: string
+              role:
+                type: string
+              mails:
+                type: array
+                items:
+                  type: string
+              collegiateNumber:
+                type: string
+              specialty:
+                type: string
+              startDate:
+                type: string
+              endDate:
+                type: string
+              DPI:
+                type: string
+    responses:
+      '200':
+        description: Usuario creado exitosamente.
+      '400':
+        description: Error al crear el usuario.
+
+userDelete:
+  delete:
+    tags:
+      - Gestión de usuarios
+    summary: Eliminar usuario
+    description: Cambia el estado de un usuario a inactivo en lugar de eliminar completamente sus datos.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              username:
+                type: string
+    responses:
+      '200':
+        description: Usuario desactivado exitosamente.
+      '404':
+        description: Usuario no encontrado.
+
+userUpdate:
+  put:
+    tags:
+      - Gestión de usuarios
+    summary: Actualizar información de usuario
+    description: Permite a los administradores actualizar la información existente de un usuario.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              username:
+                type: string
+              name:
+                type: string
+              lastName:
+                type: string
+              phones:
+                type: array
+                items:
+                  type: string
+              collegiateNumber:
+                type: string
+              specialty:
+                type: string
+              mails:
+                type: array
+                items:
+                  type: string
+              startDate:
+                type: string
+              endDate:
+                type: string
+              DPI:
+                type: string
+    responses:
+      '200':
+        description: Información de usuario actualizada exitosamente.
+      '404':
+        description: Usuario no encontrado.
+
+userList:
+  get:
+    tags:
+      - Gestión de usuarios
+    summary: Listar usuarios
+    description: Recupera una lista de todos los usuarios en el sistema.
+    responses:
+      '200':
+        description: Lista de usuarios recuperada exitosamente.
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/UserInfoResponse'
+components:
+  schemas:
+    UserInfoResponse:
+      type: object
+      properties:
+        username:
+          type: string
+        name:
+          type: string
+        lastName:
+          type: string
+        phones:
+          type: array
+          items:
+            type: string
+        role:
+          type: string
+        mails:
+          type: array
+          items:
+            type: string
+        collegiateNumber:
+          type: string
+        specialty:
+          type: string
+        startDate:
+          type: string
+        endDate:
+          type: string
+        DPI:
+          type: string

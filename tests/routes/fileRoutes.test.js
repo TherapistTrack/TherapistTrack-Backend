@@ -1,8 +1,8 @@
-const axios = require('axios')
+const request = require('supertest')
 const { BASE_URL } = require('../jest.setup')
 
 describe('File Controller Tests', () => {
-  let testFileId
+  const baseUrl = BASE_URL + '/files'
 
   it('should create a new file for a  patient', async () => {
     const fileData = {
@@ -23,12 +23,11 @@ describe('File Controller Tests', () => {
     }
 
     try {
-      const response = await axios.post(`${BASE_URL}/files/create`, fileData)
-      expect(response.status).toBe(201)
-      expect(response.data.status).toBe('success')
-      expect(response.data.message).toBe('File created successfully')
-      testFileId = response.data.data._id
-      console.log('Test file id:', testFileId)
+      const response = await request(baseUrl).post('/create').send(fileData)
+
+      expect(response.statusCode).toBe(201)
+      expect(response.body.status).toBe('success')
+      expect(response.body.message).toBe('File created successfully')
     } catch (error) {
       console.error('Error during test:', error)
       throw error
@@ -42,14 +41,14 @@ describe('File Controller Tests', () => {
     }
 
     try {
-      const response = await axios.put(
-        `${BASE_URL}/files/update/${testFileId}`,
-        updatedFileData
-      )
-      expect(response.status).toBe(200)
-      expect(response.data.status).toBe('success')
-      expect(response.data.data.category).toBe('yes or no')
-      expect(response.data.data.pages).toBe(4)
+      const response = await request(baseUrl)
+        .put('/update/testfile')
+        .send(updatedFileData)
+
+      expect(response.statusCode).toBe(200)
+      expect(response.body.status).toBe('success')
+      expect(response.body.data.category).toBe('yes or no')
+      expect(response.body.data.pages).toBe(4)
     } catch (error) {
       console.error('Error during test:', error)
       throw error
@@ -58,28 +57,29 @@ describe('File Controller Tests', () => {
 
   it('should list files with default parameters', async () => {
     try {
-      const response = await axios.get(`${BASE_URL}/files/listFiles`, {
-        params: { limit: 10, sortBy: 'created_at', order: 'asc' }
-      })
+      const response = await request(baseUrl)
+        .get('/listFiles')
+        .query({ limit: 10, sortBy: 'created_at', order: 'asc' })
 
-      expect(response.status).toBe(200)
-      expect(Array.isArray(response.data)).toBe(true)
-      expect(response.data.length).toBeGreaterThan(0)
+      expect(response.statusCode).toBe(200)
+      expect(Array.isArray(response.body)).toBe(true)
+      expect(response.body.length).toBeGreaterThan(0)
     } catch (error) {
       console.error('Error during test:', error)
       throw error
     }
   })
 
-  it('should get a file by id', async () => {
+  it('should get a file by name', async () => {
     try {
-      const response = await axios.get(`${BASE_URL}/files/file/${testFileId}`)
-      console.log('Response:', response.data)
+      const response = await request(baseUrl).get('/file/testfile')
 
-      const fileId = response.data._id
-      expect(response.status).toBe(200)
-      expect(response.data._id).toBe(fileId)
-      expect(response.data.name).toBe('testfile')
+      console.log('Response:', response.body)
+
+      const fileId = response.body._id
+      expect(response.statusCode).toBe(200)
+      expect(response.body._id).toBe(fileId)
+      expect(response.body.name).toBe('testfile')
     } catch (error) {
       console.error('Error during test:', error)
       throw error
@@ -88,13 +88,11 @@ describe('File Controller Tests', () => {
 
   it('should delete an existing file', async () => {
     try {
-      const response = await axios.delete(
-        `${BASE_URL}/files/delete/${testFileId}`
-      )
+      const response = await request(baseUrl).delete('/delete/testfile')
 
-      expect(response.status).toBe(200)
-      expect(response.data.status).toBe('success')
-      expect(response.data.message).toBe('File deleted successfully')
+      expect(response.statusCode).toBe(200)
+      expect(response.body.status).toBe('success')
+      expect(response.body.message).toBe('File deleted successfully')
     } catch (error) {
       console.error('Error during test:', error)
       throw error
