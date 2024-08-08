@@ -12,19 +12,27 @@ const metadataSchema = new mongoose.Schema({
   required: { type: Boolean, required: true }
 })
 
-const fileSchema = new mongoose.Schema({
-  record: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Usuario',
-    required: true
+const fileSchema = new mongoose.Schema(
+  {
+    record: {
+      type: mongoose.Schema.Types.ObjectId,
+      //ref: 'Record',
+      required: true
+    },
+    template: {
+      type: mongoose.Schema.Types.ObjectId,
+      //ref: 'fileTemplate',
+      required: true
+    },
+    name: { type: String, required: true },
+    category: { type: String, required: true },
+    location: { type: String, required: true },
+    pages: { type: Number, required: true },
+    created_at: { type: Date, default: Date.now },
+    metadata: [metadataSchema]
   },
-  name: { type: String, required: true },
-  category: { type: String, required: true },
-  location: { type: String, required: true },
-  pages: { type: Number, required: true },
-  created_at: { type: Date, default: Date.now },
-  metadata: [metadataSchema]
-})
+  { collection: 'File' }
+)
 
 const File = mongoose.model('File', fileSchema)
 

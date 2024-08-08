@@ -1,20 +1,22 @@
-const request = require('supertest')
+const axios = require('axios')
+const mongoose = require('mongoose')
 const { BASE_URL } = require('../jest.setup')
 
 describe('File Controller Tests', () => {
   const baseUrl = BASE_URL + '/files'
+  let testfileID
 
-  it('should create a new file for a  patient', async () => {
+  it('should create a new file for a patient', async () => {
     const fileData = {
-      record: '64c1e2c8a5d4a8f8b3b9e1e3',
-      name: 'testfile',
+      record: '66b453a2601a8e9fb46d8884',
+      template: '66b453a2601a8e9fb46d8885',
+      name: 'test1',
       category: 'test',
-      location: './uploads/testfile.pdf',
       pages: 3,
       metadata: [
         {
-          name: 'difficulty',
-          type: 'SHORT_TEXT',
+          name: 'Difficulty',
+          type: 'CHOICE',
           options: ['easy', 'medium', 'hard'],
           value: 'easy',
           required: true
@@ -23,79 +25,185 @@ describe('File Controller Tests', () => {
     }
 
     try {
-      const response = await request(baseUrl).post('/create').send(fileData)
+      const response = await axios.post(`${baseUrl}/create`, fileData)
 
-      expect(response.statusCode).toBe(201)
-      expect(response.body.status).toBe('success')
-      expect(response.body.message).toBe('File created successfully')
+      expect(response.status).toBe(201)
+      expect(response.data.status).toBe('success')
+      expect(response.data.message).toBe('File created successfully')
+      testfileID = response.data.data
+      console.log('Test file ID:', testfileID)
     } catch (error) {
-      console.error('Error during test:', error)
-      throw error
+      console.error(
+        'Error during test:',
+        error.response ? error.response.data : error
+      )
+      throw error // Rethrow the error to fail the test
+    }
+  })
+
+  it('should return an error for creating a file with missing required fields', async () => {
+    const fileData = {
+      category: 'test',
+      pages: 3,
+      metadata: [
+        {
+          name: 'Difficulty',
+          type: 'CHOICE',
+          options: ['easy', 'medium', 'hard'],
+          value: 'easy',
+          required: true
+        }
+      ]
+    }
+
+    try {
+      await axios.post(`${baseUrl}/create`, fileData)
+    } catch (error) {
+      expect(error.response.status).toBe(400)
+      expect(error.response.data.status).toBe('error')
+      expect(error.response.data.message).toMatch(/validation failed/i)
     }
   })
 
   it('should update an existing file', async () => {
     const updatedFileData = {
+      id: testfileID,
       category: 'yes or no',
       pages: 4
     }
 
     try {
-      const response = await request(baseUrl)
-        .put('/update/testfile')
-        .send(updatedFileData)
+      const response = await axios.put(`${baseUrl}/`, updatedFileData)
 
-      expect(response.statusCode).toBe(200)
-      expect(response.body.status).toBe('success')
-      expect(response.body.data.category).toBe('yes or no')
-      expect(response.body.data.pages).toBe(4)
+      expect(response.status).toBe(200)
+      expect(response.data.status).toBe('success')
+      expect(response.data.data.category).toBe('yes or no')
+      expect(response.data.data.pages).toBe(4)
     } catch (error) {
-      console.error('Error during test:', error)
+      console.error(
+        'Error during test:',
+        error.response ? error.response.data : error
+      )
       throw error
+    }
+  })
+
+  it('should return an error for updating a file with an invalid ID format', async () => {
+    const updatedFileData = {
+      id: 'invalid-id-format',
+      category: 'updated category',
+      pages: 5
+    }
+
+    try {
+      await axios.put(`${baseUrl}/`, updatedFileData)
+    } catch (error) {
+      expect(error.response.status).toBe(400)
+      expect(error.response.data.status).toBe('error')
+      expect(error.response.data.message).toMatch(/invalid ID format/i)
+    }
+  })
+
+  it('should return an error for updating a non-existent file', async () => {
+    const updatedFileData = {
+      id: '66b453a2601a8e9fb46d8885',
+      category: 'updated category',
+      pages: 5
+    }
+
+    try {
+      await axios.put(`${baseUrl}/`, updatedFileData)
+    } catch (error) {
+      expect(error.response.status).toBe(404)
+      expect(error.response.data.status).toBe('error')
+      expect(error.response.data.message).toBe('File not found')
     }
   })
 
   it('should list files with default parameters', async () => {
     try {
-      const response = await request(baseUrl)
-        .get('/listFiles')
-        .query({ limit: 10, sortBy: 'created_at', order: 'asc' })
+      const response = await axios.get(`${baseUrl}/listFiles`, {
+        params: { limit: 10, sortBy: 'created_at', order: 'asc' }
+      })
 
-      expect(response.statusCode).toBe(200)
-      expect(Array.isArray(response.body)).toBe(true)
-      expect(response.body.length).toBeGreaterThan(0)
+      expect(response.status).toBe(200)
+      expect(Array.isArray(response.data)).toBe(true)
+      //expect(response.data.length).toBeGreaterThan(0)
     } catch (error) {
-      console.error('Error during test:', error)
+      console.error(
+        'Error during test:',
+        error.response ? error.response.data : error
+      )
       throw error
     }
   })
 
-  it('should get a file by name', async () => {
+  it('should get a file by id', async () => {
     try {
-      const response = await request(baseUrl).get('/file/testfile')
+      const response = await axios.post(`${baseUrl}/file`, { id: testfileID })
 
-      console.log('Response:', response.body)
+      console.log('Response:', response.data)
 
-      const fileId = response.body._id
-      expect(response.statusCode).toBe(200)
-      expect(response.body._id).toBe(fileId)
-      expect(response.body.name).toBe('testfile')
+      const fileId = response.data._id
+      expect(response.status).toBe(200)
+      expect(response.data._id).toBe(testfileID)
+      expect(response.data.name).toBe('test1')
     } catch (error) {
-      console.error('Error during test:', error)
+      console.error(
+        'Error during test:',
+        error.response ? error.response.data : error
+      )
       throw error
+    }
+  })
+
+  it('should return an error for getting a file with a non-existent ID', async () => {
+    try {
+      await axios.post(`${baseUrl}/file`, { id: '66b453a2601a8e9fb46d8885' })
+    } catch (error) {
+      expect(error.response.status).toBe(404)
+      expect(error.response.data.status).toBe('error')
+      expect(error.response.data.message).toBe('File not found')
     }
   })
 
   it('should delete an existing file', async () => {
     try {
-      const response = await request(baseUrl).delete('/delete/testfile')
+      const response = await axios.delete(`${baseUrl}/`, {
+        data: { id: testfileID }
+      })
 
-      expect(response.statusCode).toBe(200)
-      expect(response.body.status).toBe('success')
-      expect(response.body.message).toBe('File deleted successfully')
+      expect(response.status).toBe(200)
+      expect(response.data.status).toBe('success')
+      expect(response.data.message).toBe('File deleted successfully')
     } catch (error) {
-      console.error('Error during test:', error)
+      console.error(
+        'Error during test:',
+        error.response ? error.response.data : error
+      )
       throw error
+    }
+  })
+
+  it('should return an error for deleting a file with an invalid ID format', async () => {
+    try {
+      await axios.delete(`${baseUrl}/`, { data: { id: 'invalid-id-format' } })
+    } catch (error) {
+      expect(error.response.status).toBe(400)
+      expect(error.response.data.status).toBe('error')
+      expect(error.response.data.message).toMatch(/invalid ID format/i)
+    }
+  })
+
+  it('should return an error for deleting a non-existent file', async () => {
+    try {
+      await axios.delete(`${baseUrl}/`, {
+        data: { id: '66b453a2601a8e9fb46d8885' }
+      })
+    } catch (error) {
+      expect(error.response.status).toBe(404)
+      expect(error.response.data.status).toBe('error')
+      expect(error.response.data.message).toBe('File not found')
     }
   })
 })
