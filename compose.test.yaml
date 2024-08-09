@@ -29,11 +29,13 @@ services:
       JWT_SECRET: '${JWT_SECRET}'
       API_PORT: '${API_PORT}'
       DELAY_START: '${DELAY_START}'
+      LOGGING_METHOD: '${LOGGING_METHOD}'
+      LOGGING_FILE_PATH: '${LOGGING_FILE_PATH}'
     volumes:
-      - node_modules:/backend/node_modules
+      - backend_logs:/backend/logs
 
 volumes:
   mongo_data:
     driver: local
-  node_modules:
+  backend_logs:
     driver: local

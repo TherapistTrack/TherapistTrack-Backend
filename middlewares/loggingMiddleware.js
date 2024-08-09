@@ -6,14 +6,14 @@ const logger = createLogger({
   format: combine(timestamp(), json()),
   transports: [
     process.env.LOGGING_METHOD === 'FILE'
-      ? new transports.File({ filename: 'logs.txt' })
+      ? new transports.File({ filename: './logs/logs.txt' })
       : new transports.Console()
   ]
 })
 
 const loggingMiddleware = (req, res, next) => {
   const startTime = Date.now()
-  const THRESHOLD = 500;
+  const THRESHOLD = 500
 
   res.on('finish', () => {
     const logEntry = {
