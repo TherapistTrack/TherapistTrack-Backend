@@ -1,6 +1,7 @@
 require('dotenv').config()
 const express = require('express')
 const cors = require('cors')
+const loggingMiddleware = require('./middlewares/loggingMiddleware');
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms))
@@ -10,6 +11,7 @@ async function main() {
   const app = express()
   app.use(express.json())
   app.use(cors())
+  app.use(loggingMiddleware);
 
   // Import Routes
   const userRoutes = require('./routes/userRoutes')
