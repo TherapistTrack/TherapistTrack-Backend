@@ -31,6 +31,7 @@ DB_URI='mongodb://admin:1234@localhost:27017/therapisttrack'
 API_PORT=3001
 DELAY_START=8000
 JWT_SECRET='LocalPassword'
+LOGGING_METHOD=FILE
 ```
 
 💡**NOTA:** Si el DB_HOST cambiara dependiendo si el backend se corre dentro de un contenedor, en esos casos el host será `database` o como lo indique el archivo `compose.yaml` usado.
