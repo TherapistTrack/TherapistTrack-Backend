@@ -32,6 +32,12 @@ API_PORT=3001
 DELAY_START=8000
 JWT_SECRET='LocalPassword'
 LOGGING_METHOD=FILE
+
+#AWS
+AWS_ACCESS_KEY_ID=AKIA6GBMBLDAICCFADY5
+AWS_SECRET_ACCESS_KEY=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
+AWS_REGION= us-east-2
+AWS_BUCKET_NAME='bucket-therapisttrack'
 ```
 
 💡**NOTA:** Si el DB_HOST cambiara dependiendo si el backend se corre dentro de un contenedor, en esos casos el host será `database` o como lo indique el archivo `compose.yaml` usado.
