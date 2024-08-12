@@ -31,6 +31,10 @@ services:
       DELAY_START: '${DELAY_START}'
       LOGGING_METHOD: '${LOGGING_METHOD}'
       LOGGING_FILE_PATH: '${LOGGING_FILE_PATH}'
+      AWS_ACCESS_KEY_ID: '${AWS_ACCESS_KEY_ID}'
+      AWS_SECRET_ACCESS_KEY: '${AWS_SECRET_ACCESS_KEY}'
+      AWS_REGION: '${AWS_REGION}'
+      AWS_BUCKET_NAME: '${AWS_BUCKET_NAME}'
     volumes:
       - backend_logs:/backend/logs
 

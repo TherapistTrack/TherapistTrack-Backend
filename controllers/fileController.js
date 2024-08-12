@@ -12,6 +12,7 @@ exports.createFile = async (req, res) => {
   const { record, template, name, category, pages, created_at, metadata } =
     req.body
   const uploadfile = req.file
+  let newmetadata
 
   // Validate the request of a file in the body
   if (!uploadfile || !uploadfile.buffer) {
@@ -21,10 +22,18 @@ exports.createFile = async (req, res) => {
   }
 
   try {
+    newmetadata = JSON.parse(metadata)
+  } catch (error) {
+    return res
+      .status(400)
+      .json({ status: 'error', message: 'Invalid metadata format' })
+  }
+
+  try {
     const fileExtension = uploadfile.originalname.split('.').pop()
     const key = `${record}/${uploadfile.originalname}.${fileExtension}`
     const s3Response = await s3Upload(key, uploadfile.buffer)
-    const location = s3Response.Location
+    const location = s3Response.Location.split('.com/')[1]
 
     //const isValidObjectId = mongoose.Types.ObjectId.isValid(record)
     //const isValidtemplateId = mongoose.Types.ObjectId.isValid(template)
@@ -39,7 +48,7 @@ exports.createFile = async (req, res) => {
       location,
       pages,
       created_at: created_at || new Date(),
-      metadata
+      newmetadata
     }
 
     console.log(fileData)
@@ -91,12 +100,25 @@ exports.deleteFile = async (req, res) => {
         .status(400)
         .send({ status: 'error', message: 'Invalid ID format' })
     }
-    const file = await File.findByIdAndDelete(id)
+    const file = await File.findById(id)
     if (!file) {
       return res
         .status(404)
         .send({ status: 'error', message: 'File not found' })
     }
+
+    if (file.location) {
+      try {
+        await s3Delete(file.location)
+      } catch (s3Error) {
+        return res
+          .status(500)
+          .send({ status: 'error', message: 'Failed to delete file from S3' })
+      }
+    }
+
+    await File.findByIdAndDelete(id)
+
     res
       .status(200)
       .send({ status: 'success', message: 'File deleted successfully' })
@@ -130,7 +152,28 @@ exports.getFileById = async (req, res) => {
         .status(404)
         .send({ status: 'error', message: 'File not found' })
     }
-    res.status(200).json(file)
+    if (file.location) {
+      try {
+        const s3Response = await s3Download(file.location)
+        const fileBuffer = s3Response.Body
+
+        res.setHeader('Content-Type', s3Response.ContentType)
+        res.setHeader(
+          'Content-Disposition',
+          `attachment; filename="${file.name}"`
+        )
+
+        res
+          .status(200)
+          .json({ s3file: fileBuffer.toString('base64'), file: file })
+      } catch (s3Error) {
+        return res
+          .status(500)
+          .send({ status: 'error', message: 'Failed to download file from S3' })
+      }
+    } else {
+      res.status(200).json(file)
+    }
   } catch (error) {
     res.status(400).send({ status: 'error', message: error.message })
   }
