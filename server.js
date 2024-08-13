@@ -1,6 +1,5 @@
 require('dotenv').config()
 const express = require('express')
-const cors = require('./middlewares/corsMiddleware')
 const loggingMiddleware = require('./middlewares/loggingMiddleware')
 const corsMiddleware = require('./middlewares/corsMiddleware')
 
@@ -11,7 +10,7 @@ async function main() {
   await sleep(process.env.DELAY_START)
   const app = express()
 
-  app.use([express.json(), cors(), loggingMiddleware, corsMiddleware])
+  app.use([express.json(), loggingMiddleware, corsMiddleware])
 
   // Import Routes
   const userRoutes = require('./routes/userRoutes')
