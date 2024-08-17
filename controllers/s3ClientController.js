@@ -2,7 +2,7 @@ const s3 = require('../models/s3ClientModel')
 
 exports.s3Upload = (key, body) => {
   const params = {
-    Bucket: process.env.AWS_BUCKET_NAME,
+    Bucket: process.env.AWS_BUCKET_NAME_TEST,
     Key: key,
     Body: body
   }
@@ -12,7 +12,7 @@ exports.s3Upload = (key, body) => {
 
 exports.s3Delete = (key) => {
   const params = {
-    Bucket: process.env.AWS_BUCKET_NAME,
+    Bucket: process.env.AWS_BUCKET_NAME_TEST,
     Key: key
   }
 
@@ -21,7 +21,7 @@ exports.s3Delete = (key) => {
 
 exports.s3Download = (key) => {
   const params = {
-    Bucket: process.env.AWS_BUCKET_NAME,
+    Bucket: process.env.AWS_BUCKET_NAME_TEST,
     Key: key
   }
 
