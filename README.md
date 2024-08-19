@@ -15,23 +15,40 @@ Estas instrucciones te permitirán obtener una copia del proyecto en funcionamie
 El `compose.yaml` necesita de ciertas variables de entorno para inicializar la BD correctamente. Este es un ejemplo un archivo `.env` con dichas variables (debe ser colocado en la raiz del proyecto):
 
 ```bash
-# BUCKET
-BUCKET_HOST=none
-
 # DATABASE
 DB_ADMIN_USER=root
 DB_ADMIN_PASSWORD=1234
-DB_HOST=localhost
+DB_HOST=database
 DB_NAME=therapisttrack
 DB_USER=administrator
 DB_USER_PASSWORD=1234
 DB_PORT=27017
 
-DB_URI='mongodb://admin:1234@localhost:27017/therapisttrack'
+# RUNNING MODE (TEST, PRODUCTION)
+# Usado para determinar el comportamiento de la app y que servicios llamar durante el testing.
+RUNNING_MODE='TEST'
+
+# BACKEND
 API_PORT=3001
-DELAY_START=8000
+  #(MILISECONDS)
+DELAY_START=8000 
 JWT_SECRET='LocalPassword'
-LOGGING_METHOD=FILE
+  # (FILE, CONSOLE)
+LOGGING_METHOD=FILE 
+LOGGING_PATH='./logs'
+
+#CORS
+ALLOWED_ORIGINS=*
+ALLOWED_CONTENT_TYPES=*
+ALLOWED_METHODS=GET,POST,PUT,DELETE,OPTIONS
+ALLOWED_HEADERS=*
+
+# S3
+AWS_ACCESS_KEY_ID=<secret>
+AWS_SECRET_ACCESS_KEY=<secret>
+AWS_REGION=<secret>
+AWS_BUCKET_NAME=<secret>
+AWS_BUCKET_NAME_TEST=<secret>
 ```
 
 💡**NOTA:** Si el DB_HOST cambiara dependiendo si el backend se corre dentro de un contenedor, en esos casos el host será `database` o como lo indique el archivo `compose.yaml` usado.
