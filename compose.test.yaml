@@ -26,6 +26,7 @@ services:
       DB_USER: '${DB_USER}'
       DB_USER_PASSWORD: '${DB_USER_PASSWORD}'
       DB_PORT: '${DB_PORT}'
+      RUNNING_MODE: '${RUNNING_MODE}'
       JWT_SECRET: '${JWT_SECRET}'
       API_PORT: '${API_PORT}'
       DELAY_START: '${DELAY_START}'
