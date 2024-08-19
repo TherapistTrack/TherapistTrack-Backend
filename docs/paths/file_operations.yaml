@@ -1,41 +1,168 @@
-upload:
+createFile:
   post:
     tags:
       - Operaciones de archivo
-    summary: Sube un archivo PDF
-    description: Permite a los usuarios subir un archivo PDF al servidor.
+    summary: Crear un nuevo archivo para un paciente
+    description: Permite a los usuarios crear un nuevo archivo asociado a un paciente, y subir el archivo a S3.
     requestBody:
       content:
         multipart/form-data:
           schema:
             type: object
             properties:
-              pdf:
+              record:
+                type: string
+                description: ID del registro del paciente.
+              template:
+                type: string
+                description: ID de la plantilla asociada al archivo.
+              name:
+                type: string
+                description: Nombre del archivo.
+              category:
+                type: string
+                description: Categoría del archivo.
+              pages:
+                type: number
+                description: Número de páginas del archivo.
+              created_at:
+                type: string
+                format: date-time
+                description: Fecha de creación del archivo.
+              metadata:
+                type: string
+                description: Metadatos adicionales del archivo en formato JSON.
+              file:
                 type: string
                 format: binary
+                description: Archivo que se va a subir.
     responses:
-      '200':
-        description: Archivo subido correctamente.
+      '201':
+        description: Archivo creado exitosamente.
       '400':
-        description: Error al subir el archivo.
+        description: Error al crear el archivo.
 
-pdfFilename:
-  get:
+
+updateFile:
+  put:
     tags:
       - Operaciones de archivo
-    summary: Descarga un archivo PDF
-    description: Permite a los usuarios descargar un archivo PDF por nombre de archivo.
-    parameters:
-      - in: path
-        name: filename
-        schema:
-          type: string
-        required: true
-        description: Nombre del archivo PDF para descargar.
+    summary: Editar un archivo
+    description: Permite a los usuarios editar la información de un archivo existente.
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              id:
+                type: string
+                description: ID del archivo a editar.
+              record:
+                type: string
+                description: ID del registro del paciente.
+              template:
+                type: string
+                description: ID de la plantilla asociada al archivo.
+              name:
+                type: string
+                description: Nombre del archivo.
+              category:
+                type: string
+                description: Categoría del archivo.
+              location:
+                type: string
+                description: Ubicación del archivo en S3.
+              pages:
+                type: number
+                description: Número de páginas del archivo.
+              metadata:
+                type: object
+                description: Metadatos adicionales del archivo.
     responses:
       '200':
-        description: Archivo descargado correctamente.
+        description: Archivo editado exitosamente.
+      '400':
+        description: Error al editar el archivo.
+      '404':
+        description: Archivo no encontrado.
+
+  delete:
+    tags:
+      - Operaciones de archivo
+    summary: Eliminar un archivor
+    description: Permite a los usuarios eliminar un archivo existente, tanto en la base de datos como en S3.
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              id:
+                type: string
+                description: ID del archivo a eliminar.
+    responses:
+      '200':
+        description: Archivo eliminado exitosamente.
+      '400':
+        description: Error al eliminar el archivo.
       '404':
         description: Archivo no encontrado.
       '500':
-        description: Error al procesar la solicitud.
+        description: Error al eliminar el archivo de S3.
+
+listFiles:
+  get:
+    tags:
+      - Operaciones de archivo
+    summary: Listar archivos de un doctor.
+    description: Permite a los usuarios obtener una lista de los últimos archivos creados.
+    parameters:
+      - in: query
+        name: limit
+        schema:
+          type: integer
+        required: false
+        description: Número máximo de archivos a listar (por defecto 10).
+      - in: query
+        name: sortBy
+        schema:
+          type: string
+        required: false
+        description: Campo por el cual se ordenarán los archivos (por defecto 'created_at').
+      - in: query
+        name: order
+        schema:
+          type: string
+        required: false
+        description: Orden de la lista ('asc' para ascendente, 'desc' para descendente, por defecto 'asc').
+    responses:
+      '200':
+        description: Lista de archivos obtenida exitosamente.
+      '400':
+        description: Error al obtener la lista de archivos.
+
+getFileById:
+  post:
+    tags:
+      - Operaciones de archivo
+    summary: Obtiener un archivo por su ID
+    description: Permite a los usuarios obtener la información de un archivo específico por su ID y descargarlo desde S3 si existe.
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              id:
+                type: string
+                description: ID del archivo a obtener.
+    responses:
+      '200':
+        description: Archivo obtenido exitosamente.
+      '400':
+        description: Error al obtener el archivo.
+      '404':
+        description: Archivo no encontrado.
+      '500':
+        description: Error al descargar el archivo desde S3.
