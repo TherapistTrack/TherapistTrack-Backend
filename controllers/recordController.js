@@ -32,7 +32,7 @@ exports.createRecord = async (req, res) => {
 
 // Edit a record
 exports.editRecord = async (req, res) => {
-  const { recordId, patient } = req.body
+  const { doctorId, recordId, patient } = req.body
 
   /*
     const isValidObjectId = mongoose.Types.ObjectId.isValid(recordId)
@@ -42,11 +42,17 @@ exports.editRecord = async (req, res) => {
     */
 
   try {
+    const record = await Record.findById(recordId)
+
     const updatedRecord = await Record.findByIdAndUpdate(
       recordId,
       { patient },
       { new: true }
     )
+
+    if (record.doctorId !== doctorId) {
+      return res.status(403).json({ error: 'Unauthorized' })
+    }
 
     if (!updatedRecord) {
       return res.status(404).json({ error: 'Record not found' })
@@ -60,7 +66,7 @@ exports.editRecord = async (req, res) => {
 
 // Delete a record
 exports.deleteRecord = async (req, res) => {
-  const { recordId } = req.body
+  const { doctorId, recordId } = req.body
 
   /*
     const isValidObjectId = mongoose.Types.ObjectId.isValid(recordId)
@@ -70,7 +76,14 @@ exports.deleteRecord = async (req, res) => {
     */
 
   try {
-    await Record.findByIdAndDelete(recordId)
+    const record = await Record.findById(recordId)
+    if (!record) {
+      return res.status(404).json({ error: 'Record not found' })
+    }
+    if (record.doctorId !== doctorId) {
+      return res.status(403).json({ error: 'Unauthorized' })
+    }
+    await record.remove()
     res.status(200).json({ message: 'Record deleted successfully' })
   } catch (error) {
     res.status(500).json({ error: 'Error deleting the record' })
@@ -79,12 +92,12 @@ exports.deleteRecord = async (req, res) => {
 
 // List records
 exports.listRecords = async (req, res) => {
-  const { limit, offset } = req.body
+  const { doctorId, limit, offset } = req.body
 
   try {
-    const records = await Record.find().skip(offset).limit(limit)
+    const records = await Record.find({ doctorId }).skip(offset).limit(limit)
 
-    const total = await Record.countDocuments()
+    const total = await Record.countDocuments({ doctorId })
 
     res.status(200).json({
       records,
@@ -97,7 +110,7 @@ exports.listRecords = async (req, res) => {
 
 // Get a record by its ID
 exports.getRecordById = async (req, res) => {
-  const { recordId } = req.body
+  const { doctorId, recordId } = req.body
 
   /*
     const isValidObjectId = mongoose.Types.ObjectId.isValid(recordId)
@@ -111,6 +124,9 @@ exports.getRecordById = async (req, res) => {
 
     if (!record) {
       return res.status(404).json({ error: 'Record not found' })
+    }
+    if (record.doctorId !== doctorId) {
+      return res.status(403).json({ error: 'Unauthorized' })
     }
 
     res.status(200).json({ record })
