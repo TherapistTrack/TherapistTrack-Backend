@@ -34,15 +34,13 @@ paths:
   /user/list:
     $ref: './paths/user_management.yaml#/userList'
 
-  /createFile:
+  /files/create:
     $ref: './paths/file_operations.yaml#/createFile'
-  /updateFile:
+  /files/:
     $ref: './paths/file_operations.yaml#/updateFile'
-  /deleteFile:
-    $ref: './paths/file_operations.yaml#/deleteFile'
-  /listFiles:
+  /files/listFiles:
     $ref: './paths/file_operations.yaml#/listFiles'
-  /getFileById:
+  /files/file:
     $ref: './paths/file_operations.yaml#/getFileById'
 
   /doctor/PatientTemplate:

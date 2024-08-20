@@ -2,7 +2,7 @@ createFile:
   post:
     tags:
       - Operaciones de archivo
-    summary: Crea un nuevo archivo y un nuevo paciente
+    summary: Crear un nuevo archivo para un paciente
     description: Permite a los usuarios crear un nuevo archivo asociado a un paciente, y subir el archivo a S3.
     requestBody:
       content:
@@ -47,7 +47,7 @@ updateFile:
   put:
     tags:
       - Operaciones de archivo
-    summary: Edita un archivo existente
+    summary: Editar un archivo
     description: Permite a los usuarios editar la información de un archivo existente.
     requestBody:
       content:
@@ -87,12 +87,10 @@ updateFile:
       '404':
         description: Archivo no encontrado.
 
-
-deleteFile:
   delete:
     tags:
       - Operaciones de archivo
-    summary: Elimina un archivo existente
+    summary: Eliminar un archivor
     description: Permite a los usuarios eliminar un archivo existente, tanto en la base de datos como en S3.
     requestBody:
       content:
@@ -117,7 +115,7 @@ listFiles:
   get:
     tags:
       - Operaciones de archivo
-    summary: Lista los últimos 10 archivos
+    summary: Listar archivos de un doctor.
     description: Permite a los usuarios obtener una lista de los últimos archivos creados.
     parameters:
       - in: query
@@ -148,7 +146,7 @@ getFileById:
   post:
     tags:
       - Operaciones de archivo
-    summary: Obtiene un archivo por su ID
+    summary: Obtiener un archivo por su ID
     description: Permite a los usuarios obtener la información de un archivo específico por su ID y descargarlo desde S3 si existe.
     requestBody:
       content:
