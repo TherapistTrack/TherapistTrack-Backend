@@ -4,12 +4,12 @@ const RecordSchema = new mongoose.Schema(
   {
     doctorId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Doctor',
+      //ref: 'Doctor',
       required: true
     },
     templateId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'PatientTemplate',
+      //ref: 'PatientTemplate',
       required: true
     },
     patient: {
