@@ -22,7 +22,6 @@ async function main() {
   // Use Routes
   app.use('/users', userRoutes)
   app.use('/files', fileRoutes)
-
   app.get('/health', async (req, res) => {
     res.status(200).send({ message: 'API is up!' })
   })
