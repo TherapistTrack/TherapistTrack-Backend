@@ -2,9 +2,9 @@ const corsMiddleware = (req, res, next) => {
   const allowedOrigins = process.env.ALLOWED_ORIGINS.split(',')
   const allowedContentTypes = process.env.ALLOWED_CONTENT_TYPES.split(',')
   const allowedMethods = process.env.ALLOWED_METHODS.split(',')
-  const allowedHeaders = process.env.ALLOWED_HEADERS.split(',')
 
   const origin = req.headers.origin
+  console.log(req.headers)
   const contentType = req.headers['content-type']
 
   // Manejo de preflight request (OPTIONS)
@@ -32,18 +32,6 @@ const corsMiddleware = (req, res, next) => {
   // Verificación de Content-Type
   if (contentType && !allowedContentTypes.includes(contentType)) {
     return res.status(400).json({ error: 'Content-Type no permitido' })
-  }
-
-  // Verificación de encabezados permitidos
-  const requestHeaders = Object.keys(req.headers)
-  const disallowedHeaders = requestHeaders.filter(
-    (header) => !allowedHeaders.includes(header)
-  )
-
-  if (disallowedHeaders.length > 0) {
-    return res
-      .status(400)
-      .json({ error: 'Encabezados no permitidos', headers: disallowedHeaders })
   }
 
   // Configuración de los encabezados CORS
