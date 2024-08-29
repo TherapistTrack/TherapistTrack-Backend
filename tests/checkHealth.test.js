@@ -11,7 +11,8 @@ describe('Check API health', () => {
   it('Should return 200 code', async () => {
     console.log(BASE_URL)
     const response = await axios.get(`${BASE_URL}/health`, { headers })
+    console.log(response.data)
     // console.log(response)
-    expect(200).toBe(200)
+    expect(response.status).toBe(200)
   })
 })
