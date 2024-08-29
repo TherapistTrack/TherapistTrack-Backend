@@ -4,6 +4,11 @@ on:
     branches:
       - dev
       - main
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - edited
 
 jobs:
   test:
@@ -21,6 +26,11 @@ jobs:
       DELAY_START: 8000
       API_PORT: 3001
       JWT_SECRET: 'LocalPassword'
+      LOGGING_METHOD: 'FILE'
+      ALLOWED_ORIGINS: 'http://localhost'
+      ALLOWED_CONTENT_TYPES: 'application/json'
+      ALLOWED_METHODS: 'GET,POST,PUT,DELETE,OPTIONS'
+      ALLOWED_HEADERS: 'Content-Type,Authorization'
       LOGGING_METHOD: 'CONSOLE'
       LOGGING_FILE_PATH: './logs'
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}

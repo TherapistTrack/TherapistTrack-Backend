@@ -9,6 +9,12 @@ describe('File Controller Tests', () => {
   const baseUrl = BASE_URL + '/files'
   let testfileID
 
+  const headers = {
+    'Content-Type': 'application/json',
+    Authorization: 'Bearer your_token_here',
+    Origin: 'http://localhost'
+  }
+
   it('should create a new file for a patient', async () => {
     const form = new FormData()
 
@@ -69,7 +75,7 @@ describe('File Controller Tests', () => {
     }
 
     try {
-      await axios.post(`${baseUrl}/create`, fileData)
+      await axios.post(`${baseUrl}/create`, fileData, { headers })
     } catch (error) {
       expect(error.response.status).toBe(400)
       expect(error.response.data.status).toBe('error')
@@ -85,7 +91,9 @@ describe('File Controller Tests', () => {
     }
 
     try {
-      const response = await axios.put(`${baseUrl}/`, updatedFileData)
+      const response = await axios.put(`${baseUrl}/`, updatedFileData, {
+        headers
+      })
 
       expect(response.status).toBe(200)
       expect(response.data.status).toBe('success')
@@ -108,7 +116,7 @@ describe('File Controller Tests', () => {
     }
 
     try {
-      await axios.put(`${baseUrl}/`, updatedFileData)
+      await axios.put(`${baseUrl}/`, updatedFileData, { headers })
     } catch (error) {
       expect(error.response.status).toBe(400)
       expect(error.response.data.status).toBe('error')
@@ -124,7 +132,7 @@ describe('File Controller Tests', () => {
     }
 
     try {
-      await axios.put(`${baseUrl}/`, updatedFileData)
+      await axios.put(`${baseUrl}/`, updatedFileData, { headers })
     } catch (error) {
       expect(error.response.status).toBe(404)
       expect(error.response.data.status).toBe('error')
@@ -135,12 +143,13 @@ describe('File Controller Tests', () => {
   it('should list files with default parameters', async () => {
     try {
       const response = await axios.get(`${baseUrl}/listFiles`, {
+        headers,
         params: { limit: 10, sortBy: 'created_at', order: 'asc' }
       })
 
       expect(response.status).toBe(200)
       expect(Array.isArray(response.data)).toBe(true)
-      //expect(response.data.length).toBeGreaterThan(0)
+      // expect(response.data.length).toBeGreaterThan(0);
     } catch (error) {
       console.error(
         'Error during test:',
@@ -152,7 +161,11 @@ describe('File Controller Tests', () => {
 
   it('should get a file by id', async () => {
     try {
-      const response = await axios.post(`${baseUrl}/file`, { id: testfileID })
+      const response = await axios.post(
+        `${baseUrl}/file`,
+        { id: testfileID },
+        { headers }
+      )
 
       console.log('Response:', response.data)
 
@@ -170,7 +183,11 @@ describe('File Controller Tests', () => {
 
   it('should return an error for getting a file with a non-existent ID', async () => {
     try {
-      await axios.post(`${baseUrl}/file`, { id: '66b453a2601a8e9fb46d8885' })
+      await axios.post(
+        `${baseUrl}/file`,
+        { id: '66b453a2601a8e9fb46d8885' },
+        { headers }
+      )
     } catch (error) {
       expect(error.response.status).toBe(404)
       expect(error.response.data.status).toBe('error')
@@ -181,6 +198,7 @@ describe('File Controller Tests', () => {
   it('should delete an existing file', async () => {
     try {
       const response = await axios.delete(`${baseUrl}/`, {
+        headers,
         data: { id: testfileID }
       })
 
@@ -198,7 +216,10 @@ describe('File Controller Tests', () => {
 
   it('should return an error for deleting a file with an invalid ID format', async () => {
     try {
-      await axios.delete(`${baseUrl}/`, { data: { id: 'invalid-id-format' } })
+      await axios.delete(`${baseUrl}/`, {
+        headers,
+        data: { id: 'invalid-id-format' }
+      })
     } catch (error) {
       expect(error.response.status).toBe(400)
       expect(error.response.data.status).toBe('error')
@@ -209,6 +230,7 @@ describe('File Controller Tests', () => {
   it('should return an error for deleting a non-existent file', async () => {
     try {
       await axios.delete(`${baseUrl}/`, {
+        headers,
         data: { id: '66b453a2601a8e9fb46d8885' }
       })
     } catch (error) {

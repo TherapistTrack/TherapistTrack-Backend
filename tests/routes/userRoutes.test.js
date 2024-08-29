@@ -19,8 +19,16 @@ describe('User Endpoints', () => {
     DPI: '123456789'
   }
 
+  const headers = {
+    'Content-Type': 'application/json',
+    Authorization: 'Bearer your_token_here',
+    Origin: 'http://localhost'
+  }
+
   it('should register a new user', async () => {
-    const response = await axios.post(`${BASE_URL}/users/register`, testUser)
+    const response = await axios.post(`${BASE_URL}/users/register`, testUser, {
+      headers
+    })
     expect(response.status).toBe(201)
     expect(response.data.status).toBe('success')
     expect(response.data.message).toBe('User registered successfully')
@@ -28,7 +36,7 @@ describe('User Endpoints', () => {
 
   it('should fail to register a user with existing username', async () => {
     const response = await axios
-      .post(`${BASE_URL}/users/register`, testUser)
+      .post(`${BASE_URL}/users/register`, testUser, { headers })
       .catch((err) => err.response)
     expect(response.status).toBe(400)
     expect(response.data.status).toBe('error')
@@ -37,7 +45,8 @@ describe('User Endpoints', () => {
 
   it('should list the registered user', async () => {
     const response = await axios.get(`${BASE_URL}/users/list`, {
-      params: { username: testUsername }
+      params: { username: testUsername },
+      headers
     })
     expect(response.status).toBe(200)
     expect(response.data.status).toBe('success')
@@ -46,7 +55,9 @@ describe('User Endpoints', () => {
 
   it('should update the user information', async () => {
     const updateData = { username: testUsername, name: 'UpdatedName' }
-    const response = await axios.put(`${BASE_URL}/users/update`, updateData)
+    const response = await axios.put(`${BASE_URL}/users/update`, updateData, {
+      headers
+    })
     expect(response.status).toBe(200)
     expect(response.data.status).toBe('success')
     expect(response.data.message).toBe('User updated successfully')
@@ -55,7 +66,7 @@ describe('User Endpoints', () => {
   it('should fail to update non-existent user', async () => {
     const updateData = { username: 'nonexistentuser', name: 'UpdatedName' }
     const response = await axios
-      .put(`${BASE_URL}/users/update`, updateData)
+      .put(`${BASE_URL}/users/update`, updateData, { headers })
       .catch((err) => err.response)
     expect(response.status).toBe(400)
     expect(response.data.status).toBe('error')
@@ -64,7 +75,8 @@ describe('User Endpoints', () => {
 
   it('should delete the user', async () => {
     const response = await axios.delete(`${BASE_URL}/users/delete`, {
-      data: { username: testUsername }
+      data: { username: testUsername },
+      headers
     })
     expect(response.status).toBe(200)
     expect(response.data.status).toBe('success')
@@ -74,7 +86,8 @@ describe('User Endpoints', () => {
   it('should fail to delete a non-existent user', async () => {
     const response = await axios
       .delete(`${BASE_URL}/users/delete`, {
-        data: { username: 'nonexistentuser' }
+        data: { username: 'nonexistentuser' },
+        headers
       })
       .catch((err) => err.response)
     expect(response.status).toBe(404)
