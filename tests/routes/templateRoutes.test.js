@@ -23,16 +23,13 @@ describe('Plantillas de Paciente - Tests de Integración', () => {
 
     try {
       const response = await axios.post(`${BASE_URL}/users/register`, newDoctor)
-      console.log('Full Response:', response.data) // Aquí verificas toda la estructura de la respuesta
-      doctorId = response.data.data?._id // Usar el operador opcional para evitar errores de undefined
-      console.log('Doctor ID:', doctorId) // Aquí imprimes el ID para verificar que se obtuvo correctamente
       expect(response.status).toBe(201)
     } catch (error) {
       console.error(
         'Error creating doctor:',
         error.response ? error.response.data : error.message
       )
-      throw error // Re-lanzar el error para que los tests no continúen
+      throw error
     }
   })
 
