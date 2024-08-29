@@ -1,5 +1,8 @@
 const axios = require('axios')
 const mongoose = require('mongoose')
+const FormData = require('form-data')
+const path = require('path')
+const fs = require('fs')
 const { BASE_URL } = require('../jest.setup')
 
 describe('File Controller Tests', () => {
@@ -13,26 +16,33 @@ describe('File Controller Tests', () => {
   }
 
   it('should create a new file for a patient', async () => {
-    const fileData = {
-      record: '66b453a2601a8e9fb46d8884',
-      template: '66b453a2601a8e9fb46d8885',
-      name: 'test1',
-      category: 'test',
-      pages: 3,
-      metadata: [
-        {
-          name: 'Difficulty',
-          type: 'CHOICE',
-          options: ['easy', 'medium', 'hard'],
-          value: 'easy',
-          required: true
-        }
-      ]
-    }
+    const form = new FormData()
+
+    const filePath = path.join(__dirname, 'testFile.pdf')
+    const fileName = 'testFile.pdf'
+
+    form.append('record', '66b453a2601a8e9fb46d8884')
+    form.append('template', '66b453a2601a8e9fb46d8885')
+    form.append('name', 'test1')
+    form.append('category', 'test')
+    form.append('pages', 3)
+    form.append('file', fs.createReadStream(filePath), { fileName: fileName })
+    const metadata = JSON.stringify([
+      {
+        name: 'Difficulty',
+        type: 'CHOICE',
+        options: ['easy', 'medium', 'hard'],
+        value: 'easy',
+        required: true
+      }
+    ])
+    form.append('metadata', metadata)
 
     try {
-      const response = await axios.post(`${baseUrl}/create`, fileData, {
-        headers
+      const response = await axios.post(`${baseUrl}/create`, form, {
+        headers: {
+          ...form.getHeaders()
+        }
       })
 
       expect(response.status).toBe(201)
@@ -69,7 +79,7 @@ describe('File Controller Tests', () => {
     } catch (error) {
       expect(error.response.status).toBe(400)
       expect(error.response.data.status).toBe('error')
-      expect(error.response.data.message).toMatch(/validation failed/i)
+      expect(error.response.data.message).toMatch('No file provided')
     }
   })
 
@@ -160,8 +170,8 @@ describe('File Controller Tests', () => {
       console.log('Response:', response.data)
 
       expect(response.status).toBe(200)
-      expect(response.data._id).toBe(testfileID)
-      expect(response.data.name).toBe('test1')
+      expect(response.data.file.name).toBe('test1')
+      expect(response.data.file._id).toBe(testfileID)
     } catch (error) {
       console.error(
         'Error during test:',

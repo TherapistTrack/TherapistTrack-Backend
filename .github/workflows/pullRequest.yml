@@ -15,7 +15,6 @@ jobs:
     name: test code
     runs-on: ubuntu-latest
     env:
-      BUCKET_HOST: none
       DB_ADMIN_USER: root
       DB_ADMIN_PASSWORD: 1234
       DB_HOST: database
@@ -23,6 +22,7 @@ jobs:
       DB_USER: adminstrator
       DB_USER_PASSWORD: 1234
       DB_PORT: 27017
+      RUNNING_MODE: 'TEST'
       DELAY_START: 8000
       API_PORT: 3001
       JWT_SECRET: 'LocalPassword'
@@ -31,7 +31,13 @@ jobs:
       ALLOWED_CONTENT_TYPES: 'application/json'
       ALLOWED_METHODS: 'GET,POST,PUT,DELETE,OPTIONS'
       ALLOWED_HEADERS: 'Content-Type,Authorization'
-
+      LOGGING_METHOD: 'CONSOLE'
+      LOGGING_FILE_PATH: './logs'
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_BUCKET_NAME: ${{ secrets.AWS_BUCKET_NAME }}
+      AWS_BUCKET_NAME_TEST: ${{ secrets.AWS_BUCKET_NAME_TEST }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
