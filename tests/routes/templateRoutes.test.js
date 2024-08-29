@@ -1,6 +1,7 @@
 const axios = require('axios')
 const { BASE_URL } = require('../jest.setup')
-let doctor
+let doctorId
+let templateId
 
 describe('Plantillas de Paciente - Tests de Integración', () => {
   // Configuración global antes de todos los tests
@@ -22,9 +23,10 @@ describe('Plantillas de Paciente - Tests de Integración', () => {
 
     try {
       const response = await axios.post(`${BASE_URL}/users/register`, newDoctor)
-      console.log('Response:', response.data) // Verificar lo que devuelve la API
+      console.log('Full Response:', response.data) // Aquí verificas toda la estructura de la respuesta
+      doctorId = response.data.data?._id // Usar el operador opcional para evitar errores de undefined
+      console.log('Doctor ID:', doctorId) // Aquí imprimes el ID para verificar que se obtuvo correctamente
       expect(response.status).toBe(201)
-      doctorId = response.data.data._id // Almacenar el ID del doctor
     } catch (error) {
       console.error(
         'Error creating doctor:',
@@ -37,18 +39,25 @@ describe('Plantillas de Paciente - Tests de Integración', () => {
   // Limpiar después de todos los tests
   afterAll(async () => {
     if (doctorId) {
-      // Eliminar el doctor después de los tests solo si fue creado correctamente
-      const response = await axios.delete(`${BASE_URL}/users/delete`, {
-        data: { id: doctorId }
-      })
-      expect(response.status).toBe(200)
+      try {
+        // Eliminar el doctor después de los tests solo si fue creado correctamente
+        const response = await axios.delete(`${BASE_URL}/users/delete`, {
+          data: { id: doctorId }
+        })
+        expect(response.status).toBe(200)
+      } catch (error) {
+        console.error(
+          'Error deleting doctor:',
+          error.response ? error.response.data : error.message
+        )
+      }
     }
   })
 
   // Test para crear una nueva plantilla de paciente
   it('should create a new patient template', async () => {
     const testTemplate = {
-      doctorId: doctor._id,
+      doctorId: doctorId, // Usar el doctorId obtenido en el beforeAll
       name: `testTemplate_${Date.now()}`,
       patientTemplate: {
         record: '12345',
@@ -58,12 +67,21 @@ describe('Plantillas de Paciente - Tests de Integración', () => {
       }
     }
 
-    const response = await axios.post(
-      `${BASE_URL}/templates/create`,
-      testTemplate
-    )
-    expect(response.status).toBe(200)
-    templateId = response.data.data.patientTemplateId
+    try {
+      const response = await axios.post(
+        `${BASE_URL}/templates/create`,
+        testTemplate
+      )
+      expect(response.status).toBe(200)
+      templateId = response.data.data.patientTemplateId
+      console.log('Template ID:', templateId)
+    } catch (error) {
+      console.error(
+        'Error creating template:',
+        error.response ? error.response.data : error.message
+      )
+      throw error // Re-lanzar el error para que los tests no continúen
+    }
   })
 
   /*
