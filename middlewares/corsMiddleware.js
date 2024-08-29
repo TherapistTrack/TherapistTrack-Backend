@@ -4,7 +4,7 @@ const corsMiddleware = (req, res, next) => {
   const allowedMethods = process.env.ALLOWED_METHODS.split(',')
 
   const origin = req.headers.origin
-  console.log(req.headers)
+  // console.log(req.headers)
   const contentType = req.headers['content-type']
 
   // Manejo de preflight request (OPTIONS)
@@ -33,10 +33,7 @@ const corsMiddleware = (req, res, next) => {
   if (contentType && !allowedContentTypes.includes(contentType)) {
     return res.status(400).json({ error: 'Content-Type no permitido' })
   }
-
   // Configuración de los encabezados CORS
-  res.header('Access-Control-Allow-Origin', origin)
-
   next()
 }
 
