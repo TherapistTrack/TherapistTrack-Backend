@@ -1,34 +1,33 @@
 const Plantilla = require('../models/plantillaModel')
+const { Usuario } = require('../models/userModel')
 
 // Crear una nueva plantilla de paciente
 exports.createTemplate = async (req, res) => {
   console.log('HELLO FROM ENDPOINT')
   try {
     const { doctorId, name, patientTemplate } = req.body
+
     // Verificar si el doctor existe
+    console.log('Before find doctor')
     const doctor = await Usuario.findById(doctorId)
+    console.log('Find doctor')
     if (!doctor) {
-      return res
-        .status(404)
-        .send({ status: 404, message: 'Doctor no encontrado' })
+      console.log('Theres is no doctor!')
+      return res.status(404).json({ error: 'Doctor no encontrado' })
     }
 
     const nuevaPlantilla = new Plantilla({ doctorId, name, patientTemplate })
+    console.log('Before saving template!')
     await nuevaPlantilla.save()
+    console.log('Create template')
 
-    res.status(200).send({
-      status: 200,
+    res.status(200).json({
       message: 'Plantilla de paciente creada exitosamente',
       data: { doctorId, patientTemplateId: nuevaPlantilla._id }
     })
   } catch (error) {
-    res
-      .status(500)
-      .send({
-        status: 500,
-        message:
-          'Error interno del servidor: No se puede crear la plantilla de paciente.'
-      })
+    console.error('Error al crear plantilla:', error)
+    res.status(500).json({ error: 'No se pudo crear la plantilla de paciente' })
   }
 }
 
@@ -61,13 +60,11 @@ exports.addFieldToTemplate = async (req, res) => {
       data: plantilla.patientTemplate
     })
   } catch (error) {
-    res
-      .status(500)
-      .send({
-        status: 500,
-        message:
-          'Error interno del servidor: No se puede añadir el campo a la plantilla de paciente.'
-      })
+    res.status(500).send({
+      status: 500,
+      message:
+        'Error interno del servidor: No se puede añadir el campo a la plantilla de paciente.'
+    })
   }
 }
 
@@ -106,13 +103,11 @@ exports.editTemplateFields = async (req, res) => {
       data: plantilla.patientTemplate.fields
     })
   } catch (error) {
-    res
-      .status(500)
-      .send({
-        status: 500,
-        message:
-          'Error interno del servidor: No se pueden actualizar los campos de la plantilla de paciente.'
-      })
+    res.status(500).send({
+      status: 500,
+      message:
+        'Error interno del servidor: No se pueden actualizar los campos de la plantilla de paciente.'
+    })
   }
 }
 
@@ -152,13 +147,11 @@ exports.deleteFieldFromTemplate = async (req, res) => {
       data: { doctorId, fieldId }
     })
   } catch (error) {
-    res
-      .status(500)
-      .send({
-        status: 500,
-        message:
-          'Error interno del servidor: No se puede eliminar el campo de la plantilla de paciente.'
-      })
+    res.status(500).send({
+      status: 500,
+      message:
+        'Error interno del servidor: No se puede eliminar el campo de la plantilla de paciente.'
+    })
   }
 }
 
@@ -201,12 +194,9 @@ exports.deleteTemplate = async (req, res) => {
 
     res.json({ message: 'Plantilla eliminada exitosamente' })
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        error:
-          'No se pudo eliminar la plantilla porque tiene archivos asociados'
-      })
+    res.status(500).json({
+      error: 'No se pudo eliminar la plantilla porque tiene archivos asociados'
+    })
   }
 }
 

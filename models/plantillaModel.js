@@ -12,7 +12,7 @@ const plantillaSchema = new mongoose.Schema(
   {
     doctorId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Usuario',
+      //ref: 'Usuario',
       required: true
     },
     name: { type: String, required: true },
