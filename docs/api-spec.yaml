@@ -9,8 +9,6 @@ servers:
   - url: 'http://localhost:3001'
 
 tags:
-  - name: Autenticación
-    description: Operaciones de autenticación como login y registro.
   - name: Gestión de usuarios
     description: Gestión de usuarios, incluyendo registro, actualización y eliminación.
   - name: Configuración de Doctor
@@ -19,12 +17,6 @@ tags:
     description: Operaciones relacionadas con la gestión de archivos.
 
 paths:
-  /login:
-    $ref: './paths/authentication.yaml#/login'
-  /user/logout:
-    $ref: './paths/authentication.yaml#/userLogout'
-  /user/credentials:
-    $ref: './paths/authentication.yaml#/userCredentials'
   /user/register:
     $ref: './paths/user_management.yaml#/userRegister'
   /user/delete:
