@@ -1,3 +1,4 @@
+/*
 const corsMiddleware = (req, res, next) => {
   const allowedOrigins = process.env.ALLOWED_ORIGINS.split(',')
   const allowedContentTypes = process.env.ALLOWED_CONTENT_TYPES.split(',')
@@ -6,6 +7,8 @@ const corsMiddleware = (req, res, next) => {
   const origin = req.headers.origin
   // console.log(req.headers)
   const contentType = req.headers['content-type']
+  
+  console.log(origin)
 
   // Manejo de preflight request (OPTIONS)
   if (req.method === 'OPTIONS') {
@@ -35,6 +38,14 @@ const corsMiddleware = (req, res, next) => {
   }
   // Configuración de los encabezados CORS
   next()
+} */
+
+const cors = require('cors')
+
+const corsOptions = {
+  origin: process.env.ALLOWED_ORIGINS,
+  allowedHeaders: process.env.ALLOWED_HEADERS,
+  methods: process.env.ALLOWED_METHODS
 }
 
-module.exports = corsMiddleware
+module.exports = cors(corsOptions)
