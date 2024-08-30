@@ -26,7 +26,6 @@ jobs:
       DELAY_START: 8000
       API_PORT: 3001
       JWT_SECRET: 'LocalPassword'
-      LOGGING_METHOD: 'FILE'
       ALLOWED_ORIGINS: 'http://localhost'
       ALLOWED_CONTENT_TYPES: 'application/json'
       ALLOWED_METHODS: 'GET,POST,PUT,DELETE,OPTIONS'
