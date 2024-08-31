@@ -17,13 +17,13 @@ tags:
     description: Operaciones relacionadas con la gestión de archivos.
 
 paths:
-  /user/register:
+  /users/register:
     $ref: './paths/user_management.yaml#/userRegister'
-  /user/delete:
+  /users/delete:
     $ref: './paths/user_management.yaml#/userDelete'
-  /user/update:
+  /users/update:
     $ref: './paths/user_management.yaml#/userUpdate'
-  /user/list:
+  /users/list:
     $ref: './paths/user_management.yaml#/userList'
 
   /files/create:
