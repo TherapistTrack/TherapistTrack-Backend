@@ -22,13 +22,22 @@ exports.registerUser = async (req, res) => {
     let roleInfo
 
     if (rol === 'Doctor') {
-      console.log(rolDependentInfo)
-      roleInfo = new Doctor({ user: newUser._id, ...rolDependentInfo })
-      await roleInfo.save() // Save without session
-      console.log('Hello?')
+      let { collegiateNumber, specialty } = rolDependentInfo
+      roleInfo = new Doctor({ user: newUser._id, collegiateNumber, specialty })
+      await roleInfo.save()
     } else if (rol === 'Assistant') {
-      roleInfo = new Assistant({ user: newUser._id, ...rolDependentInfo })
-      await roleInfo.save() // Save without session
+      let { startDate, endDate, DPI } = rolDependentInfo
+      startDate = Date.parse(startDate)
+
+      // IF END DATE IS PASSED
+      if (endDate) {
+        endDate = Date.parse(endDate)
+        roleInfo = new Assistant({ user: newUser._id, startDate, endDate, DPI })
+      } else {
+        roleInfo = new Assistant({ user: newUser._id, startDate, DPI })
+      }
+
+      await roleInfo.save()
     } else {
       throw new Error(
         'Invalid Role. Could only be Doctor and Assistant. Is case sensitive.'
