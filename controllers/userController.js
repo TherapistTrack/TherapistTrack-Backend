@@ -1,64 +1,60 @@
-const bcrypt = require('bcryptjs')
-const { Usuario, findUsuario } = require('../models/userModel')
-
-const SALT_ROUNDS = 10
+const { User, findUser, Doctor, Assistant } = require('../models/userModel')
+const mongoose = require('mongoose')
 
 exports.registerUser = async (req, res) => {
-  const {
-    password,
-    username,
-    name,
-    lastName,
-    phones,
-    rol,
-    mails,
-    collegiateNumber,
-    specialty,
-    startDate,
-    endDate,
-    DPI
-  } = req.body
+  const { id, names, lastNames, phones, mails, rol, rolDependentInfo } =
+    req.body
 
   try {
-    const salt = await bcrypt.genSalt(SALT_ROUNDS)
-    const hashedPassword = await bcrypt.hash(password, salt)
-
-    const newUser = new Usuario({
-      username,
-      password: hashedPassword,
-      salt,
-      name,
-      lastName,
-      phones,
-      rol,
-      mails,
-      collegiateNumber,
-      specialty,
-      startDate,
-      endDate,
-      DPI
+    // CREATING USER
+    const newUser = new User({
+      _id: id,
+      names: names,
+      lastNames: lastNames,
+      phones: phones,
+      rol: rol,
+      mails: mails
     })
 
-    await newUser.save()
+    await newUser.save() // Save without session
 
-    res
+    // CREATING ROLES
+    let roleInfo
+
+    if (rol === 'Doctor') {
+      console.log(rolDependentInfo)
+      roleInfo = new Doctor({ user: newUser._id, ...rolDependentInfo })
+      await roleInfo.save() // Save without session
+      console.log('Hello?')
+    } else if (rol === 'Assistant') {
+      roleInfo = new Assistant({ user: newUser._id, ...rolDependentInfo })
+      await roleInfo.save() // Save without session
+    } else {
+      throw new Error(
+        'Invalid Role. Could only be Doctor and Assistant. Is case sensitive.'
+      )
+    }
+
+    return res
       .status(201)
       .send({ status: 'success', message: 'User registered successfully' })
   } catch (error) {
-    console.error('Registration error:', error)
+    // Rollback manually if needed (e.g., delete the created user if role creation fails)
+    await User.deleteOne({ _id: id })
+
     if (error.code === 11000) {
-      res
+      return res
         .status(400)
         .send({ status: 'error', message: 'Username already exists.' })
     } else {
-      res.status(400).send({ status: 'error', message: error.message })
+      return res.status(400).send({ status: 'error', message: error.message })
     }
   }
 }
 
 exports.deleteUser = async (req, res) => {
   try {
-    const result = await Usuario.updateOne(
+    const result = await User.updateOne(
       { username: req.body.username },
       { $set: { isActive: false } }
     )
@@ -73,7 +69,7 @@ exports.deleteUser = async (req, res) => {
 
 exports.updateUser = async (req, res) => {
   try {
-    const result = await Usuario.updateOne(
+    const result = await User.updateOne(
       { username: req.body.username },
       { $set: req.body }
     )
@@ -88,7 +84,7 @@ exports.updateUser = async (req, res) => {
 
 exports.listUser = async (req, res) => {
   try {
-    const user = await findUsuario(req.query.username)
+    const user = await findUser(req.query.username)
     if (!user) {
       throw new Error('User not found')
     }
