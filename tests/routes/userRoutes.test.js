@@ -39,6 +39,22 @@ describe('User Endpoints', () => {
     }
   })
 
+  it('should not register an existent user', async () => {
+    try {
+      const response = await axios.post(
+        `${BASE_URL}/users/register`,
+        doctorUser,
+        { headers }
+      )
+    } catch (error) {
+      console.log(
+        `Status: ${error.response.status} \nBody: ${JSON.stringify(error.response.data)}`
+      )
+      expect(error.response.status).toBe(400)
+      expect(error.response.data.status).toBe('error')
+    }
+  })
+
   /*
   it('should fail to register a user with existing username', async () => {
     const response = await axios
