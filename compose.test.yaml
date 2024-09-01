@@ -43,6 +43,8 @@ services:
       AWS_BUCKET_NAME_TEST: '${AWS_BUCKET_NAME_TEST}'
       ISSUER_BASE_URL: '${ISSUER_BASE_URL}'
       AUDIENCE: '${AUDIENCE}'
+      CLIENT_ID: '${CLIENT_ID}'
+      CLIENT_SECRET: '${CLIENT_SECRET}'
     volumes:
       - backend_logs:/backend/logs
 
