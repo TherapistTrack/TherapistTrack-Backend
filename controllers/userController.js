@@ -68,23 +68,36 @@ exports.deleteUser = async (req, res) => {
       { _id: req.body.id },
       { $set: { isActive: false } }
     )
-    if (result.modifiedCount === 0) {
-      throw new Error('User not found or already inactive')
-    }
-    res.send({ status: 'success', message: 'User marked as inactive.' })
+    res
+      .status(200)
+      .send({ status: 'success', message: 'User marked as inactive.' })
   } catch (error) {
-    res.status(404).send({ status: 'error', message: error.message })
+    res.status(400).send({ status: 'error', message: error.message })
   }
 }
 
 exports.updateUser = async (req, res) => {
   try {
-    const result = await User.updateOne(
-      { username: req.body.username },
-      { $set: req.body }
+    const { id, names, lastNames, phones, mails, rol, rolDependentInfo } =
+      req.body
+    if (!id || !rol) {
+      throw new Error('And User ID and rol must be provided.')
+    }
+    await User.updateOne(
+      { _id: id },
+      {
+        $set: {
+          names,
+          lastNames,
+          phones,
+          mails
+        }
+      }
     )
-    if (result.modifiedCount === 0) {
-      throw new Error('User not found or no updates made')
+    if (rol === 'Doctor') {
+      await Doctor.updateOne({ user: id }, { $set: rolDependentInfo })
+    } else if (rol == 'Assistant') {
+      await Assistant.updateOne({ user: id }, { $set: rolDependentInfo })
     }
     res.send({ status: 'success', message: 'User updated successfully' })
   } catch (error) {
