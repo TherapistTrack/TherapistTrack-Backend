@@ -1,33 +1,42 @@
 require('dotenv').config()
 const express = require('express')
-const cors = require('cors')
-const setupSwagger = require('./docs/swaggerConfig')
+const loggingMiddleware = require('./middlewares/loggingMiddleware')
+const corsMiddleware = require('./middlewares/corsMiddleware')
+const connectDB = require('./config/dbConfig')
 
-const app = express()
-app.use(express.json())
-app.use(cors())
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+async function main() {
+  await sleep(process.env.DELAY_START)
+  connectDB()
+  const app = express()
 
-// Swagger setup
-setupSwagger(app)
+  app.use([express.json(), loggingMiddleware, corsMiddleware])
 
-// Import Routes
-const userRoutes = require('./routes/userRoutes')
-const fileRoutes = require('./routes/fileRoutes')
-const authRoutes = require('./routes/authRoutes')
+  // Import Routes
+  const userRoutes = require('./routes/userRoutes')
+  const fileRoutes = require('./routes/fileRoutes')
 
-// Use Routes
-app.use('/api/users', userRoutes)
-app.use('/api/files', fileRoutes)
-app.use('/api/auth', authRoutes)
+  // Use Routes
+  app.use('/users', userRoutes)
+  app.use('/files', fileRoutes)
 
-// Error Handling Middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack)
-  res.status(500).send('Something broke!')
-})
+  app.get('/health', async (req, res) => {
+    res.status(200).send({ message: 'API is up!' })
+  })
 
-// Start the Server
-const PORT = process.env.API_PORT || 3000
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
-})
+  // Error Handling Middleware
+  app.use((err, req, res, next) => {
+    console.error(err.stack)
+    res.status(500).send('Something broke!')
+  })
+
+  // Start the Server
+  const PORT = process.env.API_PORT || 3001
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`)
+  })
+}
+
+main()

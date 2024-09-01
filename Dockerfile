@@ -7,7 +7,7 @@ WORKDIR /backend
 COPY package*.json ./
 
 # Install dependencies
-RUN npm install --omit=dev
+RUN npm install --omit=dev --no-fund --no-audit
 
 # Copy the rest of the application code
 COPY . .
@@ -20,6 +20,7 @@ ENV DB_USER_PASSWORD=${DB_USER_PASSWORD}
 ENV DB_PORT=${DB_PORT}
 ENV JWT_SECRET=${JWT_SECRET}
 ENV API_PORT=${API_PORT}
+ENV LOGGING_METHOD=${LOGGING_METHOD}
 
 # Expose the port the app runs on
 EXPOSE 3001
