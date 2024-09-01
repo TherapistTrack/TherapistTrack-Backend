@@ -16,7 +16,6 @@ exports.registerUser = async (req, res) => {
       mails: mails,
       isActive: true
     })
-
     await newUser.save() // Save without session
 
     // CREATING ROLES
@@ -96,7 +95,7 @@ exports.updateUser = async (req, res) => {
     )
     if (rol === 'Doctor') {
       await Doctor.updateOne({ user: id }, { $set: rolDependentInfo })
-    } else if (rol == 'Assistant') {
+    } else if (rol === 'Assistant') {
       await Assistant.updateOne({ user: id }, { $set: rolDependentInfo })
     }
     res.send({ status: 'success', message: 'User updated successfully' })
@@ -114,7 +113,7 @@ const getUserById = async (id) => {
   let rolInfo
   if (user.rol === 'Doctor') {
     rolInfo = await Doctor.find({ user: id }).exec()
-  } else if (rol === 'Assistant') {
+  } else if (user.rol === 'Assistant') {
     rolInfo = await Assistant.find({ user: id }).exec()
   }
 
