@@ -6,6 +6,13 @@ exports.registerUser = async (req, res) => {
     req.body
 
   try {
+    // Check if the provided ID is a valid ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res
+        .status(400)
+        .send({ status: 'error', message: 'Invalid ID format.' })
+    }
+
     // CREATING USER
     const newUser = new User({
       _id: id,
@@ -16,7 +23,6 @@ exports.registerUser = async (req, res) => {
       mails: mails,
       isActive: true
     })
-
     await newUser.save() // Save without session
 
     // CREATING ROLES
@@ -64,8 +70,16 @@ exports.registerUser = async (req, res) => {
 // TODO:  YOU SHOULD NOT BE ABLE TO INACTIVATE YOURSELF
 exports.deleteUser = async (req, res) => {
   try {
+    const id = req.body.id
+    // Check if the provided ID is a valid ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res
+        .status(400)
+        .send({ status: 'error', message: 'Invalid ID format.' })
+    }
+
     const result = await User.updateOne(
-      { _id: req.body.id },
+      { _id: id },
       { $set: { isActive: false } }
     )
     res
@@ -83,6 +97,12 @@ exports.updateUser = async (req, res) => {
     if (!id || !rol) {
       throw new Error('And User ID and rol must be provided.')
     }
+    // Check if the provided ID is a valid ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res
+        .status(400)
+        .send({ status: 'error', message: 'Invalid ID format.' })
+    }
     await User.updateOne(
       { _id: id },
       {
@@ -96,7 +116,7 @@ exports.updateUser = async (req, res) => {
     )
     if (rol === 'Doctor') {
       await Doctor.updateOne({ user: id }, { $set: rolDependentInfo })
-    } else if (rol == 'Assistant') {
+    } else if (rol === 'Assistant') {
       await Assistant.updateOne({ user: id }, { $set: rolDependentInfo })
     }
     res.send({ status: 'success', message: 'User updated successfully' })
@@ -114,7 +134,7 @@ const getUserById = async (id) => {
   let rolInfo
   if (user.rol === 'Doctor') {
     rolInfo = await Doctor.find({ user: id }).exec()
-  } else if (rol === 'Assistant') {
+  } else if (user.rol === 'Assistant') {
     rolInfo = await Assistant.find({ user: id }).exec()
   }
 
@@ -146,6 +166,12 @@ const getUserById = async (id) => {
 exports.getMe = async (req, res) => {
   try {
     const id = req.body.id
+    // Check if the provided ID is a valid ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res
+        .status(400)
+        .send({ status: 'error', message: 'Invalid ID format.' })
+    }
     const response = await getUserById(id)
 
     res.status(200).json({ status: 'success', data: response })
@@ -157,6 +183,12 @@ exports.getMe = async (req, res) => {
 exports.getUser = async (req, res) => {
   try {
     const id = req.params.id
+    // Check if the provided ID is a valid ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res
+        .status(400)
+        .send({ status: 'error', message: 'Invalid ID format.' })
+    }
     const response = await getUserById(id)
 
     res.status(200).json({ status: 'success', data: response })
