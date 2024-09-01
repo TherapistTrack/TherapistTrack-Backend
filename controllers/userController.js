@@ -49,14 +49,13 @@ exports.registerUser = async (req, res) => {
       .status(201)
       .send({ status: 'success', message: 'User registered successfully' })
   } catch (error) {
-    // Rollback manually if needed (e.g., delete the created user if role creation fails)
-    await User.deleteOne({ _id: id })
-
     if (error.code === 11000) {
       return res
         .status(400)
         .send({ status: 'error', message: 'Username already exists.' })
     } else {
+      // Rollback manually if needed (e.g., delete the created user if role creation fails)
+      await User.deleteOne({ _id: id })
       return res.status(400).send({ status: 'error', message: error.message })
     }
   }
