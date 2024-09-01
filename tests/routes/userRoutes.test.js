@@ -15,13 +15,26 @@ describe('User Endpoints', () => {
     }
   }
 
+  let assistantUser = {
+    id: '6632a2c3048b11de0381db6b',
+    names: 'Test',
+    lastNames: 'User',
+    phones: ['12345678'],
+    rol: 'Doctor',
+    mails: ['test@example.com'],
+    rolDependentInfo: {
+      collegiateNumber: '12345',
+      specialty: 'testSpecialty'
+    }
+  }
+
   const headers = {
     'Content-Type': 'application/json',
     Authorization: 'Bearer your_token_here',
     Origin: 'http://localhost'
   }
 
-  it('should register a new user', async () => {
+  it('should register a new Doctor', async () => {
     try {
       const response = await axios.post(
         `${BASE_URL}/users/register`,
@@ -39,6 +52,23 @@ describe('User Endpoints', () => {
     }
   })
 
+  it('should register a new Assistant', async () => {
+    try {
+      const response = await axios.post(
+        `${BASE_URL}/users/register`,
+        assistantUser,
+        { headers }
+      )
+      expect(response.status).toBe(201)
+      expect(response.data.status).toBe('success')
+      expect(response.data.message).toBe('User registered successfully')
+    } catch (error) {
+      throw new Error(
+        `Test Failed: \nStatus: ${error.response.status} \nBody: ${JSON.stringify(error.response.data)}`
+      )
+    }
+  })
+
   it('should not register an existent user', async () => {
     try {
       const response = await axios.post(
@@ -46,6 +76,7 @@ describe('User Endpoints', () => {
         doctorUser,
         { headers }
       )
+      expect(true).toBe(false) // Request should fail, but it didnt
     } catch (error) {
       console.log(
         `Status: ${error.response.status} \nBody: ${JSON.stringify(error.response.data)}`
@@ -55,16 +86,45 @@ describe('User Endpoints', () => {
     }
   })
 
-  /*
-  it('should fail to register a user with existing username', async () => {
-    const response = await axios
-      .post(`${BASE_URL}/users/register`, doctorUser, { headers })
-      .catch((err) => err.response)
-    expect(response.status).toBe(400)
-    expect(response.data.status).toBe('error')
-    expect(response.data.message).toBe('Username already exists.')
+  it('should retrieve a User info by ID', async () => {
+    try {
+      const response = await axios.get(`${BASE_URL}/users/${doctorUser.id}`)
+      expect(response.status).toBe(200)
+    } catch (error) {
+      console.log()
+      throw new Error(
+        `Test Failed: \nStatus: ${error.response.status} \nBody: ${JSON.stringify(error.response.data)}`
+      )
+    }
   })
 
+  it('should retrieve info from the User requesting', async () => {
+    try {
+      const response = await axios.post(`${BASE_URL}/users/@me`, {
+        id: doctorUser.id
+      })
+      expect(response.status).toBe(200)
+    } catch (error) {
+      console.log(
+        `Status: ${error.response.status} \nBody: ${JSON.stringify(error.response.data)}`
+      )
+      throw new Error('Test failed')
+    }
+  })
+
+  it('should give a list of files with the two already registered users', async () => {
+    try {
+      const response = await axios.get(`${BASE_URL}/users/list`)
+      expect(response.status).toBe(200)
+      expect(response.data.users.length).toBe(2)
+    } catch (error) {
+      throw new Error(
+        `Test Failed:\n Status: ${error.response.status} \nBody: ${JSON.stringify(error.response.data)}`
+      )
+    }
+  })
+
+  /*
   it('should list the registered user', async () => {
     const response = await axios.get(`${BASE_URL}/users/list`, {
       params: { username: testUsername },

@@ -61,16 +61,17 @@ exports.registerUser = async (req, res) => {
   }
 }
 
+// TODO:  YOU SHOULD NOT BE ABLE TO INACTIVATE YOURSELF
 exports.deleteUser = async (req, res) => {
   try {
     const result = await User.updateOne(
-      { username: req.body.username },
+      { _id: req.body.id },
       { $set: { isActive: false } }
     )
     if (result.modifiedCount === 0) {
       throw new Error('User not found or already inactive')
     }
-    res.send({ status: 'success', message: 'User marked as inactive' })
+    res.send({ status: 'success', message: 'User marked as inactive.' })
   } catch (error) {
     res.status(404).send({ status: 'error', message: error.message })
   }
@@ -91,14 +92,81 @@ exports.updateUser = async (req, res) => {
   }
 }
 
+const getUserById = async (id) => {
+  const user = await User.findById(id).exec()
+  if (!user) {
+    throw new Error('User not found')
+  }
+
+  let rolInfo
+  if (user.rol === 'Doctor') {
+    rolInfo = await Doctor.find({ user: id }).exec()
+  } else if (rol === 'Assistant') {
+    rolInfo = await Assistant.find({ user: id }).exec()
+  }
+
+  const {
+    _id,
+    names,
+    lastNames,
+    mails,
+    phones,
+    rol,
+    isActive,
+    createdAt,
+    updatedAt
+  } = user
+  return {
+    id: _id,
+    names,
+    lastNames,
+    mails,
+    phones,
+    rol,
+    isActive,
+    createdAt,
+    updatedAt,
+    rolDependentInfo: rolInfo
+  }
+}
+
+exports.getMe = async (req, res) => {
+  try {
+    const id = req.body.id
+    const response = await getUserById(id)
+
+    res.status(200).json({ status: 'success', data: response })
+  } catch (error) {
+    res.status(400).send({ status: 'error', message: error.message })
+  }
+}
+
+exports.getUser = async (req, res) => {
+  try {
+    const id = req.params.id
+    const response = await getUserById(id)
+
+    res.status(200).json({ status: 'success', data: response })
+  } catch (error) {
+    res.status(400).send({ status: 'error', message: error.message })
+  }
+}
+
 exports.listUser = async (req, res) => {
   try {
-    const user = await findUser(req.query.username)
-    if (!user) {
-      throw new Error('User not found')
-    }
-    res.json({ status: 'success', data: user })
+    const users = await User.find({ isActive: true })
+      .select('_id names lastNames')
+      .exec()
+
+    // Transform the data to rename _id to id
+    const transformedUsers = users.map((user) => ({
+      id: user._id, // Rename _id to id
+      names: user.names,
+      lastNames: user.lastNames
+    }))
+
+    res.status(200).json({ status: 'success', users: transformedUsers })
   } catch (error) {
-    res.status(404).send({ status: 'error', message: error.message })
+    res.status(400).send({ status: 'error', message: error.message })
   }
 }
