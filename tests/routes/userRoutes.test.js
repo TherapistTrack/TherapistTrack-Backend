@@ -2,32 +2,8 @@ const axios = require('axios')
 const { BASE_URL, getAuthToken } = require('../jest.setup')
 
 describe('User Endpoints', () => {
-  let doctorUser = {
-    id: '6662a2c3048b11de0381db6b',
-    names: 'Test',
-    lastNames: 'User',
-    phones: ['12345678'],
-    rol: 'Doctor',
-    mails: ['test@example.com'],
-    rolDependentInfo: {
-      collegiateNumber: '12345',
-      specialty: 'testSpecialty'
-    }
-  }
-
-  let assistantUser = {
-    id: '6632a2c3048b11de0381db6b',
-    names: 'Test',
-    lastNames: 'User',
-    phones: ['12345678'],
-    rol: 'Doctor',
-    mails: ['test@example.com'],
-    rolDependentInfo: {
-      collegiateNumber: '12345',
-      specialty: 'testSpecialty'
-    }
-  }
-
+  let doctorUser
+  let assistantUser
   let headers
 
   beforeAll(async () => {
@@ -36,6 +12,44 @@ describe('User Endpoints', () => {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
       Origin: 'http://localhost'
+    }
+
+    // Generar IDs válidos de 24 caracteres
+    const generateObjectId = () => {
+      const timestamp = Math.floor(Date.now() / 1000)
+        .toString(16)
+        .padStart(8, '0')
+      const randomPart = Math.random()
+        .toString(16)
+        .substr(2, 16)
+        .padEnd(16, '0')
+      return timestamp + randomPart
+    }
+
+    doctorUser = {
+      id: generateObjectId(),
+      names: 'Test',
+      lastNames: 'User',
+      phones: ['12345678'],
+      rol: 'Doctor',
+      mails: ['test-doctor@example.com'],
+      rolDependentInfo: {
+        collegiateNumber: '12345',
+        specialty: 'testSpecialty'
+      }
+    }
+
+    assistantUser = {
+      id: generateObjectId(),
+      names: 'Test',
+      lastNames: 'User',
+      phones: ['12345678'],
+      rol: 'Doctor',
+      mails: ['test-assistant@example.com'],
+      rolDependentInfo: {
+        collegiateNumber: '12345',
+        specialty: 'testSpecialty'
+      }
     }
   })
 
@@ -93,7 +107,9 @@ describe('User Endpoints', () => {
 
   it('should retrieve a User info by ID', async () => {
     try {
-      const response = await axios.get(`${BASE_URL}/users/${doctorUser.id}`)
+      const response = await axios.get(`${BASE_URL}/users/${doctorUser.id}`, {
+        headers
+      })
       expect(response.status).toBe(200)
     } catch (error) {
       console.log()
@@ -105,13 +121,15 @@ describe('User Endpoints', () => {
 
   it('should retrieve info from the User requesting', async () => {
     try {
-      const response = await axios.post(`${BASE_URL}/users/@me`, {
-        id: doctorUser.id
-      })
+      const response = await axios.post(
+        `${BASE_URL}/users/@me`,
+        { id: doctorUser.id },
+        { headers }
+      )
       expect(response.status).toBe(200)
     } catch (error) {
       console.log(
-        `Status: ${error.response.status} \nBody: ${JSON.stringify(error.response.data)}`
+        `Status: ${error.response?.status} \nBody: ${JSON.stringify(error.response?.data)}`
       )
       throw new Error('Test failed')
     }
@@ -119,7 +137,7 @@ describe('User Endpoints', () => {
 
   it('should give a list of files with the two already registered users', async () => {
     try {
-      const response = await axios.get(`${BASE_URL}/users/list`)
+      const response = await axios.get(`${BASE_URL}/users/list`, { headers })
       expect(response.status).toBe(200)
       expect(response.data.users.length).toBe(2)
     } catch (error) {
@@ -136,7 +154,9 @@ describe('User Endpoints', () => {
       await axios.put(`${BASE_URL}/users/update`, updateData, {
         headers
       })
-      const newUser = await axios.get(`${BASE_URL}/users/${assistantUser.id}`)
+      const newUser = await axios.get(`${BASE_URL}/users/${assistantUser.id}`, {
+        headers
+      })
 
       expect(newUser.data.data.names).toBe('NEW NAME')
     } catch (error) {
