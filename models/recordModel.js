@@ -2,32 +2,36 @@ const mongoose = require('mongoose')
 
 const RecordSchema = new mongoose.Schema(
   {
-    doctorId: {
+    doctor: {
       type: mongoose.Schema.Types.ObjectId,
       //ref: 'Doctor',
       required: true
     },
-    templateId: {
+    template: {
       type: mongoose.Schema.Types.ObjectId,
       //ref: 'PatientTemplate',
       required: true
     },
+    createdAt: {
+      type: Date,
+      default: Date.now
+    },
     patient: {
-      name: { type: String, required: true },
+      names: { type: String, required: true },
       lastNames: { type: String, required: true },
       fields: [
         {
           name: { type: String, required: true },
-          type: { type: String, required: true },
+          type: {
+            type: String,
+            required: true,
+            enum: ['SHORT_TEXT', 'TEXT', 'DATE', 'NUMBER', 'FLOAT', 'CHOICE']
+          },
           options: [String],
           value: { type: String, required: true },
           required: { type: Boolean, required: true }
         }
       ]
-    },
-    createdAt: {
-      type: Date,
-      default: Date.now
     }
   },
   { collection: 'Record' }
