@@ -43,10 +43,19 @@ jobs:
       - name: Start containers
         run: docker compose -f "compose.test.yaml" up -d --build
 
-      - name: Wait the containers to be ready
+      - name: Wait for the containers to be ready
         run: |
+          attempt_counter=0
+          max_attempts=4
+
           while ! curl -s http://localhost:3001/health > /dev/null; do
-            echo "Waiting for server..."
+            if [ ${attempt_counter} -eq ${max_attempts} ]; then
+              echo "Max attempts reached. Exiting..."
+              exit 1
+            fi
+
+            attempt_counter=$((attempt_counter+1))
+            echo "Waiting for server... (Attempt: $attempt_counter)"
             sleep 5
           done
 
