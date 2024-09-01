@@ -13,15 +13,15 @@ async function main() {
   connectDB()
   const app = express()
 
-  app.use([express.json(), loggingMiddleware, corsMiddleware, checkJwt])
+  app.use([express.json(), loggingMiddleware, corsMiddleware])
 
   // Import Routes
   const userRoutes = require('./routes/userRoutes')
   const fileRoutes = require('./routes/fileRoutes')
 
   // Use Routes
-  app.use('/users', userRoutes)
-  app.use('/files', fileRoutes)
+  app.use('/users', checkJwt, userRoutes)
+  app.use('/files', checkJwt, fileRoutes)
 
   app.get('/health', async (req, res) => {
     res.status(200).send({ message: 'API is up!' })
