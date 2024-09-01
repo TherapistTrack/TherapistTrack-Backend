@@ -57,6 +57,12 @@ AWS_REGION=<secret>
 AWS_BUCKET_NAME=<secret>
 AWS_BUCKET_NAME_TEST=<secret>
 
+# Auth0
+AUTH_CLIENT_ID=<secret>
+AUTH_CLIENT_SECRET=<secret>
+AUTH_AUDIENCE=<secret>
+AUTH_ISSUER_BASE_URL=<secret>
+
 ```
 
 💡**NOTA:** Si el DB_HOST cambiara dependiendo si el backend se corre dentro de un contenedor, en esos casos el host será `database` o como lo indique el archivo `compose.yaml` usado.
