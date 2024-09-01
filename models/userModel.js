@@ -66,7 +66,8 @@ const UserSchema = new mongoose.Schema(
           'One or more emails do not match the format of an email. Ex: test@mail.com'
       }
     },
-    rol: { type: String, required: true, enum: ['Doctor', 'Assistant'] }
+    rol: { type: String, required: true, enum: ['Doctor', 'Assistant'] },
+    isActive: { type: Boolean, required: true }
   },
   {
     collection: 'User',

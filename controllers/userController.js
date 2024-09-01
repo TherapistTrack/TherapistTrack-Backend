@@ -13,7 +13,8 @@ exports.registerUser = async (req, res) => {
       lastNames: lastNames,
       phones: phones,
       rol: rol,
-      mails: mails
+      mails: mails,
+      isActive: true
     })
 
     await newUser.save() // Save without session
