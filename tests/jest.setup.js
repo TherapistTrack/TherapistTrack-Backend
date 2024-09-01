@@ -6,6 +6,9 @@ const BASE_URL = `http://127.0.0.1:${process.env.API_PORT}`
 let accessToken = null
 
 async function getAuthToken() {
+  if (accessToken) {
+    return accessToken
+  }
   try {
     const response = await axios.post(
       `${process.env.ISSUER_BASE_URL}oauth/token`,
@@ -22,7 +25,8 @@ async function getAuthToken() {
       }
     )
     console.log(response.data)
-    return response.data.access_token
+    accessToken = response.data.access_token
+    return accessToken
   } catch (error) {
     console.error('Error obtaining token:', error.message)
     throw error
