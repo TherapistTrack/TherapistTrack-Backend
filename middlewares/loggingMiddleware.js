@@ -18,7 +18,8 @@ const loggingMiddleware = (req, res, next) => {
   res.on('finish', () => {
     const logEntry = {
       utcTime: new Date().toISOString(),
-      hostName: os.hostname(),
+      hostName: req.hostName,
+      reqIp: req.ip,
       method: req.method,
       path: req.originalUrl,
       statusCode: res.statusCode,

@@ -172,7 +172,7 @@ describe('File Controller Tests', () => {
         { headers }
       )
 
-      console.log('Response:', response.data)
+      // console.log('Response:', response.data)
 
       expect(response.status).toBe(200)
       expect(response.data.file.name).toBe('test1')

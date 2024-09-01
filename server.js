@@ -2,6 +2,7 @@ require('dotenv').config()
 const express = require('express')
 const loggingMiddleware = require('./middlewares/loggingMiddleware')
 const corsMiddleware = require('./middlewares/corsMiddleware')
+const connectDB = require('./config/dbConfig')
 const { checkJwt } = require('./middlewares/auth0Middleware')
 
 function sleep(ms) {
@@ -9,6 +10,7 @@ function sleep(ms) {
 }
 async function main() {
   await sleep(process.env.DELAY_START)
+  connectDB()
   const app = express()
 
   app.use([express.json(), loggingMiddleware, corsMiddleware, checkJwt])
@@ -16,12 +18,10 @@ async function main() {
   // Import Routes
   const userRoutes = require('./routes/userRoutes')
   const fileRoutes = require('./routes/fileRoutes')
-  const authRoutes = require('./routes/authRoutes')
 
   // Use Routes
   app.use('/users', userRoutes)
   app.use('/files', fileRoutes)
-  app.use('/auth', authRoutes)
 
   app.get('/health', async (req, res) => {
     res.status(200).send({ message: 'API is up!' })
