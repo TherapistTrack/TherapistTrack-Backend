@@ -8,7 +8,6 @@ const { BASE_URL, getAuthToken } = require('../jest.setup')
 describe('File Controller Tests', () => {
   const baseUrl = BASE_URL + '/files'
   let testfileID
-
   let headers
 
   beforeAll(async () => {
@@ -46,6 +45,7 @@ describe('File Controller Tests', () => {
     try {
       const response = await axios.post(`${baseUrl}/create`, form, {
         headers: {
+          ...headers,
           ...form.getHeaders()
         }
       })
