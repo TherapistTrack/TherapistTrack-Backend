@@ -44,11 +44,12 @@ describe('User Endpoints', () => {
       names: 'Test',
       lastNames: 'User',
       phones: ['12345678'],
-      rol: 'Doctor',
+      rol: 'Assistant',
       mails: ['test-assistant@example.com'],
       rolDependentInfo: {
-        collegiateNumber: '12345',
-        specialty: 'testSpecialty'
+        startDate: '08/14/2024',
+        endDate: '08/15/2024',
+        DPI: '2340934'
       }
     }
   })
@@ -84,6 +85,25 @@ describe('User Endpoints', () => {
     } catch (error) {
       throw new Error(
         `Test Failed: \nStatus: ${error.response.status} \nBody: ${JSON.stringify(error.response.data)}`
+      )
+    }
+  })
+
+  it('should update the user information', async () => {
+    try {
+      const updateData = { ...assistantUser }
+      updateData.names = 'NEW NAME'
+      await axios.put(`${BASE_URL}/users/update`, updateData, {
+        headers
+      })
+      const newUser = await axios.get(`${BASE_URL}/users/${assistantUser.id}`, {
+        headers
+      })
+
+      expect(newUser.data.data.names).toBe('NEW NAME')
+    } catch (error) {
+      throw new Error(
+        `Test Failed:\n Status: ${error.response.status} \nBody: ${JSON.stringify(error.response.data)} \n}}`
       )
     }
   })
@@ -143,25 +163,6 @@ describe('User Endpoints', () => {
     } catch (error) {
       throw new Error(
         `Test Failed:\n Status: ${error.response.status} \nBody: ${JSON.stringify(error.response.data)}`
-      )
-    }
-  })
-
-  it('should update the user information', async () => {
-    try {
-      const updateData = { ...assistantUser }
-      updateData.names = 'NEW NAME'
-      await axios.put(`${BASE_URL}/users/update`, updateData, {
-        headers
-      })
-      const newUser = await axios.get(`${BASE_URL}/users/${assistantUser.id}`, {
-        headers
-      })
-
-      expect(newUser.data.data.names).toBe('NEW NAME')
-    } catch (error) {
-      throw new Error(
-        `Test Failed:\n Status: ${error.response.status} \nBody: ${JSON.stringify(error.response.data)} \n ${JSON.stringify(up)}`
       )
     }
   })
