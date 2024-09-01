@@ -41,6 +41,8 @@ services:
       AWS_REGION: '${AWS_REGION}'
       AWS_BUCKET_NAME: '${AWS_BUCKET_NAME}'
       AWS_BUCKET_NAME_TEST: '${AWS_BUCKET_NAME_TEST}'
+      ISSUER_BASE_URL: '${ISSUER_BASE_URL}'
+      AUDIENCE: '${AUDIENCE}'
     volumes:
       - backend_logs:/backend/logs
 
