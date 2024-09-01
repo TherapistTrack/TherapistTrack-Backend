@@ -2,7 +2,7 @@ const Record = require('../models/recordModel')
 
 // Create a new record
 exports.createRecord = async (req, res) => {
-  const { doctorId, templateId, patient } = req.body
+  const { doctor, template, patient } = req.body
 
   /*
     const isValidObjectId = mongoose.Types.ObjectId.isValid(doctorId)
@@ -14,8 +14,8 @@ exports.createRecord = async (req, res) => {
 
   try {
     const newRecord = new Record({
-      doctorId,
-      templateId,
+      doctor,
+      template,
       patient
     })
 
@@ -26,7 +26,7 @@ exports.createRecord = async (req, res) => {
       message: 'Record created successfully'
     })
   } catch (error) {
-    res.status(500).json({ error: 'Error creating the record' })
+    res.status(500).json({ error: error })
   }
 }
 
