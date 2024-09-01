@@ -3,17 +3,22 @@ const mongoose = require('mongoose')
 const FormData = require('form-data')
 const path = require('path')
 const fs = require('fs')
-const { BASE_URL } = require('../jest.setup')
+const { BASE_URL, getAuthToken } = require('../jest.setup')
 
 describe('File Controller Tests', () => {
   const baseUrl = BASE_URL + '/files'
   let testfileID
 
-  const headers = {
-    'Content-Type': 'application/json',
-    Authorization: 'Bearer your_token_here',
-    Origin: 'http://localhost'
-  }
+  let headers
+
+  beforeAll(async () => {
+    const token = await getAuthToken()
+    headers = {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      Origin: 'http://localhost'
+    }
+  })
 
   it('should create a new file for a patient', async () => {
     const form = new FormData()

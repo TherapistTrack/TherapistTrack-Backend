@@ -1,5 +1,5 @@
 const axios = require('axios')
-const { BASE_URL } = require('../jest.setup')
+const { BASE_URL, getAuthToken } = require('../jest.setup')
 
 describe('User Endpoints', () => {
   let testUsername = `testuser_${Date.now()}`
@@ -19,11 +19,16 @@ describe('User Endpoints', () => {
     DPI: '123456789'
   }
 
-  const headers = {
-    'Content-Type': 'application/json',
-    Authorization: 'Bearer your_token_here',
-    Origin: 'http://localhost'
-  }
+  let headers
+
+  beforeAll(async () => {
+    const token = await getAuthToken()
+    headers = {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      Origin: 'http://localhost'
+    }
+  })
 
   it('should register a new user', async () => {
     const response = await axios.post(`${BASE_URL}/users/register`, testUser, {
