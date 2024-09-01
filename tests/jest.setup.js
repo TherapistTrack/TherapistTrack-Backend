@@ -11,11 +11,11 @@ async function getAuthToken() {
   }
   try {
     const response = await axios.post(
-      `${process.env.ISSUER_BASE_URL}oauth/token`,
+      `${process.env.AUTH_ISSUER_BASE_URL}oauth/token`,
       {
-        client_id: process.env.CLIENT_ID,
-        client_secret: process.env.CLIENT_SECRET,
-        audience: process.env.AUDIENCE,
+        client_id: process.env.AUTH_CLIENT_ID,
+        client_secret: process.env.AUTH_CLIENT_SECRET,
+        audience: process.env.AUTH_AUDIENCE,
         grant_type: 'client_credentials'
       },
       {
