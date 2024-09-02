@@ -3,21 +3,41 @@ const router = express.Router()
 const multer = require('multer')
 const upload = multer()
 const fileController = require('../controllers/fileController')
-const { requiredScopes } = require('../middlewares/auth0Middleware')
+const {
+  requiredPermissions,
+  checkJwt
+} = require('../middlewares/auth0Middleware')
 
 router.post(
   '/create',
-  requiredScopes(['create:files']),
+  checkJwt,
+  requiredPermissions(['create:files']),
   upload.single('file'),
   fileController.createFile
 )
-router.put('/', requiredScopes(['update:files']), fileController.updateFile)
-router.delete('/', requiredScopes(['delete:files']), fileController.deleteFile)
+router.put(
+  '/',
+  checkJwt,
+  requiredPermissions(['update:files']),
+  fileController.updateFile
+)
+router.delete(
+  '/',
+  checkJwt,
+  requiredPermissions(['delete:files']),
+  fileController.deleteFile
+)
 router.get(
   '/listFiles',
-  requiredScopes(['read:files']),
+  checkJwt,
+  requiredPermissions(['read:files']),
   fileController.listFiles
 )
-router.post('/file', requiredScopes(['read:files']), fileController.getFileById)
+router.post(
+  '/file',
+  checkJwt,
+  requiredPermissions(['read:files']),
+  fileController.getFileById
+)
 
 module.exports = router
