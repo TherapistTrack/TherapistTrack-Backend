@@ -1,4 +1,8 @@
-const { auth, requiredScopes } = require('express-oauth2-jwt-bearer')
+const {
+  auth,
+  claimCheck,
+  InsufficientScopeError
+} = require('express-oauth2-jwt-bearer')
 require('dotenv').config()
 
 if (!process.env.AUTH_ISSUER_BASE_URL || !process.env.AUTH_AUDIENCE) {
@@ -10,7 +14,27 @@ const checkJwt = auth({
   audience: process.env.AUTH_AUDIENCE
 })
 
+const requiredPermissions = (requiredPermissions) => {
+  return (req, res, next) => {
+    const permissionCheck = claimCheck((payload) => {
+      const permissions = payload.permissions || []
+
+      const hasPermissions = requiredPermissions.every((requiredPermission) =>
+        permissions.includes(requiredPermission)
+      )
+
+      if (!hasPermissions) {
+        throw new InsufficientScopeError()
+      }
+
+      return hasPermissions
+    })
+
+    permissionCheck(req, res, next)
+  }
+}
+
 module.exports = {
   checkJwt,
-  requiredScopes
+  requiredPermissions
 }

@@ -20,8 +20,8 @@ async function main() {
   const fileRoutes = require('./routes/fileRoutes')
 
   // Use Routes
-  app.use('/users', checkJwt, userRoutes)
-  app.use('/files', checkJwt, fileRoutes)
+  app.use('/users', userRoutes)
+  app.use('/files', fileRoutes)
 
   app.get('/health', async (req, res) => {
     res.status(200).send({ message: 'API is up!' })
