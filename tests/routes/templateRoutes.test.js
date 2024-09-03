@@ -1,11 +1,22 @@
 const axios = require('axios')
 const { BASE_URL, getAuthToken } = require('../jest.setup')
+let doctorUser
+let headers
 let doctorId
 let templateId
-let headers
 
 describe('Plantillas de Paciente - Tests de Integración', () => {
   // Configuración global antes de todos los tests
+
+  // Generar IDs válidos de 24 caracteres
+  const generateObjectId = () => {
+    const timestamp = Math.floor(Date.now() / 1000)
+      .toString(16)
+      .padStart(8, '0')
+    const randomPart = Math.random().toString(16).substr(2, 16).padEnd(16, '0')
+    return timestamp + randomPart
+  }
+
   beforeAll(async () => {
     const token = await getAuthToken()
     headers = {
@@ -14,31 +25,29 @@ describe('Plantillas de Paciente - Tests de Integración', () => {
       Origin: 'http://localhost'
     }
 
-    const newDoctor = {
-      username: `doctor_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`,
-      password: 'testpassword',
-      name: 'Doctor01',
-      lastName: 'Test',
+    doctorUser = {
+      id: generateObjectId(),
+      names: 'Test',
+      lastNames: 'User',
       phones: ['12345678'],
-      rol: 'doctor',
-      mails: ['doctor@example.com'],
-      collegiateNumber: '12345',
-      specialty: 'General',
-      startDate: new Date(),
-      endDate: new Date(),
-      DPI: '123456789'
+      rol: 'Doctor',
+      mails: ['test-doctor@example.com'],
+      rolDependentInfo: {
+        collegiateNumber: '12345',
+        specialty: 'testSpecialty'
+      }
     }
 
     try {
       const response = await axios.post(
         `${BASE_URL}/users/register`,
-        newDoctor,
+        doctorUser,
         {
           headers
         }
       )
       expect(response.status).toBe(201)
-      doctorId = response.data.data.userId
+      doctorId = doctorUser.id
       console.log('Doctor ID:', doctorId)
     } catch (error) {
       console.error(
@@ -53,8 +62,8 @@ describe('Plantillas de Paciente - Tests de Integración', () => {
   afterAll(async () => {
     if (doctorId) {
       const response = await axios.delete(`${BASE_URL}/users/delete`, {
-        headers,
-        data: { id: doctorId }
+        data: { id: doctorId },
+        headers
       })
       expect(response.status).toBe(200)
     }
