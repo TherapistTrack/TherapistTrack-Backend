@@ -1,5 +1,6 @@
+const mongoose = require('mongoose')
 const Plantilla = require('../models/plantillaModel')
-const { Usuario } = require('../models/userModel')
+const { User } = require('../models/userModel')
 
 // Crear una nueva plantilla de paciente
 exports.createTemplate = async (req, res) => {
@@ -7,27 +8,37 @@ exports.createTemplate = async (req, res) => {
   try {
     const { doctorId, name, patientTemplate } = req.body
 
-    // Verificar si el doctor existe
-    console.log('Before find doctor')
-    const doctor = await Usuario.findById(doctorId)
-    console.log('Find doctor')
-    if (!doctor) {
-      console.log('Theres is no doctor!')
-      return res.status(404).json({ error: 'Doctor no encontrado' })
+    // Validar el formato del doctorId
+    if (!mongoose.Types.ObjectId.isValid(doctorId)) {
+      return res
+        .status(400)
+        .json({ error: 'Formato de ID de doctor inválido.' })
     }
 
+    // Verificar si el doctor existe
+    console.log('Before find doctor')
+    const doctor = await User.findById(doctorId).exec()
+    console.log('Find doctor')
+    if (!doctor || doctor.rol !== 'Doctor') {
+      console.log('There is no doctor!')
+      return res
+        .status(404)
+        .json({ error: 'Doctor no encontrado o rol inválido.' })
+    }
+
+    // Crear la plantilla
     const nuevaPlantilla = new Plantilla({ doctorId, name, patientTemplate })
     console.log('Before saving template!')
     await nuevaPlantilla.save()
     console.log('Create template')
 
-    res.status(200).json({
+    res.status(201).json({
       message: 'Plantilla de paciente creada exitosamente',
       data: { doctorId, patientTemplateId: nuevaPlantilla._id }
     })
   } catch (error) {
-    console.error('Error al crear plantilla:', error)
-    res.status(500).json({ error: 'No se pudo crear la plantilla de paciente' })
+    console.error('Error creating template:', error)
+    res.status(500).json({ error: 'Error al crear la plantilla de paciente.' })
   }
 }
 

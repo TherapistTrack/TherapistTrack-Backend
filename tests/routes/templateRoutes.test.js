@@ -3,7 +3,6 @@ const { BASE_URL, getAuthToken } = require('../jest.setup')
 let doctorUser
 let headers
 let doctorId
-let templateId
 
 describe('Plantillas de Paciente - Tests de Integración', () => {
   // Configuración global antes de todos los tests
@@ -90,7 +89,7 @@ describe('Plantillas de Paciente - Tests de Integración', () => {
           headers
         }
       )
-      expect(response.status).toBe(200)
+      expect(response.status).toBe(201)
       templateId = response.data.data.patientTemplateId
     } catch (error) {
       console.error(
