@@ -130,7 +130,7 @@ Body:
 
 # 📚 Documentación de la API
 
-Esta generada con Redocly, el siguiente comando levantará un página web con la documentación
+Esta generada con Redocly, el siguiente comando levantará un página web con la documentación.
 
 ```bash
 npx redocly preview-docs ./docs/api-spec.yaml
