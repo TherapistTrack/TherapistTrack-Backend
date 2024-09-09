@@ -96,10 +96,14 @@ exports.deleteRecord = async (req, res) => {
 
 // List records
 exports.listRecords = async (req, res) => {
-  const { doctorId, limit, offset } = req.body
+  const { doctorId, limit, offset } = req.query
 
   try {
     const records = await Record.find({ doctorId }).skip(offset).limit(limit)
+
+    if (!records) {
+      return res.status(404).json({ error: 'Records not found' })
+    }
 
     const total = await Record.countDocuments({ doctorId })
 
@@ -114,7 +118,7 @@ exports.listRecords = async (req, res) => {
 
 // Get a record by its ID
 exports.getRecordById = async (req, res) => {
-  const { doctorId, recordId } = req.body
+  const { doctorId, recordId } = req.query
 
   /*
     const isValidObjectId = mongoose.Types.ObjectId.isValid(recordId)
