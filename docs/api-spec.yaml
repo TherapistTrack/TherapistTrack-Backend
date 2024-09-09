@@ -13,6 +13,8 @@ tags:
     description: Gestión de usuarios, incluyendo registro, actualización y eliminación.
   - name: Configuración de Doctor
     description: Gestión de plantillas de paciente y expediente.
+  - name: Manipulación de expedientes
+    description: Gestión de expedientes, incluyendo creación, actualización y eliminación.
   - name: Operaciones de archivo
     description: Operaciones relacionadas con la gestión de archivos.
 
@@ -59,3 +61,14 @@ paths:
     $ref: './paths/doctor_configuration.yaml#/doctorFileTemplate'
   /doctor/FileTemplate/fields:
     $ref: './paths/doctor_configuration.yaml#/doctorFileTemplateFields'
+
+  /records/createRecord:
+    $ref: './paths/record_operations.yaml#/createRecord'
+  /records/editRecord:
+    $ref: './paths/record_operations.yaml#/editRecord'
+  /records/deleteRecord:
+    $ref: './paths/record_operations.yaml#/deleteRecord'
+  /records/listRecords:
+    $ref: './paths/record_operations.yaml#/listRecords'
+  /records/getRecordById:
+    $ref: './paths/record_operations.yaml#/getRecordById'

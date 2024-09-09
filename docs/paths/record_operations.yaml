@@ -1,0 +1,495 @@
+createRecord:
+  post:
+    tags:
+      - Manipulación de expedientes
+    summary: Crear un nuevo expediente para un paciente
+    description: Permite a los usuarios crear un nuevo expediente asociado a un paciente.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              doctor:
+                type: string
+                description: ID del doctor asociado al expediente.
+                example: "60d0fe4f5311236168a109ca"
+              template:
+                type: string
+                description: ID de la plantilla asociada al expediente.
+                example: "60d0fe4f5311236168a109cb"
+              patient:
+                type: object
+                description: Información del paciente para el expediente.
+                properties:
+                  names:
+                    type: string
+                    description: Nombre del paciente.
+                    example: "Juan"
+                  lastnames:
+                    type: string
+                    description: Apellidos del paciente.
+                    example: "Pérez García"
+                  fields:
+                    type: array
+                    description: Lista de campos adicionales del paciente.
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: Nombre del campo.
+                          example: "Fecha de nacimiento"
+                        type:
+                          type: string
+                          description: Tipo del campo, puede ser uno de ['SHORT_TEXT', 'TEXT', 'DATE', 'NUMBER', 'FLOAT', 'CHOICE'].
+                          example: "DATE"
+                        options:
+                          type: array
+                          description: Opciones para los campos de tipo 'CHOICE', si corresponde.
+                          items:
+                            type: string
+                          example:
+                            - "Opción 1"
+                            - "Opción 2"
+                        value:
+                          type: string
+                          description: Valor seleccionado o ingresado para este campo.
+                          example: "2024-09-01"
+                        required:
+                          type: boolean
+                          description: Indica si el campo es obligatorio.
+                          example: true
+            required:
+              - doctor
+              - template
+              - patient
+    responses:
+      '201':
+        description: Expediente creado exitosamente.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "Expediente creado exitosamente."
+                recordId:
+                  type: string
+                  description: ID del expediente recién creado.
+                  example: "60d0fe4f5311236168a109cc"
+      '400':
+        description: Petición inválida, falta o error en los parámetros.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "Faltan datos requeridos."
+      '500':
+        description: Error interno del servidor.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "Error al crear el expediente."
+
+                            
+    
+editRecord:
+  put:
+    tags:
+      - Manipulación de expedientes
+    summary: Editar un expediente
+    description: Permite a los usuarios editar la información de un expediente existente.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              recordId:
+                type: string
+                description: ID del expediente a editar.
+                example: "60d0fe4f5311236168a109cc"
+              doctorId:
+                type: string
+                description: ID del doctor asociado al expediente.
+                example: "60d0fe4f5311236168a109ca"
+              patient:
+                type: object
+                description: Información del paciente para el expediente.
+                properties:
+                  names:
+                    type: string
+                    description: Nombre del paciente.
+                    example: "Juan"
+                  lastnames:
+                    type: string
+                    description: Apellidos del paciente.
+                    example: "Pérez García"
+                  fields:
+                    type: array
+                    description: Lista de campos adicionales del paciente.
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: Nombre del campo.
+                          example: "Fecha de nacimiento"
+                        type:
+                          type: string
+                          description: Tipo del campo, puede ser uno de ['SHORT_TEXT', 'TEXT', 'DATE', 'NUMBER', 'FLOAT', 'CHOICE'].
+                          example: "DATE"
+                        options:
+                          type: array
+                          description: Opciones para los campos de tipo 'CHOICE', si corresponde.
+                          items:
+                            type: string
+                          example:
+                            - "Opción 1"
+                            - "Opción 2"
+                        value:
+                          type: string
+                          description: Valor seleccionado o ingresado para este campo.
+                          example: "2024-09-01"
+                        required:
+                          type: boolean
+                          description: Indica si el campo es obligatorio.
+                          example: true
+            required:
+              - recordId
+              - doctorId
+              - patient
+    responses:
+      '201':
+        description: Expediente editado exitosamente.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "Expediente editado exitosamente."
+      '500':
+        description: Error interno del servidor.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "Error al editar el expediente."
+
+deleteRecord:
+  delete:
+    tags:
+      - Manipulación de expedientes
+    summary: Eliminar un expediente
+    description: Permite a los usuarios eliminar un expediente existente.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              recordId:
+                type: string
+                description: ID del expediente a eliminar.
+                example: "60d0fe4f5311236168a109cc"
+              doctorId:
+                type: string
+                description: ID del doctor asociado al expediente.
+                example: "60d0fe4f5311236168a109ca"
+            required:
+              - recordId
+              - doctorId
+    responses:
+      '200':
+        description: Expediente eliminado exitosamente.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "Expediente eliminado exitosamente."
+      '400':
+        description: Error al eliminar el expediente.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "Error al eliminar el expediente."
+      '403':
+        description: No se tiene permisos para eliminar el expediente.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "No se tienen permisos para eliminar el expediente."
+      '404':
+        description: Expediente no encontrado.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "Expediente no encontrado."
+      '500':
+        description: Error interno del servidor.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "Error al eliminar el expediente."
+
+listRecords:
+  get:
+    tags:
+      - Manipulación de expedientes
+    summary: Listar expedientes
+    description: Permite a los usuarios listar todos los expedientes existentes de un doctor en especifico.
+    parameters:
+      - in: query
+        name: doctorId
+        required: true
+        description: ID del doctor asociado a los expedientes.
+        schema:
+          type: string
+          example: "60d0fe4f5311236168a109ca"
+      - in: query
+        name: limit
+        required: false
+        description: Cantidad máxima de expedientes a listar.
+        schema:
+          type: integer
+          example: 10
+      - in: query
+        name: offset
+        required: false
+        description: Cantidad de expedientes a omitir.
+        schema:
+          type: integer
+          example: 0
+    responses:
+      '200':
+        description: Lista de expedientes obtenida exitosamente.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                records:
+                  type: array
+                  description: Lista de expedientes.
+                  items:
+                    type: object
+                    properties:
+                      recordId:
+                        type: string
+                        description: ID del expediente.
+                        example: "60d0fe4f5311236168a109cc"
+                      patient:
+                        type: object
+                        description: Información del paciente asociado al expediente.
+                        properties:
+                          names:
+                            type: string
+                            description: Nombre del paciente.
+                            example: "Juan"
+                          lastnames:
+                            type: string
+                            description: Apellidos del paciente.
+                            example: "Pérez García"
+                          fields:
+                            type: array
+                            description: Lista de campos adicionales del paciente.
+                            items:
+                              type: object
+                              properties:
+                                name:
+                                  type: string
+                                  description: Nombre del campo.
+                                  example: "Fecha de nacimiento"
+                                type:
+                                  type: string
+                                  description: Tipo del campo, puede ser uno de ['SHORT_TEXT', 'TEXT', 'DATE', 'NUMBER', 'FLOAT', 'CHOICE'].
+                                  example: "DATE"
+                                options:
+                                  type: array
+                                  description: Opciones para los campos de tipo 'CHOICE', si corresponde.
+                                  items:
+                                    type: string
+                                  example:
+                                    - "Opción 1"
+                                    - "Opción 2"
+                                value:
+                                  type: string
+                                  description: Valor seleccionado o ingresado para este campo.
+                                  example: "2024-09-01"
+                                required:
+                                  type: boolean
+                                  description: Indica si el campo es obligatorio.
+                                  example: true
+      '404':
+        description: No se encontraron
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "No se encontraron expedientes."
+      '500':
+        description: Error interno del servidor.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "Error al obtener los expedientes."
+
+
+getRecordById:
+  get:
+    tags:
+      - Manipulación de expedientes
+    summary: Obtener un expediente
+    description: Permite a los usuarios obtener la información de un expediente en especifico.
+    parameters:
+      - in: query
+        name: recordId
+        required: true
+        description: ID del expediente a obtener.
+        schema:
+          type: string
+          example: "60d0fe4f5311236168a109cc"
+      - in: query
+        name: doctorId
+        required: true
+        description: ID del doctor asociado al expediente.
+        schema:
+          type: string
+          example: "60d0fe4f5311236168a109ca"
+    responses:
+      '200':
+        description: Expediente obtenido exitosamente.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                recordId:
+                  type: string
+                  description: ID del expediente.
+                  example: "60d0fe4f5311236168a109cc"
+                patient:
+                  type: object
+                  description: Información del paciente asociado al expediente.
+                  properties:
+                    names:
+                      type: string
+                      description: Nombre del paciente.
+                      example: "Juan"
+                    lastnames:
+                      type: string
+                      description: Apellidos del paciente.
+                      example: "Pérez García"
+                    fields:
+                      type: array
+                      description: Lista de campos adicionales del paciente.
+                      items:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                            description: Nombre del campo.
+                            example: "Fecha de nacimiento"
+                          type:
+                            type: string
+                            description: Tipo del campo, puede ser uno de ['SHORT_TEXT', 'TEXT', 'DATE', 'NUMBER', 'FLOAT', 'CHOICE'].
+                            example: "DATE"
+                          options:
+                            type: array
+                            description: Opciones para los campos de tipo 'CHOICE', si corresponde.
+                            items:
+                              type: string
+                            example:
+                              - "Opción 1"
+                              - "Opción 2"
+                          value:
+                            type: string
+                            description: Valor seleccionado o ingresado para este campo.
+                            example: "2024-09-01"
+                          required:
+                            type: boolean
+                            description: Indica si el campo es obligatorio.
+                            example: true
+      '400':
+        description: Error al obtener el expediente.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "Error al obtener el expediente."
+      '403':
+        description: No se tiene permisos para obtener el expediente.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "No se tienen permisos para obtener el expediente."
+      '404':
+        description: Expediente no encontrado.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "Expediente no encontrado."
+      '500':
+        description: Error interno del servidor.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "Error al obtener el expediente."

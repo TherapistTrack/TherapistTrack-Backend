@@ -206,7 +206,6 @@ describe('Record Controller Tests', () => {
       const response = await axios.get(`${baseUrl}/list`, recordData, {
         headers
       })
-      console.log(response.data)
       expect(response.status).toBe(200)
       expect(response.data.records.length).toBeGreaterThan(0)
       expect(response.data.total).toBeGreaterThan(0)
