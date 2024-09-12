@@ -11,10 +11,9 @@ describe('File Controller Tests', () => {
   let headers
 
   beforeAll(async () => {
-    const token = await getAuthToken()
     headers = {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
+      Authorization: 'Bearer yourAuthToken',
       Origin: 'http://localhost'
     }
   })
@@ -54,7 +53,6 @@ describe('File Controller Tests', () => {
       expect(response.data.status).toBe('success')
       expect(response.data.message).toBe('File created successfully')
       testfileID = response.data.data
-      console.log('Test file ID:', testfileID)
     } catch (error) {
       console.error(
         'Error during test:',
@@ -171,8 +169,6 @@ describe('File Controller Tests', () => {
         { id: testfileID },
         { headers }
       )
-
-      // console.log('Response:', response.data)
 
       expect(response.status).toBe(200)
       expect(response.data.file.name).toBe('test1')

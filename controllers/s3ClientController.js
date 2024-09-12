@@ -17,7 +17,11 @@ exports.s3Upload = (key, body) => {
     Body: body
   }
 
-  return s3.upload(params).promise()
+  return (
+    // The `` call might be on an JS SDK v2 client API.
+    // If yes, please remove . If not, remove this comment.
+    s3.upload(params)
+  )
 }
 
 exports.s3Delete = (key) => {
@@ -26,7 +30,11 @@ exports.s3Delete = (key) => {
     Key: key
   }
 
-  return s3.deleteObject(params).promise()
+  return (
+    // The `` call might be on an JS SDK v2 client API.
+    // If yes, please remove . If not, remove this comment.
+    s3.deleteObject(params)
+  )
 }
 
 exports.s3Download = (key) => {
@@ -35,5 +43,9 @@ exports.s3Download = (key) => {
     Key: key
   }
 
-  return s3.getObject(params).promise()
+  return (
+    // The `` call might be on an JS SDK v2 client API.
+    // If yes, please remove . If not, remove this comment.
+    s3.getObject(params)
+  )
 }
