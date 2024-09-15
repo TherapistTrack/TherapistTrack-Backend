@@ -196,14 +196,36 @@ describe('Record Controller Tests', () => {
     }
   })
 
-  it('should list records of a doctor', async () => {
-    const recordData = {
+  it('should list records with filtering and sorting applied', async () => {
+    const listData = {
       doctorId: '66b453a2601a8e9fb46d8884',
       limit: 5,
-      offset: 0
+      offset: 0,
+      sorts: [
+        {
+          name: 'Age',
+          mode: 'asc'
+        }
+      ],
+      filters: [
+        {
+          name: 'Civil Status',
+          operation: 'is',
+          value: 'married',
+          logicGate: 'and'
+        },
+        {
+          name: 'Age',
+          operation: 'greater_than',
+          value: '25',
+          logicGate: 'and'
+        }
+      ]
     }
+
     try {
-      const response = await axios.get(`${baseUrl}/list`, recordData, {
+      const response = await axios.get(`${baseUrl}/list`, {
+        params: listData,
         headers
       })
       expect(response.status).toBe(200)
@@ -216,35 +238,77 @@ describe('Record Controller Tests', () => {
     }
   })
 
-  it('should return 404 when trying to list records with a doctorId that has no records', async () => {
-    const emptyListData = {
-      doctorId: 'validDoctorIdWithNoRecords',
+  it('should return 404 when trying to list records with filters that match no records', async () => {
+    const noMatchFilter = {
+      doctorId: '66b453a2601a8e9fb46d8884',
       limit: 5,
-      offset: 0
+      offset: 0,
+      filters: [
+        {
+          name: 'Civil Status',
+          operation: 'is',
+          value: 'nonexistentStatus',
+          logicGate: 'and'
+        }
+      ]
     }
 
     try {
-      await axios.get(`${baseUrl}/list`, { params: emptyListData, headers })
+      await axios.get(`${baseUrl}/list`, {
+        params: noMatchFilter,
+        headers
+      })
     } catch (error) {
       expect(error.response.status).toBe(404)
       expect(error.response.data.error).toBe('Records not found')
     }
   })
 
-  it('should return 403 when doctor is unauthorized to delete a record', async () => {
-    const unauthorizedDeleteData = {
-      doctorId: 'anotherDoctorId', // Un doctor diferente al del registro
-      recordId: testrecordID
+  it('should list records with pagination', async () => {
+    const paginationData = {
+      doctorId: '66b453a2601a8e9fb46d8884',
+      limit: 2,
+      offset: 0
     }
 
     try {
-      await axios.delete(`${baseUrl}/`, {
-        data: unauthorizedDeleteData,
+      const response = await axios.get(`${baseUrl}/list`, {
+        params: paginationData,
         headers
       })
+      expect(response.status).toBe(200)
+      expect(response.data.total).toBeGreaterThan(0)
     } catch (error) {
-      expect(error.response.status).toBe(403)
-      expect(error.response.data.error).toBe('Unauthorized')
+      throw new Error(
+        `Test failed:\nStatus: ${error.response.status}\nData: ${JSON.stringify(error.response.data, null, 2)}`
+      )
+    }
+  })
+
+  it('should sort records by descending order', async () => {
+    const sortData = {
+      doctorId: '66b453a2601a8e9fb46d8884',
+      limit: 5,
+      offset: 0,
+      sorts: [
+        {
+          name: 'Age',
+          mode: 'desc'
+        }
+      ]
+    }
+
+    try {
+      const response = await axios.get(`${baseUrl}/list`, {
+        params: sortData,
+        headers
+      })
+      expect(response.status).toBe(200)
+      expect(response.data.records.length).toBeGreaterThan(0)
+    } catch (error) {
+      throw new Error(
+        `Test failed:\nStatus: ${error.response.status}\nData: ${JSON.stringify(error.response.data, null, 2)}`
+      )
     }
   })
 

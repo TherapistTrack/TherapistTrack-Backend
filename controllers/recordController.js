@@ -96,21 +96,107 @@ exports.deleteRecord = async (req, res) => {
 
 // List records
 exports.listRecords = async (req, res) => {
-  const { doctorId, limit, offset } = req.query
+  const { doctorId, limit, offset, sorts, filters } = req.query
 
   try {
-    const records = await Record.find({ doctorId }).skip(offset).limit(limit)
+    let query = { doctor: doctorId }
 
-    if (!records) {
+    if (filters && filters.length > 0) {
+      filters.forEach((filter) => {
+        const { name, operation, value, logicGate } = filter
+        const filterQuery = {}
+
+        //TEXT and LARGE TEXT
+        if (operation === 'contains') {
+          filterQuery[`patient.fields`] = {
+            $elemMatch: { name, value: { $regex: value, $options: 'i' } }
+          }
+        } else if (operation === 'starts_with') {
+          filterQuery[`patient.fields`] = {
+            $elemMatch: { name, value: { $regex: `^${value}`, $options: 'i' } }
+          }
+        } else if (operation === 'ends_with') {
+          filterQuery[`patient.fields`] = {
+            $elemMatch: { name, value: { $regex: `${value}$`, $options: 'i' } }
+          }
+        }
+
+        // DATE
+        if (operation === 'after') {
+          filterQuery[`patient.fields`] = {
+            $elemMatch: { name, value: { $gte: new Date(value) } }
+          }
+        } else if (operation === 'before') {
+          filterQuery[`patient.fields`] = {
+            $elemMatch: { name, value: { $lt: new Date(value) } }
+          }
+        } else if (operation === 'between') {
+          filterQuery[`patient.fields`] = {
+            $elemMatch: {
+              name,
+              value: { $gt: new Date(value[0]), $lt: new Date(value[1]) }
+            }
+          }
+        }
+
+        // NUMBER and FLOAT
+        if (operation === 'greater_than') {
+          filterQuery[`patient.fields`] = {
+            $elemMatch: { name, value: { $gte: Number(value) } }
+          }
+        } else if (operation === 'less_than') {
+          filterQuery[`patient.fields`] = {
+            $elemMatch: { name, value: { $lt: Number(value) } }
+          }
+        } else if (operation === 'equal_than') {
+          filterQuery[`patient.fields`] = {
+            $elemMatch: { name, value: { $eq: Number(value) } }
+          }
+        }
+
+        // CHOICE
+        if (operation === 'is') {
+          filterQuery[`patient.fields`] = { $elemMatch: { name, value: value } }
+        } else if (operation === 'is_not') {
+          filterQuery[`patient.fields`] = {
+            $elemMatch: { name, value: { $ne: value } }
+          }
+        } else if (operation === 'is_not_empty') {
+          filterQuery[`patient.fields`] = {
+            $elemMatch: { name, value: { $ne: '' } }
+          }
+        }
+
+        //LOGIC GATE
+        if (logicGate === 'or') {
+          query = { $or: [query, filterQuery] }
+        } else {
+          //default to AND logic
+          query = { ...query, ...filterQuery }
+        }
+      })
+    }
+
+    let sort = {}
+    if (sorts && sorts.length > 0) {
+      sorts.forEach((sortCriteria) => {
+        const { name, mode } = sortCriteria
+        sort[`patient.fields.${name}.value`] = mode === 'asc' ? 1 : -1
+      })
+    }
+
+    const records = await Record.find(query)
+      .sort(sort)
+      .skip(parseInt(offset))
+      .limit(parseInt(limit))
+
+    if (!records || records.length === 0) {
       return res.status(404).json({ error: 'Records not found' })
     }
 
-    const total = await Record.countDocuments({ doctorId })
+    const total = await Record.countDocuments(query)
 
-    res.status(200).json({
-      records,
-      total
-    })
+    res.status(200).json({ records, total })
   } catch (error) {
     res.status(500).json({ error: 'Error listing the records' })
   }
