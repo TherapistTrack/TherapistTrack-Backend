@@ -5,7 +5,7 @@ const recordController = require('../controllers/recordController')
 router.post('/', recordController.createRecord)
 router.put('/', recordController.editRecord)
 router.delete('/', recordController.deleteRecord)
-router.get('/list', recordController.listRecords)
+router.post('/list', recordController.listRecords)
 router.get('/records', recordController.getRecordById)
 
 module.exports = router

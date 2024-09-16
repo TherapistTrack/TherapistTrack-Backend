@@ -1,4 +1,5 @@
 const Record = require('../models/recordModel')
+const { options } = require('../routes/recordRoutes')
 
 // Create a new record
 exports.createRecord = async (req, res) => {
@@ -96,7 +97,7 @@ exports.deleteRecord = async (req, res) => {
 
 // List records
 exports.listRecords = async (req, res) => {
-  const { doctorId, limit, offset, sorts, filters } = req.query
+  const { doctorId, limit, offset, sorts, filters } = req.body
 
   try {
     let query = { doctor: doctorId }
@@ -123,47 +124,103 @@ exports.listRecords = async (req, res) => {
 
         // DATE
         if (operation === 'after') {
-          filterQuery[`patient.fields`] = {
-            $elemMatch: { name, value: { $gte: new Date(value) } }
+          // Verificar si el value es un valor de tipo Date válido
+          if (!isNaN(Date.parse(value))) {
+            filterQuery['patient.fields'] = {
+              $elemMatch: { name, value: { $gte: new Date(value) } }
+            }
+          } else {
+            throw new Error(
+              `Invalid date format for 'after' operation: ${value}`
+            )
           }
         } else if (operation === 'before') {
-          filterQuery[`patient.fields`] = {
-            $elemMatch: { name, value: { $lt: new Date(value) } }
+          // Verificar si el value es un valor de tipo Date válido
+          if (!isNaN(Date.parse(value))) {
+            filterQuery['patient.fields'] = {
+              $elemMatch: { name, value: { $lt: new Date(value) } }
+            }
+          } else {
+            throw new Error(
+              `Invalid date format for 'before' operation: ${value}`
+            )
           }
         } else if (operation === 'between') {
-          filterQuery[`patient.fields`] = {
-            $elemMatch: {
-              name,
-              value: { $gt: new Date(value[0]), $lt: new Date(value[1]) }
+          // Verificar si ambos valores son de tipo Date válido
+          if (
+            Array.isArray(value) &&
+            value.length === 2 &&
+            !isNaN(Date.parse(value[0])) &&
+            !isNaN(Date.parse(value[1]))
+          ) {
+            filterQuery['patient.fields'] = {
+              $elemMatch: {
+                name,
+                value: { $gt: new Date(value[0]), $lt: new Date(value[1]) }
+              }
             }
+          } else {
+            throw new Error(
+              `Invalid date format for 'between' operation: ${value}`
+            )
           }
         }
 
         // NUMBER and FLOAT
         if (operation === 'greater_than') {
-          filterQuery[`patient.fields`] = {
-            $elemMatch: { name, value: { $gte: Number(value) } }
+          // Verificar si el value es un número válido
+          if (!isNaN(Number(value))) {
+            filterQuery[`patient.fields`] = {
+              $elemMatch: { name, value: { $gte: Number(value) } }
+            }
+          } else {
+            throw new Error(
+              `Invalid number format for 'greater_than' operation: ${value}`
+            )
           }
         } else if (operation === 'less_than') {
-          filterQuery[`patient.fields`] = {
-            $elemMatch: { name, value: { $lt: Number(value) } }
+          // Verificar si el value es un número válido
+          if (!isNaN(Number(value))) {
+            filterQuery[`patient.fields`] = {
+              $elemMatch: { name, value: { $lt: Number(value) } }
+            }
+          } else {
+            throw new Error(
+              `Invalid number format for 'less_than' operation: ${value}`
+            )
           }
         } else if (operation === 'equal_than') {
-          filterQuery[`patient.fields`] = {
-            $elemMatch: { name, value: { $eq: Number(value) } }
+          // Verificar si el value es un número válido
+          if (!isNaN(Number(value))) {
+            filterQuery[`patient.fields`] = {
+              $elemMatch: { name, value: { $eq: Number(value) } }
+            }
+          } else {
+            throw new Error(
+              `Invalid number format for 'equal_than' operation: ${value}`
+            )
           }
         }
 
         // CHOICE
         if (operation === 'is') {
-          filterQuery[`patient.fields`] = { $elemMatch: { name, value: value } }
+          filterQuery[`patient.fields`] = {
+            $elemMatch: { name, value: value, options: { $in: [value] } }
+          }
         } else if (operation === 'is_not') {
           filterQuery[`patient.fields`] = {
-            $elemMatch: { name, value: { $ne: value } }
+            $elemMatch: {
+              name,
+              value: { $ne: value, options: { $in: [value] } }
+            }
           }
         } else if (operation === 'is_not_empty') {
           filterQuery[`patient.fields`] = {
-            $elemMatch: { name, value: { $ne: '' } }
+            $elemMatch: {
+              name,
+              value: { $ne: '' },
+              options: { $exists: true, $ne: [] }
+            }
           }
         }
 
@@ -198,7 +255,7 @@ exports.listRecords = async (req, res) => {
 
     res.status(200).json({ records, total })
   } catch (error) {
-    res.status(500).json({ error: 'Error listing the records' })
+    res.status(500).json({ error: error.message })
   }
 }
 

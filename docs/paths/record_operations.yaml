@@ -269,33 +269,66 @@ deleteRecord:
                   example: "Error al eliminar el expediente."
 
 listRecords:
-  get:
+  post:
     tags:
       - Manipulación de expedientes
     summary: Listar expedientes
-    description: Permite a los usuarios listar todos los expedientes existentes de un doctor en especifico.
-    parameters:
-      - in: query
-        name: doctorId
-        required: true
-        description: ID del doctor asociado a los expedientes.
-        schema:
-          type: string
-          example: "60d0fe4f5311236168a109ca"
-      - in: query
-        name: limit
-        required: false
-        description: Cantidad máxima de expedientes a listar.
-        schema:
-          type: integer
-          example: 10
-      - in: query
-        name: offset
-        required: false
-        description: Cantidad de expedientes a omitir.
-        schema:
-          type: integer
-          example: 0
+    description: Permite a los usuarios listar todos los expedientes asociados a un doctor específico, con soporte para filtros, paginación y ordenamiento.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              doctorId:
+                type: string
+                description: ID del doctor asociado a los expedientes.
+                example: "60d0fe4f5311236168a109ca"
+              limit:
+                type: integer
+                description: Cantidad máxima de expedientes a listar.
+                example: 10
+              offset:
+                type: integer
+                description: Cantidad de expedientes a omitir.
+                example: 0
+              sorts:
+                type: array
+                description: Criterios de ordenamiento para los expedientes.
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      description: Nombre del campo del paciente por el cual ordenar.
+                      example: "Age"
+                    mode:
+                      type: string
+                      description: Modo de ordenamiento, ya sea 'asc' para ascendente o 'desc' para descendente.
+                      example: "asc"
+              filters:
+                type: array
+                description: Filtros a aplicar sobre los expedientes.
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      description: Nombre del campo del paciente a filtrar.
+                      example: "Civil Status"
+                    operation:
+                      type: string
+                      description: Tipo de operación del filtro, puede ser uno de ['contains', 'starts_with', 'ends_with', 'greater_than', 'less_than', 'equal_than', 'is', 'is_not', 'is_not_empty', 'after', 'before', 'between'].
+                      example: "is"
+                    value:
+                      type: string
+                      description: Valor para el filtro aplicado.
+                      example: "married"
+                    logicGate:
+                      type: string
+                      description: Operador lógico a aplicar entre filtros (and, or).
+                      example: "and"
     responses:
       '200':
         description: Lista de expedientes obtenida exitosamente.
@@ -322,7 +355,7 @@ listRecords:
                             type: string
                             description: Nombre del paciente.
                             example: "Juan"
-                          lastnames:
+                          lastNames:
                             type: string
                             description: Apellidos del paciente.
                             example: "Pérez García"
@@ -346,8 +379,8 @@ listRecords:
                                   items:
                                     type: string
                                   example:
-                                    - "Opción 1"
-                                    - "Opción 2"
+                                    - "Casado"
+                                    - "Soltero"
                                 value:
                                   type: string
                                   description: Valor seleccionado o ingresado para este campo.
@@ -356,16 +389,20 @@ listRecords:
                                   type: boolean
                                   description: Indica si el campo es obligatorio.
                                   example: true
+                total:
+                  type: integer
+                  description: Número total de expedientes que coinciden con los filtros.
+                  example: 25
       '404':
-        description: No se encontraron
+        description: No se encontraron expedientes con los filtros especificados.
         content:
           application/json:
             schema:
               type: object
               properties:
-                message:
+                error:
                   type: string
-                  example: "No se encontraron expedientes."
+                  example: "Records not found"
       '500':
         description: Error interno del servidor.
         content:
@@ -373,9 +410,10 @@ listRecords:
             schema:
               type: object
               properties:
-                message:
+                error:
                   type: string
-                  example: "Error al obtener los expedientes."
+                  example: "Error al listar los expedientes debido a invalido value."
+
 
 
 getRecordById:
