@@ -224,8 +224,7 @@ describe('Record Controller Tests', () => {
     }
 
     try {
-      const response = await axios.get(`${baseUrl}/list`, {
-        params: listData,
+      const response = await axios.post(`${baseUrl}/list`, listData, {
         headers
       })
       expect(response.status).toBe(200)
@@ -254,8 +253,7 @@ describe('Record Controller Tests', () => {
     }
 
     try {
-      await axios.get(`${baseUrl}/list`, {
-        params: noMatchFilter,
+      await axios.post(`${baseUrl}/list`, noMatchFilter, {
         headers
       })
     } catch (error) {
@@ -272,8 +270,7 @@ describe('Record Controller Tests', () => {
     }
 
     try {
-      const response = await axios.get(`${baseUrl}/list`, {
-        params: paginationData,
+      const response = await axios.post(`${baseUrl}/list`, paginationData, {
         headers
       })
       expect(response.status).toBe(200)
@@ -299,8 +296,7 @@ describe('Record Controller Tests', () => {
     }
 
     try {
-      const response = await axios.get(`${baseUrl}/list`, {
-        params: sortData,
+      const response = await axios.post(`${baseUrl}/list`, sortData, {
         headers
       })
       expect(response.status).toBe(200)
@@ -308,6 +304,105 @@ describe('Record Controller Tests', () => {
     } catch (error) {
       throw new Error(
         `Test failed:\nStatus: ${error.response.status}\nData: ${JSON.stringify(error.response.data, null, 2)}`
+      )
+    }
+  })
+
+  it('should return 400 for invalid number format in filter', async () => {
+    const invalidNumberFilter = {
+      doctorId: '66b453a2601a8e9fb46d8884',
+      limit: 5,
+      offset: 0,
+      filters: [
+        {
+          name: 'Age',
+          operation: 'greater_than',
+          value: 'invalidNumber', // Número inválido
+          logicGate: 'and'
+        }
+      ]
+    }
+
+    try {
+      await axios.post(`${baseUrl}/list`, invalidNumberFilter, { headers })
+    } catch (error) {
+      expect(error.response.status).toBe(500)
+      expect(error.response.data.error).toContain('Invalid number format')
+    }
+  })
+
+  it('should return 400 for invalid date format in filter', async () => {
+    const invalidDateFilter = {
+      doctorId: '66b453a2601a8e9fb46d8884',
+      limit: 5,
+      offset: 0,
+      filters: [
+        {
+          name: 'Birthday',
+          operation: 'after',
+          value: 'invalidDate', // Fecha inválida
+          logicGate: 'and'
+        }
+      ]
+    }
+
+    try {
+      await axios.post(`${baseUrl}/list`, invalidDateFilter, { headers })
+    } catch (error) {
+      expect(error.response.status).toBe(500)
+      expect(error.response.data.error).toContain('Invalid date format')
+    }
+  })
+
+  it('should return 400 for invalid pagination limit', async () => {
+    const invalidLimitPagination = {
+      doctorId: '66b453a2601a8e9fb46d8884',
+      limit: 'invalidLimit', // Límite no numérico
+      offset: 0
+    }
+
+    try {
+      await axios.post(`${baseUrl}/list`, invalidLimitPagination, { headers })
+    } catch (error) {
+      expect(error.response.status).toBe(500)
+      expect(error.response.data.error).toContain('Invalid limit format')
+    }
+  })
+
+  it('should return 400 for invalid pagination offset', async () => {
+    const invalidOffsetPagination = {
+      doctorId: '66b453a2601a8e9fb46d8884',
+      limit: 5,
+      offset: 'invalidOffset' // Offset no numérico
+    }
+
+    try {
+      await axios.post(`${baseUrl}/list`, invalidOffsetPagination, { headers })
+    } catch (error) {
+      expect(error.response.status).toBe(500)
+      expect(error.response.data.error).toContain('Invalid offset format')
+    }
+  })
+
+  it('should return 400 for missing filters in sorting request', async () => {
+    const sortWithoutFilters = {
+      doctorId: '66b453a2601a8e9fb46d8884',
+      limit: 5,
+      offset: 0,
+      sorts: [
+        {
+          name: 'Age',
+          mode: 'asc'
+        }
+      ]
+    }
+
+    try {
+      await axios.post(`${baseUrl}/list`, sortWithoutFilters, { headers })
+    } catch (error) {
+      expect(error.response.status).toBe(400)
+      expect(error.response.data.error).toContain(
+        'At least one filter is required for sorting'
       )
     }
   })
