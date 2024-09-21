@@ -34,10 +34,64 @@ describe('Record Controller Tests', () => {
       expect(response.status).toBe(201)
       expect(response.data.message).toBe('Record created successfully')
       testrecordID = response.data.recordId
+      console.log('Record ID:', testrecordID)
     } catch (error) {
       throw new Error(
         `Test failed:\nStatus: ${error.response.status}\nData: ${JSON.stringify(error.response.data, null, 2)}`
       )
+    }
+  })
+
+  it('should return 400 when trying to create a record with invalid field type', async () => {
+    const invalidRecordData = {
+      doctor: '66b453a2601a8e9fb46d8884',
+      template: '66b453a2601a8e9fb46d8885',
+      patient: {
+        names: 'Joe',
+        lastNames: 'Doe',
+        fields: [
+          {
+            name: 'Invalid Field',
+            type: 'INVALID_TYPE', // Tipo de campo inválido
+            value: 'Invalid Value',
+            required: true
+          }
+        ]
+      }
+    }
+
+    try {
+      await axios.post(`${baseUrl}/`, invalidRecordData, { headers })
+    } catch (error) {
+      expect(error.response.status).toBe(500)
+      expect(error.response.data.error).toContain('Invalid field type')
+    }
+  })
+
+  it('should return 400 when trying to create a record with invalid choice option', async () => {
+    const invalidRecordData = {
+      doctor: '66b453a2601a8e9fb46d8884',
+      template: '66b453a2601a8e9fb46d8885',
+      patient: {
+        names: 'Joe',
+        lastNames: 'Doe',
+        fields: [
+          {
+            name: 'Civil Status',
+            type: 'CHOICE',
+            options: ['single', 'married', 'separate'],
+            value: 'invalidOption', // Opción inválida
+            required: true
+          }
+        ]
+      }
+    }
+
+    try {
+      await axios.post(`${baseUrl}/`, invalidRecordData, { headers })
+    } catch (error) {
+      expect(error.response.status).toBe(500)
+      expect(error.response.data.error).toContain('Choice is not an option')
     }
   })
 
@@ -234,6 +288,31 @@ describe('Record Controller Tests', () => {
       throw new Error(
         `Test failed:\nStatus: ${error.response.status}\nData: ${JSON.stringify(error.response.data, null, 2)}`
       )
+    }
+  })
+
+  it('should return 403 when doctor is unauthorized to list records', async () => {
+    const unauthorizedListData = {
+      doctorId: 'anotherDoctorId', // Un doctor diferente al del registro
+      limit: 5,
+      offset: 0,
+      filters: [
+        {
+          name: 'Civil Status',
+          operation: 'is',
+          value: 'nonexistentStatus',
+          logicGate: 'and'
+        }
+      ]
+    }
+
+    try {
+      await axios.post(`${baseUrl}/list`, unauthorizedListData, {
+        headers
+      })
+    } catch (error) {
+      expect(error.response.status).toBe(403)
+      expect(error.response.data.error).toBe('Unauthorized')
     }
   })
 

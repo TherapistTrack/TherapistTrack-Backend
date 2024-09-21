@@ -14,6 +14,30 @@ exports.createRecord = async (req, res) => {
     */
 
   try {
+    for (const field of patient.fields) {
+      if (field.type === 'DATE' && isNaN(Date.parse(field.value))) {
+        return res
+          .status(400)
+          .json({ error: `Invalid date format for field ${field.name}` })
+      } else if (
+        (field.type === 'NUMBER' || field.type === 'FLOAT') &&
+        isNaN(Number(field.value))
+      ) {
+        return res
+          .status(400)
+          .json({ error: `Invalid number format for field ${field.name}` })
+      } else if (
+        field.type === 'CHOICE' &&
+        !field.options.includes(field.value)
+      ) {
+        return res
+          .status(400)
+          .json({
+            error: `Choice "${field.value}" is not a valid option for field ${field.name}`
+          })
+      }
+    }
+
     const newRecord = new Record({
       doctor,
       template,
@@ -27,7 +51,7 @@ exports.createRecord = async (req, res) => {
       message: 'Record created successfully'
     })
   } catch (error) {
-    res.status(500).json({ error: error })
+    res.status(500).json({ error: error.message })
   }
 }
 
@@ -47,6 +71,18 @@ exports.editRecord = async (req, res) => {
 
     if (record.doctor.toString() !== doctorId) {
       return res.status(403).json({ error: 'Unauthorized' })
+    }
+
+    if (
+      patient.fields.type === 'DATE' &&
+      isNaN(Date.parse(patient.fields.value))
+    ) {
+      return res.status(400).json({ error: 'Invalid date format' })
+    } else if (
+      patient.fields.type === 'NUMBER' ||
+      (patient.fields.type === 'FLOAT' && isNaN(Number(patient.fields.value)))
+    ) {
+      return res.status(400).json({ error: 'Invalid number format' })
     }
 
     const updatedRecord = await Record.findByIdAndUpdate(
@@ -234,21 +270,38 @@ exports.listRecords = async (req, res) => {
       })
     }
 
-    let sort = {}
-    if (sorts && sorts.length > 0) {
-      sorts.forEach((sortCriteria) => {
-        const { name, mode } = sortCriteria
-        sort[`patient.fields.${name}.value`] = mode === 'asc' ? 1 : -1
-      })
-    }
-
     const records = await Record.find(query)
-      .sort(sort)
       .skip(parseInt(offset))
       .limit(parseInt(limit))
 
+    if (records.length > 0 && records[0].doctor.toString() !== doctorId) {
+      return res.status(403).json({ error: 'Unauthorized' })
+    }
+
     if (!records || records.length === 0) {
       return res.status(404).json({ error: 'Records not found' })
+    }
+
+    // Realizar el sort después de encontrar los records
+    if (sorts && sorts.length > 0) {
+      records.sort((a, b) => {
+        let result = 0
+
+        sorts.forEach(({ name, mode }) => {
+          const fieldA =
+            a.patient.fields.find((field) => field.name === name)?.value || ''
+          const fieldB =
+            b.patient.fields.find((field) => field.name === name)?.value || ''
+
+          if (fieldA < fieldB) {
+            result = mode === 'asc' ? -1 : 1
+          } else if (fieldA > fieldB) {
+            result = mode === 'asc' ? 1 : -1
+          }
+        })
+
+        return result
+      })
     }
 
     const total = await Record.countDocuments(query)
