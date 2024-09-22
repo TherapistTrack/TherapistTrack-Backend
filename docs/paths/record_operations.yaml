@@ -1,4 +1,4 @@
-createRecord:
+baseRecordRoute:
   post:
     tags:
       - Manipulación de expedientes
@@ -100,10 +100,7 @@ createRecord:
                 message:
                   type: string
                   example: "Error al crear el expediente."
-
-                            
     
-editRecord:
   put:
     tags:
       - Manipulación de expedientes
@@ -192,7 +189,6 @@ editRecord:
                   type: string
                   example: "Error al editar el expediente."
 
-deleteRecord:
   delete:
     tags:
       - Manipulación de expedientes

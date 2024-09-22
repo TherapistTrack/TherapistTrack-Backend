@@ -52,13 +52,9 @@ paths:
   /doctor/FileTemplate/fields:
     $ref: './paths/doctor_configuration.yaml#/doctorFileTemplateFields'
 
-  /records/createRecord:
-    $ref: './paths/record_operations.yaml#/createRecord'
-  /records/editRecord:
-    $ref: './paths/record_operations.yaml#/editRecord'
-  /records/deleteRecord:
-    $ref: './paths/record_operations.yaml#/deleteRecord'
-  /records/listRecords:
+  /records/:
+    $ref: './paths/record_operations.yaml#/baseRecordRoute'
+  /records/list:
     $ref: './paths/record_operations.yaml#/listRecords'
-  /records/getRecordById:
+  /records/records:
     $ref: './paths/record_operations.yaml#/getRecordById'
