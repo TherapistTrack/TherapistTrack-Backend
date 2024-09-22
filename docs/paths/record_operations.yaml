@@ -97,7 +97,7 @@ baseRecordRoute:
     tags:
       - Manipulación de expedientes
     summary: Editar un expediente
-    description: Permite a los usuarios editar la información de un expediente existente.
+    description: Editara un expediente, es necesario pasar TODOS los campos del paciente, no solo el que fue editado, siempre siguiendo su plantilla
     requestBody:
       required: true
       content:
@@ -135,10 +135,6 @@ baseRecordRoute:
                           type: string
                           description: Nombre del campo.
                           example: "Fecha de nacimiento"
-                        type:
-                          type: string
-                          description: Tipo del campo, puede ser uno de ['SHORT_TEXT', 'TEXT', 'DATE', 'NUMBER', 'FLOAT', 'CHOICE'].
-                          example: "DATE"
                         options:
                           type: array
                           description: Opciones para los campos de tipo 'CHOICE', si corresponde.
@@ -151,10 +147,6 @@ baseRecordRoute:
                           type: string
                           description: Valor seleccionado o ingresado para este campo.
                           example: "2024-09-01"
-                        required:
-                          type: boolean
-                          description: Indica si el campo es obligatorio.
-                          example: true
             required:
               - recordId
               - doctorId
@@ -169,7 +161,27 @@ baseRecordRoute:
               properties:
                 message:
                   type: string
-                  example: "Expediente editado exitosamente."
+                  example: "Record updated successfully"
+      '403':
+        description: No se tiene permisos para editar el expediente.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "This record do not belong to the given doctorId"
+      '406':
+        description: Informacion incompleta o incorrecta.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "Nickname field is invalid"
       '500':
         description: Error interno del servidor.
         content:
