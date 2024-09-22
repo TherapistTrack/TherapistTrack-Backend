@@ -2,8 +2,8 @@ baseRecordRoute:
   post:
     tags:
       - Manipulación de expedientes
-    summary: Crear un nuevo expediente para un paciente
-    description: Permite a los usuarios crear un nuevo expediente asociado a un paciente.
+    summary: Crear expediente para un paciente
+    description: Permite a un doctor crear el expediente de un paciente EN BASE A UNA PLANTILLA, cualquier dato que no coincida con las especificaciones de la plantilla devolvera un fallo.
     requestBody:
       required: true
       content:
@@ -40,11 +40,7 @@ baseRecordRoute:
                         name:
                           type: string
                           description: Nombre del campo.
-                          example: "Fecha de nacimiento"
-                        type:
-                          type: string
-                          description: Tipo del campo, puede ser uno de ['SHORT_TEXT', 'TEXT', 'DATE', 'NUMBER', 'FLOAT', 'CHOICE'].
-                          example: "DATE"
+                          example: "Estado Civil"
                         options:
                           type: array
                           description: Opciones para los campos de tipo 'CHOICE', si corresponde.
@@ -54,13 +50,9 @@ baseRecordRoute:
                             - "Opción 1"
                             - "Opción 2"
                         value:
-                          type: string
-                          description: Valor seleccionado o ingresado para este campo.
-                          example: "2024-09-01"
-                        required:
-                          type: boolean
-                          description: Indica si el campo es obligatorio.
-                          example: true
+                          type: Value
+                          description: Valor del campo, tiene coincidir con el TIPO indicado por la plantilla
+                          example: "Opción 1"
             required:
               - doctor
               - template
@@ -75,12 +67,12 @@ baseRecordRoute:
               properties:
                 message:
                   type: string
-                  example: "Expediente creado exitosamente."
+                  example: "Record created successfully"
                 recordId:
                   type: string
                   description: ID del expediente recién creado.
                   example: "60d0fe4f5311236168a109cc"
-      '400':
+      '406':
         description: Petición inválida, falta o error en los parámetros.
         content:
           application/json:
@@ -89,7 +81,7 @@ baseRecordRoute:
               properties:
                 message:
                   type: string
-                  example: "Faltan datos requeridos."
+                  example: "Invalid field value for Fecha de nacimiento"
       '500':
         description: Error interno del servidor.
         content:
