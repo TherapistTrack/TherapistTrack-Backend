@@ -127,7 +127,7 @@ describe('POST and DELETE /records/ endpoint', () => {
       createdRecords.push(response.data.recordId)
       expect(response.status < 200 || response.status > 299).toBe(true) // Fail test if creation succeed
     } catch (error) {
-      expect(error.response.status).toBe(400)
+      expect(error.response.status).toBe(406)
       expect(error.response.data.error).toContain(
         'Missing name or lastName attributes'
       )
@@ -148,7 +148,7 @@ describe('POST and DELETE /records/ endpoint', () => {
       createdRecords.push(response.data.recordId)
       expect(response.status < 200 || response.status > 299).toBe(true) // Fail test if creation succeed
     } catch (error) {
-      expect(error.response.status).toBe(400)
+      expect(error.response.status).toBe(406)
       expect(error.response.data.error).toContain(
         'Invalid field value for Nickname'
       )
@@ -169,7 +169,7 @@ describe('POST and DELETE /records/ endpoint', () => {
       createdRecords.push(response.data.recordId)
       expect(response.status < 200 || response.status > 299).toBe(true) // Fail test if creation succeed
     } catch (error) {
-      expect(error.response.status).toBe(400)
+      expect(error.response.status).toBe(406)
       expect(error.response.data.error).toContain(
         'Invalid field value for Address'
       )
@@ -190,7 +190,7 @@ describe('POST and DELETE /records/ endpoint', () => {
       createdRecords.push(response.data.recordId)
       expect(response.status < 200 || response.status > 299).toBe(true) // Fail test if creation succeed
     } catch (error) {
-      expect(error.response.status).toBe(400)
+      expect(error.response.status).toBe(406)
       expect(error.response.data.error).toContain('Invalid field value for Age')
     }
   })
@@ -209,7 +209,7 @@ describe('POST and DELETE /records/ endpoint', () => {
       createdRecords.push(response.data.recordId)
       expect(response.status < 200 || response.status > 299).toBe(true) // Fail test if creation succeed
     } catch (error) {
-      expect(error.response.status).toBe(400)
+      expect(error.response.status).toBe(406)
       expect(error.response.data.error).toContain(
         'Invalid field value for Height'
       )
@@ -230,7 +230,7 @@ describe('POST and DELETE /records/ endpoint', () => {
       createdRecords.push(response.data.recordId)
       expect(response.status < 200 || response.status > 299).toBe(true) // Fail test if creation succeed
     } catch (error) {
-      expect(error.response.status).toBe(400)
+      expect(error.response.status).toBe(406)
       expect(error.response.data.error).toContain(
         'Invalid field value for Birthday'
       )
@@ -251,7 +251,7 @@ describe('POST and DELETE /records/ endpoint', () => {
       createdRecords.push(response.data.recordId)
       expect(response.status < 200 || response.status > 299).toBe(true) // Fail test if creation succeed
     } catch (error) {
-      expect(error.response.status).toBe(400)
+      expect(error.response.status).toBe(406)
       expect(error.response.data.error).toContain('Choice is not an option')
     }
   })
