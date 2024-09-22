@@ -18,21 +18,10 @@ async function main() {
   // Import Routes
   const userRoutes = require('./routes/userRoutes')
   const fileRoutes = require('./routes/fileRoutes')
-<<<<<<< HEAD
-=======
-  const authRoutes = require('./routes/authRoutes')
-  const recordRoutes = require('./routes/recordRoutes')
->>>>>>> 0a9863c (feat: mvc of record)
 
   // Use Routes
   app.use('/users', userRoutes)
   app.use('/files', fileRoutes)
-<<<<<<< HEAD
-
-=======
-  app.use('/auth', authRoutes)
-  app.use('/records', recordRoutes)
->>>>>>> 0a9863c (feat: mvc of record)
   app.get('/health', async (req, res) => {
     res.status(200).send({ message: 'API is up!' })
   })
