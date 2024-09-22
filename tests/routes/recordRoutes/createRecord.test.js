@@ -116,7 +116,24 @@ describe('POST and DELETE /records/ endpoint', () => {
     }
   })
 
-  it('ERROR 400 when not no Name or LastNames passed', async () => {
+  it('ERROR 406 when a required on the template field is not passed', async () => {
+    const invalidRecordData = { ...idealRecord }
+    invalidRecordData.patient.fields.shift()
+    try {
+      const response = await axios.post(`${baseUrl}/`, invalidRecordData, {
+        headers
+      })
+      createdRecords.push(response.data.recordId)
+      expect(response.status < 200 || response.status > 299).toBe(true) // Fail test if creation succeed
+    } catch (error) {
+      expect(error.response.status).toBe(406)
+      expect(error.response.data.error).toContain(
+        'Missing name or lastName attributes'
+      )
+    }
+  })
+
+  it('ERROR 406 when no Name or LastNames passed', async () => {
     const invalidRecordData = { ...idealRecord }
     delete invalidRecordData.patient.names
     delete invalidRecordData.patient.lastNames
@@ -134,7 +151,7 @@ describe('POST and DELETE /records/ endpoint', () => {
     }
   })
 
-  it('should return 400 when creating invalid TEXT field', async () => {
+  it('should return 406 when creating invalid TEXT field', async () => {
     const invalidRecordData = { ...idealRecord }
     invalidRecordData.patient.fields[0] = {
       name: 'Nickname',
@@ -155,7 +172,7 @@ describe('POST and DELETE /records/ endpoint', () => {
     }
   })
 
-  it('should return 400 when creating invalid LARGE TEXT field', async () => {
+  it('should return 406 when creating invalid LARGE TEXT field', async () => {
     const invalidRecordData = { ...idealRecord }
     invalidRecordData.patient.fields[1] = {
       name: 'Address',
@@ -176,7 +193,7 @@ describe('POST and DELETE /records/ endpoint', () => {
     }
   })
 
-  it('should return 400 when creating invalid NUMBER field', async () => {
+  it('should return 406 when creating invalid NUMBER field', async () => {
     const invalidRecordData = { ...idealRecord }
     invalidRecordData.patient.fields[2] = {
       name: 'Age',
@@ -195,7 +212,7 @@ describe('POST and DELETE /records/ endpoint', () => {
     }
   })
 
-  it('should return 400 when creating invalid FLOAT field', async () => {
+  it('should return 406 when creating invalid FLOAT field', async () => {
     const invalidRecordData = { ...idealRecord }
     invalidRecordData.patient.fields[3] = {
       name: 'Height',
@@ -216,7 +233,7 @@ describe('POST and DELETE /records/ endpoint', () => {
     }
   })
 
-  it('should return 400 when creating invalid DATE field', async () => {
+  it('should return 406 when creating invalid DATE field', async () => {
     const invalidRecordData = { ...idealRecord }
     invalidRecordData.patient.fields[4] = {
       name: 'Height',
@@ -237,7 +254,7 @@ describe('POST and DELETE /records/ endpoint', () => {
     }
   })
 
-  it('ERROR 400 when a field with invalid  CHOICE field', async () => {
+  it('ERROR 406 when a field with invalid  CHOICE field', async () => {
     const invalidRecordData = { ...idealRecord }
     invalidRecordData.patient.fields[5] = {
       name: 'Civil Status',
