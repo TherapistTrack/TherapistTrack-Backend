@@ -32,15 +32,6 @@ paths:
   /users/{:id}:
     $ref: './paths/user_management.yaml#/userGetByID'
 
-<<<<<<< HEAD
-  /files/create:
-    $ref: './paths/file_operations.yaml#/createFile'
-  /files/:
-    $ref: './paths/file_operations.yaml#/updateFile'
-  /files/listFiles:
-    $ref: './paths/file_operations.yaml#/listFiles'
-  /files/file:
-=======
   /createFile:
     $ref: './paths/file_operations.yaml#/createFile'
   /updateFile:
@@ -50,7 +41,6 @@ paths:
   /listFiles:
     $ref: './paths/file_operations.yaml#/listFiles'
   /getFileById:
->>>>>>> 050ad40 (feat: file api documentation)
     $ref: './paths/file_operations.yaml#/getFileById'
 
   /doctor/PatientTemplate:

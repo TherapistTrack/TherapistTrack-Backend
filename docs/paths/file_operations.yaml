@@ -47,11 +47,7 @@ updateFile:
   put:
     tags:
       - Operaciones de archivo
-<<<<<<< HEAD
-    summary: Editar un archivo
-=======
     summary: Edita un archivo existente
->>>>>>> 050ad40 (feat: file api documentation)
     description: Permite a los usuarios editar la información de un archivo existente.
     requestBody:
       content:
@@ -91,19 +87,12 @@ updateFile:
       '404':
         description: Archivo no encontrado.
 
-<<<<<<< HEAD
-  delete:
-    tags:
-      - Operaciones de archivo
-    summary: Eliminar un archivor
-=======
 
 deleteFile:
   delete:
     tags:
       - Operaciones de archivo
     summary: Elimina un archivo existente
->>>>>>> 050ad40 (feat: file api documentation)
     description: Permite a los usuarios eliminar un archivo existente, tanto en la base de datos como en S3.
     requestBody:
       content:
@@ -128,11 +117,7 @@ listFiles:
   get:
     tags:
       - Operaciones de archivo
-<<<<<<< HEAD
     summary: Listar archivos de un doctor.
-=======
-    summary: Lista los últimos 10 archivos
->>>>>>> 050ad40 (feat: file api documentation)
     description: Permite a los usuarios obtener una lista de los últimos archivos creados.
     parameters:
       - in: query
@@ -163,11 +148,7 @@ getFileById:
   post:
     tags:
       - Operaciones de archivo
-<<<<<<< HEAD
-    summary: Obtiener un archivo por su ID
-=======
     summary: Obtiene un archivo por su ID
->>>>>>> 050ad40 (feat: file api documentation)
     description: Permite a los usuarios obtener la información de un archivo específico por su ID y descargarlo desde S3 si existe.
     requestBody:
       content:
