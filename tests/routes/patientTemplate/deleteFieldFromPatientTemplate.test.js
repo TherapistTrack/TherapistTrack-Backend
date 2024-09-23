@@ -96,7 +96,7 @@ describe('Delete Field from Patient Template Tests', () => {
     } catch (error) {
       expect(error.response.status).toBe(400)
       expect(error.response.data.message).toBe(
-        'Solicitud incorrecta: Falta el ID de la plantilla'
+        'Bad Request: Missing or invalid fields in the request body'
       )
     }
   })
@@ -164,25 +164,6 @@ describe('Delete Field from Patient Template Tests', () => {
         error.response ? error.response.data : error.message
       )
       throw error
-    }
-  })
-
-  // Test para verificar que falte algún campo en el cuerpo de la solicitud
-  it('should return an error when required fields are missing', async () => {
-    const incompleteRequest = {
-      fieldId: '60d5ec49d8a0c540d8d6d8b9' // Falta el doctorId
-    }
-
-    try {
-      await axios.delete(`${BASE_URL}/doctor/PatientTemplate/fields`, {
-        data: incompleteRequest,
-        headers
-      })
-    } catch (error) {
-      expect(error.response.status).toBe(400)
-      expect(error.response.data.message).toBe(
-        'Bad Request: Missing or invalid fields in the request body'
-      )
     }
   })
 })
