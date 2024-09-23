@@ -18,10 +18,12 @@ async function main() {
   // Import Routes
   const userRoutes = require('./routes/userRoutes')
   const fileRoutes = require('./routes/fileRoutes')
+  const patientTemplateRoutes = require('./routes/patientTemplateRoutes')
 
   // Use Routes
   app.use('/users', userRoutes)
   app.use('/files', fileRoutes)
+  app.use('/doctor', patientTemplateRoutes)
 
   app.get('/health', async (req, res) => {
     res.status(200).send({ message: 'API is up!' })

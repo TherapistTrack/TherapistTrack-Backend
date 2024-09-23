@@ -4,28 +4,20 @@ const fieldSchema = new mongoose.Schema({
   name: { type: String, required: true },
   type: { type: String, required: true },
   options: [String],
-  value: { type: String },
-  required: { type: Boolean, default: false }
+  required: { type: Boolean, default: true }
 })
 
 const plantillaSchema = new mongoose.Schema(
   {
     doctorId: {
       type: mongoose.Schema.Types.ObjectId,
-      //ref: 'Usuario',
+      //ref: 'Doctor',
       required: true
     },
     name: { type: String, required: true },
-    patientTemplate: {
-      record: String,
-      names: String,
-      lastNames: String,
-      fields: [fieldSchema]
-    }
+    fields: [fieldSchema]
   },
-  {
-    timestamps: true
-  }
+  { collection: PatientTemplate }
 )
 
 const Plantilla = mongoose.model('Plantilla', plantillaSchema)
