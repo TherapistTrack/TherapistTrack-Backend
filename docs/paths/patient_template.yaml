@@ -39,10 +39,11 @@ doctorPatientTemplate:
                       type: array
                       items:
                         type: string
-                    value:
-                      type: string
                     required:
                       type: boolean
+                    description:
+                      type: string
+                      description: Por ahora solo envia una string vacio.
     responses:
       '200':
         description: Plantilla de paciente creada exitosamente.
@@ -341,6 +342,8 @@ doctorPatientTemplate:
                         type: string
                       required:
                         type: boolean
+                      description:
+                        type: string
       '400':
         description: 'Solicitud incorrecta: Faltan campos o son inválidos en el cuerpo de la solicitud.'
         content:
@@ -444,6 +447,8 @@ doctorPatientTemplateList:
                               type: string
                             required:
                               type: boolean
+                            description:
+                              type: string
                 total:
                   type: integer
                   description: total count of templates.
@@ -488,7 +493,7 @@ doctorPatientTemplateFields:
     tags: 
       - Plantillas de Paciente/Expediente
     summary: Agregar campo a la plantilla de paciente
-    description: Permite a los doctores añadir un nuevo campo a la plantilla de paciente existente.
+    description: "Permite a los doctores añadir un nuevo campo a la plantilla de paciente existente. NOTA: No se permiten crear campos con `required: true` si la plantilla ya esta en uso"
     parameters:
       - in: header
         name: Authorization
@@ -522,10 +527,6 @@ doctorPatientTemplateFields:
                     type: string
                     description: Tipo de dato del campo (ej., TEXTO).
                     example: 'TEXT'
-                  value:
-                    type: string
-                    description: Valor inicial del campo.
-                    example: ''
                   required:
                     type: boolean
                     description: Indica si el campo es obligatorio.
