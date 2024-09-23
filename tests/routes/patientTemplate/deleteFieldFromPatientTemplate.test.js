@@ -1,15 +1,19 @@
-const { createDoctor, deleteDoctor } = require('../doctorSetup')
 const axios = require('axios')
-const { BASE_URL } = require('../../jest.setup')
+const { BASE_URL, getAuthToken } = require('../../jest.setup')
+const { createTestDoctor, deleteUser } = require('../../testHelpers')
 
 let doctorId
 let templateId
 let headers
 
 beforeAll(async () => {
-  const setup = await createDoctor()
-  doctorId = setup.doctorId
-  headers = setup.headers
+  const doctor = await createTestDoctor()
+  doctorId = doctor.id
+  headers = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${getAuthToken()}`,
+    Origin: 'http://localhost'
+  }
 
   // Crear una plantilla de paciente para usarla en los tests
   const response = await axios.post(
@@ -33,7 +37,7 @@ beforeAll(async () => {
 })
 
 afterAll(async () => {
-  await deleteDoctor(doctorId, headers)
+  await deleteUser(doctorId)
 })
 
 describe('Delete Field from Patient Template Tests', () => {
