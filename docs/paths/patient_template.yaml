@@ -493,7 +493,7 @@ doctorPatientTemplateFields:
     tags: 
       - Plantillas de Paciente/Expediente
     summary: Agregar campo a la plantilla de paciente
-    description: "Permite a los doctores añadir un nuevo campo a la plantilla de paciente existente. NOTA: No se permiten crear campos con `required: true` si la plantilla ya esta en uso"
+    description: "Permite a los doctores añadir un nuevo campo a la plantilla de paciente existente. NOTA: No se permiten crear campos con `required: true` si la plantilla ya esta en uso. Esta operacion afectara a todos los expedientes."
     parameters:
       - in: header
         name: Authorization
@@ -516,7 +516,7 @@ doctorPatientTemplateFields:
                 type: string
                 description: ID de la plantilla a modificar.
                 example: '42038caasdlj3234j255k'
-              patientTemplate:
+              field:
                 type: object
                 properties:
                   name:
@@ -527,6 +527,10 @@ doctorPatientTemplateFields:
                     type: string
                     description: Tipo de dato del campo (ej., TEXTO).
                     example: 'TEXT'
+                  options:
+                    type: array
+                    items:
+                      type: string
                   required:
                     type: boolean
                     description: Indica si el campo es obligatorio.
@@ -550,23 +554,23 @@ doctorPatientTemplateFields:
                 data:
                   type: object
                   properties:
-                    doctorId:
+                    doctorId: 
                       type: string
-                    patientTemplate:
-                      type: object
-                      properties:
-                        name:
-                          type: string
-                        type:
-                          type: string
-                        value:
-                          type: string
-                        required:
-                          type: boolean
-                        description:
-                          type: string
+                    patientTemplateId:
+                      type: string
       '400':
-        description: 'Solicitud incorrecta: Faltan campos o son inválidos en el cuerpo de la solicitud.'
+        description: 'Faltan campos o son inválidos en el cuerpo de la solicitud.'
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: integer
+                message:
+                  type: string
+      '403':
+        description: 'Doctor no es dueño de la plantilla.'
         content:
           application/json:
             schema:
@@ -587,8 +591,19 @@ doctorPatientTemplateFields:
                   type: integer
                 message:
                   type: string
+      '406':
+        description: Campo ya existente en la plantilla.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: integer
+                message:
+                  type: string
       '500':
-        description: 'Error interno del servidor: No se puede añadir el campo a la plantilla de paciente.'
+        description: 'Error interno del servidor'
         content:
           application/json:
             schema:
@@ -602,7 +617,7 @@ doctorPatientTemplateFields:
     tags: 
       - Plantillas de Paciente/Expediente
     summary: Editar campos de la plantilla de paciente
-    description: Permite a los doctores editar campos existentes en la plantilla de paciente.
+    description: "Permite a los doctores editar campos existentes en la plantilla de paciente. NOTA: No se puede hacer un campo `required` si la plantilla ya esta en uso. Esta operacion afectara a todas los expedientes"
     parameters:
       - in: header
         name: Authorization
@@ -625,38 +640,30 @@ doctorPatientTemplateFields:
                 type: string
                 description: ID de la plantilla a modificar.
                 example: '42038caasdlj3234j255k'
-              updatedFields:
-                type: array
-                description: Lista de campos actualizados en la plantilla.
-                items:
-                  type: object
-                  properties:
-                    fieldId:
+              oldFieldName:
+                type: string
+                description: Nombre del campo del que se quiere cambiar datos.
+                example: 'Edad'
+              fieldData:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    description: Identificador único del campo.
+                  options:
+                    type: array
+                    items:
                       type: string
-                      description: Identificador único del campo.
-                    name:
-                      type: string
-                      description: Nombre del campo.
-                    type:
-                      type: string
-                      description: Tipo de dato del campo (ej., TEXTO, ELECCIÓN).
-                    value:
-                      type: string
-                      description: Valor asignado al campo.
-                    required:
-                      type: boolean
-                      description: Indica si el campo es obligatorio.
-                    description:
-                      type: string
-                      description: Descripción del campo.
-                    options:
-                      type: array
-                      items:
-                        type: string
-                      description: Opciones disponibles para campos de tipo ELECCIÓN.
+                    description: Si el campo es `required` y se eliminan opciones que estan siendo usadas, las plantillas que lo usen agarran el primer atributo de la lista.
+                  required:
+                    type: boolean
+                    description: Indica si el campo es obligatorio.
+                  description:
+                    type: string
+                    description: Descripción del campo.
     responses:
       '200':
-        description: Campos de la plantilla de paciente actualizados exitosamente.
+        description: Campo editado exitosamente.
         content:
           application/json:
             schema:
@@ -669,27 +676,23 @@ doctorPatientTemplateFields:
                 data:
                   type: object
                   properties:
-                    doctorId:
+                    doctorId: 
                       type: string
-                    updatedFields:
-                      type: array
-                      items:
-                        type: object
-                        properties:
-                          fieldId:
-                            type: string
-                          name:
-                            type: string
-                          type:
-                            type: string
-                          value:
-                            type: string
-                          required:
-                            type: boolean
-                          description:
-                            type: string
+                    patientTemplateId:
+                      type: string
       '400':
-        description: 'Solicitud incorrecta: Faltan campos o son inválidos en el cuerpo de la solicitud.'
+        description: 'Faltan campos o son inválidos en el cuerpo de la solicitud.'
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: integer
+                message:
+                  type: string
+      '403':
+        description: 'Doctor no es dueño de la plantilla.'
         content:
           application/json:
             schema:
@@ -700,7 +703,19 @@ doctorPatientTemplateFields:
                 message:
                   type: string
       '404':
-        description: Doctor no encontrado.
+        description: Doctor no encontrado o el campo especificado no se encuentra en la plantilla.
+
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: integer
+                message:
+                  type: string
+      '406':
+        description: La edicion no se puede llevar a cabo. Puede pasar por editar el nombre del campo a uno que ya existe, o pasar un atributo a `required` .entre otros.
         content:
           application/json:
             schema:
@@ -711,7 +726,7 @@ doctorPatientTemplateFields:
                 message:
                   type: string
       '500':
-        description: 'Error interno del servidor: No se pueden actualizar los campos de la plantilla de paciente.'
+        description: 'Error interno del servidor'
         content:
           application/json:
             schema:
@@ -725,7 +740,7 @@ doctorPatientTemplateFields:
     tags: 
       - Plantillas de Paciente/Expediente
     summary: Eliminar un campo de la plantilla de paciente
-    description: Permite a los doctores eliminar un campo específico de la plantilla de paciente.
+    description: Elimina campos de una plantilla y de todos los expedientes que la implementan de forma permanente.
     parameters:
       - in: header
         name: Authorization
@@ -748,10 +763,10 @@ doctorPatientTemplateFields:
                 type: string
                 description: ID de la plantilla a modificar.
                 example: '42038caasdlj3234j255k'
-              fieldId:
+              name:
                 type: string
-                description: Identificador único del campo a eliminar de la plantilla.
-                example: '60d5ec49d8a0c540d8d6d8b9'
+                description: Nombre del campo a eliminar.
+                example: 'Edad'
     responses:
       '200':
         description: Campo de la plantilla de paciente eliminado exitosamente.
@@ -769,10 +784,10 @@ doctorPatientTemplateFields:
                   properties:
                     doctorId:
                       type: string
-                    fieldId:
+                    patientTemplateId:
                       type: string
       '400':
-        description: 'Solicitud incorrecta: Faltan campos o son inválidos en el cuerpo de la solicitud.'
+        description: 'Faltan campos o son inválidos en el cuerpo de la solicitud.'
         content:
           application/json:
             schema:
