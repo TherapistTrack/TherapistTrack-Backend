@@ -1,6 +1,6 @@
 const axios = require('axios')
-const { BASE_URL, getAuthToken } = require('../../jest.setup')
-const { createTestDoctor, deleteUser } = require('../../testHelpers')
+const { BASE_URL, getAuthToken } = require('../../../jest.setup')
+const { createTestDoctor, deleteUser } = require('../../../testHelpers')
 
 let doctorId, headers
 

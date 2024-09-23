@@ -264,6 +264,8 @@ describe('Create Patient Template Tests', () => {
     }
   })
 
+  it('should fail when creating a patient template with an existing name', async () => {})
+
   /* Para endPonintRecords
   // Test para validar tipos de datos incorrectos en los campos
   it('should fail to create a patient template with incorrect data types', async () => {

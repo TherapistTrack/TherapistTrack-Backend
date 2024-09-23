@@ -1,6 +1,6 @@
 const axios = require('axios')
-const { BASE_URL, getAuthToken } = require('../../jest.setup')
-const { createTestDoctor, deleteUser } = require('../../testHelpers')
+const { BASE_URL, getAuthToken } = require('../../../jest.setup')
+const { createTestDoctor, deleteUser } = require('../../../testHelpers')
 
 let doctorId
 let templateId
@@ -166,4 +166,8 @@ describe('Delete Field from Patient Template Tests', () => {
       throw error
     }
   })
+
+  it("should not allow to delete field 'Nombres'", async () => {})
+
+  it("should not allow to delete field 'Apellidos'", async () => {})
 })

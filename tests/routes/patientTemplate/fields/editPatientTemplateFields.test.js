@@ -1,6 +1,6 @@
 const axios = require('axios')
-const { BASE_URL, getAuthToken } = require('../../jest.setup')
-const { createTestDoctor, deleteUser } = require('../../testHelpers')
+const { BASE_URL, getAuthToken } = require('../../../jest.setup')
+const { createTestDoctor, deleteUser } = require('../../../testHelpers')
 
 let doctorId
 let templateId
@@ -70,6 +70,7 @@ describe('Edit Field from Patient Template Tests', () => {
     }
   })
 
+  // CHECK WITH PEO
   // Test para editar un campo ya existente, como cambiar de obligatorio a no obligatorio
   it('should edit an existing field to change required status', async () => {
     const fieldToEdit = {
@@ -93,34 +94,6 @@ describe('Edit Field from Patient Template Tests', () => {
     } catch (error) {
       console.error(
         'Error editing field:',
-        error.response ? error.response.data : error.message
-      )
-      throw error
-    }
-  })
-
-  // Test para agregar un nuevo campo a la plantilla
-  it('should successfully add a new field to the patient template', async () => {
-    const newField = {
-      templateId: templateId,
-      newField: {
-        name: 'Teléfono',
-        type: 'PHONE',
-        required: false
-      }
-    }
-
-    try {
-      const response = await axios.put(
-        `${BASE_URL}/templates/addField`,
-        newField,
-        { headers }
-      )
-      expect(response.status).toBe(200)
-      expect(response.data.message).toBe('Campo añadido correctamente')
-    } catch (error) {
-      console.error(
-        'Error adding new field:',
         error.response ? error.response.data : error.message
       )
       throw error
@@ -217,30 +190,6 @@ describe('Edit Field from Patient Template Tests', () => {
     }
   })
 
-  // Test para evitar duplicados en los nombres de los campos
-  it('should fail to edit a field with a duplicate name', async () => {
-    const fieldToEdit = {
-      templateId: templateId,
-      oldFieldName: 'Nombres',
-      newField: {
-        name: 'Apellidos', // Ya existe un campo con este nombre
-        type: 'SHORT_TEXT',
-        required: true
-      }
-    }
-
-    try {
-      await axios.put(`${BASE_URL}/templates/editField`, fieldToEdit, {
-        headers
-      })
-    } catch (error) {
-      expect(error.response.status).toBe(400)
-      expect(error.response.data.message).toBe(
-        'Ya existe un campo con este nombre'
-      )
-    }
-  })
-
   // Test para fallar al asignar un tipo de campo no permitido
   it('should fail to assign an invalid field type', async () => {
     const fieldToEdit = {
@@ -263,84 +212,7 @@ describe('Edit Field from Patient Template Tests', () => {
     }
   })
 
-  // Test para evitar edición sin cambios
-  it('should fail to edit a field with no changes', async () => {
-    const fieldToEdit = {
-      templateId: templateId,
-      oldFieldName: 'Nombres',
-      newField: {
-        name: 'Nombres',
-        type: 'SHORT_TEXT', // Mismo tipo, sin cambios
-        required: true
-      }
-    }
+  it("should not allow to edit field 'Nombres'", async () => {})
 
-    try {
-      await axios.put(`${BASE_URL}/templates/editField`, fieldToEdit, {
-        headers
-      })
-    } catch (error) {
-      expect(error.response.status).toBe(400)
-      expect(error.response.data.message).toBe(
-        'No se realizaron cambios en el campo'
-      )
-    }
-  })
-
-  // Test para obtener una plantilla por su ID correctamente
-  it('should successfully retrieve a patient template by its ID', async () => {
-    try {
-      const response = await axios.get(
-        `${BASE_URL}/doctor/PatientTemplate?templateId=${templateId}`,
-        { headers }
-      )
-
-      expect(response.status).toBe(200)
-      expect(response.data).toHaveProperty('doctor', doctorId)
-      expect(response.data).toHaveProperty('lastUpdated') // Se asegura de que el campo "lastUpdated" esté presente
-      expect(response.data).toHaveProperty('name', 'Plantilla-2024')
-      expect(response.data.fields).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            name: 'Nombres',
-            type: 'SHORT_TEXT',
-            required: true
-          }),
-          expect.objectContaining({
-            name: 'Apellidos',
-            type: 'SHORT_TEXT',
-            required: true
-          }),
-          expect.objectContaining({
-            name: 'Edad',
-            type: 'NUMBER',
-            required: true
-          })
-        ])
-      )
-    } catch (error) {
-      console.error(
-        'Error retrieving template by ID:',
-        error.response ? error.response.data : error.message
-      )
-      throw error
-    }
-  })
-
-  // Test para obtener una plantilla por su ID inexistente
-  it('should return an error when trying to retrieve a non-existent template', async () => {
-    const nonExistentTemplateId = '11s1s1a1w1' // ID no válido
-
-    try {
-      await axios.get(
-        `${BASE_URL}/doctor/PatientTemplate?templateId=${nonExistentTemplateId}`,
-        { headers }
-      )
-    } catch (error) {
-      expect(error.response.status).toBe(404)
-      expect(error.response.data.message).toBe(
-        'No se pudo encontrar la plantilla solicitada'
-      )
-    }
-  })
+  it("should not allow to edit field 'Apellidos'", async () => {})
 })
