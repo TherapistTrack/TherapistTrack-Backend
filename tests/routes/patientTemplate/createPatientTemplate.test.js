@@ -156,80 +156,6 @@ describe('Create Patient Template Tests', () => {
     }
   })
 
-  // Test para crear una nueva plantilla sin Nombre
-  it('should fail to create a patient template without the required "Nombres" field', async () => {
-    const testTemplate = {
-      doctorId: doctorId,
-      name: `testTemplate_${Date.now()}`,
-      patientTemplate: {
-        record: '12345',
-        names: 'Plantilla-2024',
-        fields: [
-          { name: 'Apellidos', type: 'SHORT_TEXT', required: true }, // Texto Corto (obligatorio)
-          { name: 'Edad', type: 'NUMBER', required: false }, // Número
-          { name: 'Hijos', type: 'TEXT', required: true }, // Texto Largo
-          {
-            name: 'Estado Civil',
-            type: 'CHOICE',
-            options: ['Soltero', 'Casado'],
-            required: true
-          }, // Elección
-          { name: 'Fecha de Nacimiento', type: 'DATE', required: false } // Fecha
-        ]
-      }
-    }
-
-    try {
-      const response = await axios.post(
-        `${BASE_URL}/templates/create`,
-        testTemplate,
-        {
-          headers
-        }
-      )
-    } catch (error) {
-      expect(error.response.status).toBe(400)
-      expect(error.response.data.message).toBe('Missing mandatory fields')
-    }
-  })
-
-  // Test para crear una nueva plantilla sin Apellido
-  it('should fail to create a patient template without the required "Apellidos" field', async () => {
-    const testTemplate = {
-      doctorId: doctorId,
-      name: `testTemplate_${Date.now()}`,
-      patientTemplate: {
-        record: '12345',
-        names: 'Plantilla-2024',
-        fields: [
-          { name: 'Nombres', type: 'SHORT_TEXT', required: true }, // Texto Corto (obligatorio)
-          { name: 'Edad', type: 'NUMBER', required: false }, // Número
-          { name: 'Hijos', type: 'TEXT', required: true }, // Texto Largo
-          {
-            name: 'Estado Civil',
-            type: 'CHOICE',
-            options: ['Soltero', 'Casado'],
-            required: true
-          }, // Elección
-          { name: 'Fecha de Nacimiento', type: 'DATE', required: false } // Fecha
-        ]
-      }
-    }
-
-    try {
-      const response = await axios.post(
-        `${BASE_URL}/templates/create`,
-        testTemplate,
-        {
-          headers
-        }
-      )
-    } catch (error) {
-      expect(error.response.status).toBe(400)
-      expect(error.response.data.message).toBe('Missing mandatory fields')
-    }
-  })
-
   // Test para crear una nueva plantilla con todos los campos correctos
   it('should fail to create template with CHOICE field but not options attribute defined', async () => {
     const testTemplate = {
@@ -263,6 +189,12 @@ describe('Create Patient Template Tests', () => {
       expect(error.response.data.message).toBe('Malformed CHOICE field')
     }
   })
+
+  // Test para crear una nueva plantilla sin Nombre
+  it('should fail to create a patient template with field "Nombre" since its a reserved name', async () => {})
+
+  // Test para crear una nueva plantilla sin Apellido
+  it('should fail to create a patient template with field "Apellidos" since its a reserved name', async () => {})
 
   it('should fail when creating a patient template with an existing name', async () => {})
 

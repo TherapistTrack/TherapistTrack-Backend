@@ -166,8 +166,4 @@ describe('Delete Field from Patient Template Tests', () => {
       throw error
     }
   })
-
-  it("should not allow to delete field 'Nombres'", async () => {})
-
-  it("should not allow to delete field 'Apellidos'", async () => {})
 })
