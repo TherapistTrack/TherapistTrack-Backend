@@ -82,12 +82,12 @@ describe('Create Patient Template Tests', () => {
       )
     } catch (error) {
       expect(error.response.status).toBe(404)
-      expect(error.response.data.message).toBe('Doctor no encontrado')
+      expect(error.response.data.message).toBe('Doctor not found')
     }
   })
 
   // Test para provocar un error interno del servidor
-  it('should trigger a 500 Internal Server Error when server encounters an issue', async () => {
+  it('should trigger a 400 when passed a malformed fields list', async () => {
     const malformedTemplate = {
       doctorId: doctorId,
       name: `testTemplate_${Date.now()}`,
@@ -105,10 +105,8 @@ describe('Create Patient Template Tests', () => {
         { headers }
       )
     } catch (error) {
-      expect(error.response.status).toBe(500)
-      expect(error.response.data.message).toBe(
-        'Error interno del servidor: No se puede crear la plantilla de paciente'
-      )
+      expect(error.response.status).toBe(400)
+      expect(error.response.data.message).toBe('Campos malformados')
     }
   })
 
@@ -191,7 +189,7 @@ describe('Create Patient Template Tests', () => {
       )
     } catch (error) {
       expect(error.response.status).toBe(400)
-      expect(error.response.data.message).toBe('Faltan campos obligatorios')
+      expect(error.response.data.message).toBe('Missing mandatory fields')
     }
   })
 
@@ -228,12 +226,12 @@ describe('Create Patient Template Tests', () => {
       )
     } catch (error) {
       expect(error.response.status).toBe(400)
-      expect(error.response.data.message).toBe('Faltan campos obligatorios')
+      expect(error.response.data.message).toBe('Missing mandatory fields')
     }
   })
 
-  // Test para crear una plantilla sin los campos opcionales "Hijos" y "Fecha de Nacimiento"
-  it('should create a patient template without optional fields "Hijos" and "Fecha de Nacimiento"', async () => {
+  // Test para crear una nueva plantilla con todos los campos correctos
+  it('should fail to create template with CHOICE field but not options attribute defined', async () => {
     const testTemplate = {
       doctorId: doctorId,
       name: `testTemplate_${Date.now()}`,
@@ -241,15 +239,13 @@ describe('Create Patient Template Tests', () => {
         record: '12345',
         names: 'Plantilla-2024',
         fields: [
-          { name: 'Nombres', type: 'SHORT_TEXT', required: true }, // Texto Corto (obligatorio)
-          { name: 'Apellidos', type: 'SHORT_TEXT', required: true }, // Texto Corto (obligatorio)
-          { name: 'Edad', type: 'NUMBER', required: true }, // Número
+          { name: 'Nombres', type: 'SHORT_TEXT', required: true },
+          { name: 'Apellidos', type: 'SHORT_TEXT', required: true },
           {
             name: 'Estado Civil',
             type: 'CHOICE',
-            options: ['Soltero', 'Casado'],
             required: true
-          } // Elección
+          }
         ]
       }
     }
@@ -258,23 +254,17 @@ describe('Create Patient Template Tests', () => {
       const response = await axios.post(
         `${BASE_URL}/templates/create`,
         testTemplate,
-        { headers }
-      )
-      expect(response.status).toBe(201)
-      expect(response.data.message).toBe(
-        'Plantilla de paciente creada exitosamente'
+        {
+          headers
+        }
       )
     } catch (error) {
-      console.error(
-        'Error creating template:',
-        error.response ? error.response.data : error.message
-      )
-      throw error
+      expect(error.response.status).toBe(400)
+      expect(error.response.data.message).toBe('Malformed CHOICE field')
     }
   })
-})
 
-/* Para endPonintRecords
+  /* Para endPonintRecords
   // Test para validar tipos de datos incorrectos en los campos
   it('should fail to create a patient template with incorrect data types', async () => {
     const testTemplate = {
@@ -314,3 +304,4 @@ describe('Create Patient Template Tests', () => {
     }
   })
   */
+})
