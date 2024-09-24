@@ -82,4 +82,54 @@ async function deleteUser(userID) {
   }
 }
 
-module.exports = { generateObjectId, createTestDoctor, deleteUser }
+/**
+ * Creates a patient template for a doctor.
+ *
+ * @param {string} userID - Doctor ID to create the template for.
+ * @param {object} template - tempalte structure.
+ * @returns {Promise<string>} a Promise to the templateId created.
+ * @throws Will throw an error if the request fails.
+ */
+async function createTestPatientTemplate(doctorId) {
+  const testTemplate = {
+    doctorId: doctorId,
+    name: `testTemplate_${Date.now()}`,
+    fields: [
+      {
+        name: 'Edad',
+        type: 'NUMBER',
+        required: true,
+        description: 'Edad del paciente'
+      },
+      {
+        name: 'Estado Civil',
+        type: 'CHOICE',
+        options: ['Soltero', 'Casado'],
+        required: true,
+        description: 'Estado civil del paciente'
+      }
+    ]
+  }
+
+  try {
+    const response = await axios.post(
+      `${BASE_URL}/doctor/PatientTemplate`,
+      testTemplate,
+      { headers }
+    )
+    return response.data.data.patientTemplateId // Guardar el ID de la plantilla creada
+  } catch (error) {
+    console.error(
+      'Error creating template:',
+      error.response ? error.response.data : error.message
+    )
+    throw error
+  }
+}
+
+module.exports = {
+  generateObjectId,
+  createTestDoctor,
+  deleteUser,
+  createTestPatientTemplate
+}
