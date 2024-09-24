@@ -42,7 +42,7 @@ afterAll(async () => {
 
 describe('', () => {
   // Test para obtener una plantilla por su ID correctamente
-  it('should successfully retrieve a patient template by its ID', async () => {
+  test('should success with 200 retrieve a patient template by its ID', async () => {
     try {
       const response = await axios.get(
         `${BASE_URL}/doctor/PatientTemplate?templateId=${templateId}`,
@@ -80,9 +80,29 @@ describe('', () => {
       throw error
     }
   })
+  
+  test('should fail with 400 if "doctorId" is not provided', async () => {
+    
+  })
+
+  test('should fail with 400 if "templateId" is not provided', async () => {
+    
+  })
+
+  test('should fail with 403 if "doctorId" exist but is not the owner of the template', async () => {
+    
+  })
+
+  test('should fail with 404 if "doctorId" does not correspond to an existent/active doctor', async () => {
+    
+  })
+
+  test('should fail with 404 if "template" does not correspond to an existent template', async () => {
+    
+  })
 
   // Test para obtener una plantilla por su ID inexistente
-  it('should return an error when trying to retrieve a non-existent template', async () => {
+  test('should fail with 404 when trying to retrieve a non-existent template', async () => {
     const nonExistentTemplateId = '11s1s1a1w1' // ID no válido
 
     try {
@@ -97,4 +117,5 @@ describe('', () => {
       )
     }
   })
+
 })
