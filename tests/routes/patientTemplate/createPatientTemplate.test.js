@@ -2,11 +2,12 @@ const axios = require('axios')
 const { BASE_URL, getAuthToken } = require('../../jest.setup')
 const { createTestDoctor, deleteUser } = require('../../testHelpers')
 
-let doctorId, headers
+let userId, doctorId, headers
 
 beforeAll(async () => {
   const doctor = await createTestDoctor()
-  doctorId = doctor.id
+  userId = doctor.id
+  doctorId = doctor.rolDependentInfo.id
   headers = {
     'Content-Type': 'application/json',
     Authorization: `Bearer ${getAuthToken()}`,
@@ -15,102 +16,15 @@ beforeAll(async () => {
 })
 
 afterAll(async () => {
-  await deleteUser(doctorId)
+  await deleteUser(userId)
 })
 
 describe('Create Patient Template Tests', () => {
-  // Test para validar la falta de doctorId
-  it('should fail to create a patient template without the doctorId', async () => {
-    const testTemplate = {
-      name: `testTemplate_${Date.now()}`,
-      fields: [
-        {
-          name: 'Edad',
-          type: 'NUMBER',
-          required: true,
-          description: 'Edad del paciente'
-        },
-        {
-          name: 'Estado Civil',
-          type: 'CHOICE',
-          options: ['Soltero', 'Casado'],
-          required: true,
-          description: 'Estado civil del paciente'
-        }
-      ]
-    }
-
-    try {
-      const response = await axios.post(
-        `${BASE_URL}/doctor/PatientTemplate`,
-        testTemplate,
-        { headers }
-      )
-    } catch (error) {
-      expect(error.response.status).toBe(400)
-      expect(error.response.data.message).toBe('Missing doctorId')
-    }
-  })
-
-  // Test para doctorId inexistente
-  it('should fail to create a patient template with a non-existent doctorId', async () => {
-    const testTemplate = {
-      doctorId: 'nonExistentDoctorId',
-      name: `testTemplate_${Date.now()}`,
-      fields: [
-        {
-          name: 'Edad',
-          type: 'NUMBER',
-          required: true,
-          description: 'Edad del paciente'
-        },
-        {
-          name: 'Estado Civil',
-          type: 'CHOICE',
-          options: ['Soltero', 'Casado'],
-          required: true,
-          description: 'Estado civil del paciente'
-        }
-      ]
-    }
-
-    try {
-      const response = await axios.post(
-        `${BASE_URL}/doctor/PatientTemplate`,
-        testTemplate,
-        { headers }
-      )
-    } catch (error) {
-      expect(error.response.status).toBe(404)
-      expect(error.response.data.message).toBe('Doctor not found')
-    }
-  })
-
-  // Test para provocar un error interno del servidor
-  it('should trigger a 500 when passed a malformed fields list', async () => {
-    const malformedTemplate = {
-      doctorId: doctorId,
-      name: `testTemplate_${Date.now()}`,
-      fields: 'This should be an array, not a string'
-    }
-
-    try {
-      const response = await axios.post(
-        `${BASE_URL}/doctor/PatientTemplate`,
-        malformedTemplate,
-        { headers }
-      )
-    } catch (error) {
-      expect(error.response.status).toBe(500)
-      expect(error.response.data.message).toBe('Malformed fields list')
-    }
-  })
-
-  // Test para crear una nueva plantilla con todos los campos correctos
+  // DONE:
   it('should create a new patient template correctly with all required fields', async () => {
     const testTemplate = {
       doctorId: doctorId,
-      name: `testTemplate_${Date.now()}`,
+      name: `testTemplate`,
       fields: [
         {
           name: 'Edad',
@@ -162,8 +76,110 @@ describe('Create Patient Template Tests', () => {
     }
   })
 
-  // Test para fallar al crear una plantilla con campo CHOICE sin definir el atributo options
-  it('should fail to create template with CHOICE field but not options attribute defined', async () => {
+  // DONE:
+  it('should fail with 400 to create a patient template without the doctorId', async () => {
+    const testTemplate = {
+      name: `testTemplate_${Date.now()}`,
+      fields: [
+        {
+          name: 'Edad',
+          type: 'NUMBER',
+          required: true,
+          description: 'Edad del paciente'
+        },
+        {
+          name: 'Estado Civil',
+          type: 'CHOICE',
+          options: ['Soltero', 'Casado'],
+          required: true,
+          description: 'Estado civil del paciente'
+        }
+      ]
+    }
+
+    try {
+      const response = await axios.post(
+        `${BASE_URL}/doctor/PatientTemplate`,
+        testTemplate,
+        { headers }
+      )
+      if (response.status >= 200 && response.status < 300) {
+        fail(
+          `Expected a failure, but got response with status: ${response.status}`
+        )
+      }
+    } catch (error) {
+      expect(error.response.status).toBe(400)
+      expect(error.response.data.message).toBe('Missing doctorId')
+    }
+  })
+
+  // DONE:
+  it('should fail with 404 to create a patient template with a non-existent doctorId', async () => {
+    const testTemplate = {
+      doctorId: 'nonExistentDoctorId',
+      name: `testTemplate_${Date.now()}`,
+      fields: [
+        {
+          name: 'Edad',
+          type: 'NUMBER',
+          required: true,
+          description: 'Edad del paciente'
+        },
+        {
+          name: 'Estado Civil',
+          type: 'CHOICE',
+          options: ['Soltero', 'Casado'],
+          required: true,
+          description: 'Estado civil del paciente'
+        }
+      ]
+    }
+
+    try {
+      const response = await axios.post(
+        `${BASE_URL}/doctor/PatientTemplate`,
+        testTemplate,
+        { headers }
+      )
+      if (response.status >= 200 && response.status < 300) {
+        fail(
+          `Expected a failure, but got response with status: ${response.status}`
+        )
+      }
+    } catch (error) {
+      expect(error.response.status).toBe(404)
+      expect(error.response.data.message).toBe('Doctor not found')
+    }
+  })
+
+  // DONE:
+  it('should trigger a 400 when passed a malformed fields list', async () => {
+    const malformedTemplate = {
+      doctorId: doctorId,
+      name: `testTemplate_${Date.now()}`,
+      fields: 'This should be an array, not a string'
+    }
+
+    try {
+      const response = await axios.post(
+        `${BASE_URL}/doctor/PatientTemplate`,
+        malformedTemplate,
+        { headers }
+      )
+      if (response.status >= 200 && response.status < 300) {
+        fail(
+          `Expected a failure, but got response with status: ${response.status}`
+        )
+      }
+    } catch (error) {
+      expect(error.response.status).toBe(400)
+      expect(error.response.data.message).toBe('Malformed fields list')
+    }
+  })
+
+  // DONE:
+  it('should fail with 400  with CHOICE field but not options attribute defined', async () => {
     const testTemplate = {
       doctorId: doctorId,
       name: `testTemplate_${Date.now()}`,
@@ -185,20 +201,25 @@ describe('Create Patient Template Tests', () => {
           headers
         }
       )
+      if (response.status >= 200 && response.status < 300) {
+        fail(
+          `Expected a failure, but got response with status: ${response.status}`
+        )
+      }
     } catch (error) {
       expect(error.response.status).toBe(400)
       expect(error.response.data.message).toBe('Malformed CHOICE field')
     }
   })
 
-  // Test para crear una nueva plantilla sin Nombre
-  it('should fail to create a patient template with field "Nombre" since its a reserved name', async () => {
+  // DONE:
+  it('should fail with 400 with field "Nombres" since its a reserved name', async () => {
     const testTemplate = {
       doctorId: doctorId,
       name: `testTemplate_${Date.now()}`,
       fields: [
         {
-          name: 'Nombre',
+          name: 'Nombres',
           type: 'TEXT',
           required: true,
           description: 'Nombre del paciente'
@@ -214,6 +235,11 @@ describe('Create Patient Template Tests', () => {
           headers
         }
       )
+      if (response.status >= 200 && response.status < 300) {
+        fail(
+          `Expected a failure, but got response with status: ${response.status}`
+        )
+      }
     } catch (error) {
       expect(error.response.status).toBe(400)
       expect(error.response.data.message).toBe(
@@ -222,8 +248,8 @@ describe('Create Patient Template Tests', () => {
     }
   })
 
-  // Test para crear una nueva plantilla sin Apellido
-  it('should fail to create a patient template with field "Apellidos" since its a reserved name', async () => {
+  // DONE:
+  it('should fail with 400 with field "Apellidos" since its a reserved name', async () => {
     const testTemplate = {
       doctorId: doctorId,
       name: `testTemplate_${Date.now()}`,
@@ -245,6 +271,11 @@ describe('Create Patient Template Tests', () => {
           headers
         }
       )
+      if (response.status >= 200 && response.status < 300) {
+        fail(
+          `Expected a failure, but got response with status: ${response.status}`
+        )
+      }
     } catch (error) {
       expect(error.response.status).toBe(400)
       expect(error.response.data.message).toBe(
@@ -253,11 +284,11 @@ describe('Create Patient Template Tests', () => {
     }
   })
 
-  // Test que rechaza una plantilla con un nombre ya usado
-  it('should fail when creating a patient template with an existing name', async () => {
+  // DONE:
+  it('should fail with 409 when creating a patient template with an existing name', async () => {
     const testTemplate = {
       doctorId: doctorId,
-      name: 'Plantilla2024', // Usamos un nombre que ya existe
+      name: 'testTemplate',
       fields: [
         {
           name: 'Edad',
@@ -280,8 +311,13 @@ describe('Create Patient Template Tests', () => {
         testTemplate,
         { headers }
       )
+      if (response.status >= 200 && response.status < 300) {
+        fail(
+          `Expected a failure, but got response with status: ${response.status}`
+        )
+      }
     } catch (error) {
-      expect(error.response.status).toBe(400)
+      expect(error.response.status).toBe(409)
       expect(error.response.data.message).toBe(
         'Template with this name already exists'
       )
