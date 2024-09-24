@@ -4,22 +4,22 @@ const { createTestDoctor, deleteUser } = require('../../testHelpers')
 
 let userId, doctorId, headers
 
-beforeAll(async () => {
-  const doctor = await createTestDoctor()
-  userId = doctor.id
-  doctorId = doctor.rolDependentInfo.id
-  headers = {
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${getAuthToken()}`,
-    Origin: 'http://localhost'
-  }
-})
-
-afterAll(async () => {
-  await deleteUser(userId)
-})
-
 describe('Create Patient Template Tests', () => {
+  beforeAll(async () => {
+    const doctor = await createTestDoctor()
+    userId = doctor.id
+    doctorId = doctor.rolDependentInfo.id
+    headers = {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${getAuthToken()}`,
+      Origin: 'http://localhost'
+    }
+  })
+
+  afterAll(async () => {
+    await deleteUser(userId)
+  })
+
   // DONE:
   it('should create a new patient template correctly with all required fields', async () => {
     const testTemplate = {
