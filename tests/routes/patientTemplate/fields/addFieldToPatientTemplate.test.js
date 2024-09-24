@@ -24,16 +24,23 @@ describe('Create Patient Template Tests', () => {
     // Paso 1: Tener plantilla válida
     const testTemplate = {
       doctorId: doctorId,
+      templateID: templateID,
       name: `testTemplate_${Date.now()}`,
-      patientTemplate: {
-        record: '12345',
-        names: 'Plantilla-2024',
-        fields: [
-          { name: 'Nombres', type: 'SHORT_TEXT', required: true },
-          { name: 'Apellidos', type: 'SHORT_TEXT', required: true },
-          { name: 'Edad', type: 'NUMBER', required: true }
-        ]
-      }
+      fields: [
+        {
+          name: 'Edad',
+          type: 'NUMBER',
+          required: true,
+          description: 'Edad del paciente'
+        },
+        {
+          name: 'Estado Civil',
+          type: 'CHOICE',
+          options: ['Soltero', 'Casado'],
+          required: true,
+          description: 'Estado civil del paciente'
+        }
+      ]
     }
 
     let templateID
@@ -41,11 +48,11 @@ describe('Create Patient Template Tests', () => {
     // Crear la plantilla
     try {
       const response = await axios.post(
-        `${BASE_URL}/templates/create`,
+        `${BASE_URL}/doctor/PatientTemplate`,
         testTemplate,
         { headers }
       )
-      expect(response.status).toBe(201)
+      expect(response.status).toBe(200)
       templateID = response.data.data.patientTemplateId // Guardar el ID de la plantilla creada
     } catch (error) {
       console.error(
@@ -69,13 +76,13 @@ describe('Create Patient Template Tests', () => {
 
     try {
       const response = await axios.post(
-        `${BASE_URL}/templates/addField`,
+        `${BASE_URL}/doctor/PatientTemplate/fields`,
         fieldToAdd,
         { headers }
       )
       expect(response.status).toBe(200) // El backend debería devolver un estado 200
       expect(response.data.message).toBe(
-        'Campo añadido a la plantilla de paciente exitosamente'
+        'Field added to patient template successfully'
       ) // Mensaje esperado
     } catch (error) {
       console.error(
@@ -91,16 +98,16 @@ describe('Create Patient Template Tests', () => {
     // Paso 1: Tener una plantilla válida
     const testTemplate = {
       doctorId: doctorId,
+      templateID: templateID,
       name: `testTemplate_${Date.now()}`,
-      patientTemplate: {
-        record: '12345',
-        names: 'Plantilla-2024',
-        fields: [
-          { name: 'Nombres', type: 'SHORT_TEXT', required: true },
-          { name: 'Apellidos', type: 'SHORT_TEXT', required: true },
-          { name: 'Edad', type: 'NUMBER', required: true }
-        ]
-      }
+      fields: [
+        {
+          name: 'Edad',
+          type: 'NUMBER',
+          required: true,
+          description: 'Edad del paciente'
+        }
+      ]
     }
 
     let templateID
@@ -108,11 +115,11 @@ describe('Create Patient Template Tests', () => {
     // Crear la plantilla
     try {
       const response = await axios.post(
-        `${BASE_URL}/templates/create`,
+        `${BASE_URL}/doctor/PatientTemplate`,
         testTemplate,
         { headers }
       )
-      expect(response.status).toBe(201)
+      expect(response.status).toBe(200)
       templateID = response.data.data.patientTemplateId // Guardar el ID de la plantilla creada
     } catch (error) {
       console.error(
@@ -127,23 +134,23 @@ describe('Create Patient Template Tests', () => {
       doctorId: doctorId,
       templateID: templateID,
       patientTemplate: {
-        name: 'Nombres',
-        type: 'SHORT_TEXT',
+        name: 'Edad',
+        type: 'NUMBER',
         required: true,
-        description: 'Duplicate field test'
+        description: 'Edad del paciente'
       }
     }
 
     try {
       const response = await axios.post(
-        `${BASE_URL}/templates/addField`,
+        `${BASE_URL}/doctor/PatientTemplate/fields`,
         fieldToAdd,
         { headers }
       )
     } catch (error) {
-      expect(error.response.status).toBe(400) // El backend debería devolver un error 400
+      expect(error.response.status).toBe(406) // El backend debería devolver un error 406
       expect(error.response.data.message).toBe(
-        'Campos duplicados no permitidos'
+        'Field already existing in the template'
       )
     }
   })
@@ -151,7 +158,7 @@ describe('Create Patient Template Tests', () => {
   // Test para validar falta de templateID
   it('should fail to add a field without the templateID', async () => {
     const fieldToAdd = {
-      doctorId: doctorId, // Un doctorId válido
+      doctorId: doctorId,
       patientTemplate: {
         name: 'Allergies',
         type: 'TEXT',
@@ -163,13 +170,40 @@ describe('Create Patient Template Tests', () => {
 
     try {
       const response = await axios.post(
-        `${BASE_URL}/templates/addField`,
+        `${BASE_URL}/doctor/PatientTemplate/fields`,
         fieldToAdd,
         { headers }
       )
     } catch (error) {
       expect(error.response.status).toBe(400)
-      expect(error.response.data.message).toBe('Falta el ID de la plantilla')
+      expect(error.response.data.message).toBe('Missing template ID')
+    }
+  })
+
+  // Test para validar que el doctor no es dueño de la plantilla
+  it('should fail to add a field when the doctor is not the owner of the template', async () => {
+    const fieldToAdd = {
+      doctorId: 'invalidDoctorId', // Doctor incorrecto
+      templateID: templateID,
+      patientTemplate: {
+        name: 'Phone Number',
+        type: 'NUMBER',
+        required: true,
+        description: 'Teléfono del paciente'
+      }
+    }
+
+    try {
+      const response = await axios.post(
+        `${BASE_URL}/doctor/PatientTemplate/fields`,
+        fieldToAdd,
+        { headers }
+      )
+    } catch (error) {
+      expect(error.response.status).toBe(403) // El backend debería devolver un error 403
+      expect(error.response.data.message).toBe(
+        'Doctor not owner of the template'
+      )
     }
   })
 })
