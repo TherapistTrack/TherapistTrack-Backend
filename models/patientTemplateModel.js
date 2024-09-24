@@ -17,7 +17,7 @@ const plantillaSchema = new mongoose.Schema(
     name: { type: String, required: true },
     fields: [fieldSchema]
   },
-  { collection: PatientTemplate }
+  { collection: 'PatientTemplate' }
 )
 
 const Plantilla = mongoose.model('Plantilla', plantillaSchema)
