@@ -3,7 +3,10 @@ const express = require('express')
 const loggingMiddleware = require('./middlewares/loggingMiddleware')
 const corsMiddleware = require('./middlewares/corsMiddleware')
 const connectDB = require('./config/dbConfig')
-const { checkJwt } = require('./middlewares/auth0Middleware')
+const {
+  InsufficientScopeError,
+  UnauthorizedError
+} = require('express-oauth2-jwt-bearer')
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms))
@@ -31,8 +34,19 @@ async function main() {
 
   // Error Handling Middleware
   app.use((err, req, res, next) => {
+    if (err instanceof UnauthorizedError) {
+      return res
+        .status(401)
+        .json({ status: 401, message: 'Unauthorized. Invalid Token' })
+    } else if (err instanceof InsufficientScopeError) {
+      return res
+        .status(401)
+        .json({ status: 401, message: 'Unauthorized. Insufficiente Scope' })
+    }
     console.error(err.stack)
-    res.status(500).send('Something broke!')
+    res
+      .status(500)
+      .json({ status: 500, message: 'Server error. Some operation went bad.' })
   })
 
   // Start the Server
