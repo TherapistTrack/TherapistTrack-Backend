@@ -45,7 +45,12 @@ async function createTestDoctor() {
       }
     }
 
-    await axios.post(`${BASE_URL}/users/register`, doctorUser, { headers })
+    const response = await axios.post(
+      `${BASE_URL}/users/register`,
+      doctorUser,
+      { headers }
+    )
+    doctorUser.rolDependentInfo.id = response.data.roleId // Adding role specific id
     return doctorUser
   } catch (error) {
     console.log(
