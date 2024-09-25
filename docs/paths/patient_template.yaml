@@ -808,6 +808,17 @@ doctorPatientTemplateFields:
                   type: integer
                 message:
                   type: string
+      '403':
+        description: Doctor no es dueño de la plantailla.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: integer
+                message:
+                  type: string
       '404':
         description: Doctor no encontrado o el campo especificado no se encuentra en la plantilla de paciente.
         content:
