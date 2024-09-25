@@ -90,25 +90,11 @@ async function deleteUser(userID) {
  * @returns {Promise<string>} a Promise to the templateId created.
  * @throws Will throw an error if the request fails.
  */
-async function createTestPatientTemplate(doctorId) {
+async function createTestPatientTemplate(doctorId, templateName, fields) {
   const testTemplate = {
     doctorId: doctorId,
-    name: `testTemplate_${Date.now()}`,
-    fields: [
-      {
-        name: 'Edad',
-        type: 'NUMBER',
-        required: true,
-        description: 'Edad del paciente'
-      },
-      {
-        name: 'Estado Civil',
-        type: 'CHOICE',
-        options: ['Soltero', 'Casado'],
-        required: true,
-        description: 'Estado civil del paciente'
-      }
-    ]
+    name: templateName,
+    fields: fields
   }
 
   try {
