@@ -29,7 +29,6 @@ describe('Delete Patiente Template Tests', () => {
       expectedMsg
     )
   }
-
   beforeAll(async () => {
     doctor = await createTestDoctor()
     secondDoctor = await createTestDoctor()
@@ -52,6 +51,7 @@ describe('Delete Patiente Template Tests', () => {
     deleteUser(secondDoctor.id)
   })
 
+  // DONE:
   test("should fail with 400 to delete template if 'doctorId' is not provided", async () => {
     await checkFailDeleteRequest(
       {
@@ -61,6 +61,8 @@ describe('Delete Patiente Template Tests', () => {
       COMMON_MSG.MISSING_FIELDS
     )
   })
+
+  // DONE:
   test("should fail with 400 to delete template if 'templateId' is not provided", async () => {
     await checkFailDeleteRequest(
       {
@@ -70,6 +72,8 @@ describe('Delete Patiente Template Tests', () => {
       COMMON_MSG.MISSING_FIELDS
     )
   })
+
+  // DONE:
   test("should fail with 403 to delete template if 'doctorid' exist but is not the owner of this template", async () => {
     await checkFailDeleteRequest(
       {
@@ -80,6 +84,8 @@ describe('Delete Patiente Template Tests', () => {
       COMMON_MSG.DOCTOR_IS_NOT_OWNER
     )
   })
+
+  // DONE:
   test("should fail with 404 to delete template if 'doctorid' is not from a valid/active user", async () => {
     await checkFailDeleteRequest(
       {
@@ -90,22 +96,26 @@ describe('Delete Patiente Template Tests', () => {
       COMMON_MSG.DOCTOR_NOT_FOUND
     )
   })
+
+  // DONE:
   test("should fail with 404 to delete template if 'template' is not from a valid/existent template", async () => {
     await checkFailDeleteRequest(
       {
-        doctorId: 'NonExistentDoctor',
-        templateId: templateId
+        doctorId: secondDoctor.roleDependentInfo.id,
+        templateId: 'nonExistentTemplate'
       },
       404,
       COMMON_MSG.TEMPLATE_NOT_FOUND
     )
   })
+
+  // DONE:
   test('should delete with 200 a patient template correctly', async () => {
     try {
       const response = await axios.delete(
         REQUEST_URL,
         {
-          doctorId: doctor.id,
+          doctorId: doctor.roleDependentInfo.id,
           templateID: templateId
         },
         { headers: HEADERS }
