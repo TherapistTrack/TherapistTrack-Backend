@@ -2,11 +2,52 @@ const axios = require('axios')
 const { BASE_URL, getAuthToken } = require('./jest.setup')
 
 /**
+ * Makes a request using the specified axios method, and checks if it fails with the expected status and message.
+ *
+ * @param {string} axiosMethod - The axios method to use (e.g., axios.post, axios.get).
+ * @param {string} url - The API endpoint URL to send the request to.
+ * @param {headers} [body] - Request headers
+ * @param {Object} [params={}] - An object representing query parameters to be included in the request.
+ * @param {Object} [body=null] - The request body to be sent (null for GET or HEAD requests).
+ * @param {number} expectedCode - The expected HTTP status code for the failure (e.g., 404, 401).
+ * @param {string} expectedMsg - The expected error message in the response.
+ *
+ * @returns {Promise<void>} - Resolves if the response matches expectations, otherwise throws an error.
+ */
+async function checkFailRequest(
+  method,
+  url,
+  headers,
+  params,
+  body,
+  expectedCode,
+  expectedMsg
+) {
+  try {
+    const response = await axios.request({
+      method,
+      url,
+      headers,
+      params,
+      data: body
+    })
+    if (response.status >= 200 && response.status < 300) {
+      fail(
+        `Expected a failure, but got response with status: ${response.status}`
+      )
+    }
+  } catch (error) {
+    expect(error.response.status).toBe(expectedCode)
+    expect(error.response.data.message).toBe(expectedMsg)
+  }
+}
+
+/**
  * Generates a valid 24-character ObjectId.
  * The ID consists of an 8-character hexadecimal timestamp and
  * a 16-character random hexadecimal string.
  *
- * @returns {string} A 24-character hexadecimal string representing an ObjectId.
+ * @returns {string} Doctor object data.
  */
 function generateObjectId() {
   const timestamp = Math.floor(Date.now() / 1000)
@@ -50,7 +91,7 @@ async function createTestDoctor() {
       doctorUser,
       { headers }
     )
-    doctorUser.rolDependentInfo.id = response.data.roleId // Adding role specific id
+    doctorUser.roleDependentInfo.id = response.data.roleId // Adding role specific id
     return doctorUser
   } catch (error) {
     console.log(
@@ -114,6 +155,7 @@ async function createTestPatientTemplate(doctorId, templateName, fields) {
 }
 
 module.exports = {
+  checkFailRequest,
   generateObjectId,
   createTestDoctor,
   deleteUser,
