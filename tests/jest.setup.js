@@ -6,9 +6,14 @@ const BASE_URL = `http://127.0.0.1:${process.env.API_PORT}`
 let accessToken = null
 
 async function getAuthToken() {
+  if (process.env.RUNNING_MODE === 'TEST') {
+    return 'dummy-token'
+  }
+
   if (accessToken) {
     return accessToken
   }
+
   try {
     const response = await axios.post(
       `${process.env.AUTH_ISSUER_BASE_URL}oauth/token`,
