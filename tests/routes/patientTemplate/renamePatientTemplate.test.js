@@ -51,6 +51,7 @@ describe('Rename Patiente Template Tests', () => {
     deleteUser(secondDoctor.id)
   })
 
+  // DONE:
   test("should fail with 400 to rename template if 'doctorId' is not provided", async () => {
     checkFailRenameRequest(
       {
@@ -61,6 +62,8 @@ describe('Rename Patiente Template Tests', () => {
       COMMON_MSG.MISSING_FIELDS
     )
   })
+
+  // DONE:
   test("should fail with 400 to rename template if 'templateId' is not provided", async () => {
     checkFailRenameRequest(
       {
@@ -71,6 +74,8 @@ describe('Rename Patiente Template Tests', () => {
       COMMON_MSG.MISSING_FIELDS
     )
   })
+
+  // DONE:
   test("should fail with 400 to rename template if 'name' is not provide", async () => {
     checkFailRenameRequest(
       {
@@ -81,6 +86,8 @@ describe('Rename Patiente Template Tests', () => {
       COMMON_MSG.MISSING_FIELDS
     )
   })
+
+  // DONE:
   test("should fail with 403 to rename template if 'doctorid' exist but is not the owner of this template", async () => {
     checkFailRenameRequest(
       {
@@ -88,10 +95,12 @@ describe('Rename Patiente Template Tests', () => {
         templateId: templateId,
         name: 'NewName'
       },
-      400,
+      403,
       COMMON_MSG.DOCTOR_IS_NOT_OWNER
     )
   })
+
+  // DONE:
   test("should fail with 404 to rename template if 'doctorid' is not from a valid/active user", async () => {
     checkFailRenameRequest(
       {
@@ -99,10 +108,12 @@ describe('Rename Patiente Template Tests', () => {
         templateId: templateId,
         name: 'NewName'
       },
-      400,
+      404,
       COMMON_MSG.DOCTOR_NOT_FOUND
     )
   })
+
+  // DONE:
   test("should fail with 404 to rename template if 'template' is not from a valid/active template", async () => {
     checkFailRenameRequest(
       {
@@ -110,10 +121,12 @@ describe('Rename Patiente Template Tests', () => {
         templateId: 'notExistentTemplate',
         name: 'NewName'
       },
-      400,
+      404,
       COMMON_MSG.TEMPLATE_NOT_FOUND
     )
   })
+
+  // DONE:
   test('should rename with 200 a patient template correctly', async () => {
     try {
       const response = await axios.delete(
