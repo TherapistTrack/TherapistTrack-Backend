@@ -67,6 +67,7 @@ const UserSchema = new mongoose.Schema(
       }
     },
     rol: { type: String, required: true, enum: ['Doctor', 'Assistant'] },
+    roleDependentInfo: { type: mongoose.Schema.ObjectId, required: false },
     isActive: { type: Boolean, required: true }
   },
   {
