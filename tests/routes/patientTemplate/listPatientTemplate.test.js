@@ -98,7 +98,7 @@ describe('List Patiente Templates Tests', () => {
     await deleteUser(doctorId)
   })
 
-  // Test para obtener la lista de plantillas correctamente
+  // DONE:
   test('should fetch with 200 a list of 3 templates', async () => {
     try {
       const response = await axios.get(
@@ -121,10 +121,12 @@ describe('List Patiente Templates Tests', () => {
     }
   })
 
+  // DONE:
   test("should fail with 400 to list template if 'doctorId' is not provided", async () => {
     await checkFailListRequest({}, 400, COMMON_MSG.MISSING_FIELDS)
   })
 
+  // DONE:
   test("should fail with 404 to list template if 'doctorid' is not from a active/valid user", async () => {
     const invalidDoctorId = 'invalidDoctorId123'
     await checkFailListRequest(
