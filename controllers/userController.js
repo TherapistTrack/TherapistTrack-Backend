@@ -50,6 +50,9 @@ exports.registerUser = async (req, res) => {
         'Invalid Role. Could only be Doctor and Assistant. Is case sensitive.'
       )
     }
+    // Store the roleId in User to.
+    newUser.roleDependentInfo = roleInfo._id
+    await newUser.save()
 
     return res.status(201).send({
       status: 'success',
