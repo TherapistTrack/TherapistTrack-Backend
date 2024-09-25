@@ -101,13 +101,13 @@ describe('List Patiente Templates Tests', () => {
   // DONE:
   test('should fetch with 200 a list of 3 templates', async () => {
     try {
-      const response = await axios.get(
-        REQUEST_URL,
-        {
-          doctorId: doctor.roleDependentInfo.id
+      const response = await axios.get(REQUEST_URL, {
+        params: {
+          doctorId: doctor.roleDependentInfo.id,
+          templateId: templateId
         },
-        { headers: HEADERS }
-      )
+        headers: HEADERS
+      })
       expect(response.status).toBe(200)
       expect(response.data).toHaveProperty('templates')
       expect(response.data.templates.length).toBe(3)

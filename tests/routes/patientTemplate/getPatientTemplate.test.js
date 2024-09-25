@@ -8,7 +8,7 @@ const {
 } = require('../../testHelpers')
 
 describe('Get Patient Template by ID Tests', () => {
-  let doctor
+  let doctor, secondDoctor
   let templateId
 
   const REQUEST_URL = `${BASE_URL}/doctor/PatientTemplate?templateId=${templateId}`
@@ -33,6 +33,7 @@ describe('Get Patient Template by ID Tests', () => {
 
   beforeAll(async () => {
     doctor = await createTestDoctor()
+    secondDoctor = await createTestDoctor()
 
     // Crear una plantilla de paciente para usarla en los tests
     templateId = await createTestPatientTemplate(
@@ -58,19 +59,19 @@ describe('Get Patient Template by ID Tests', () => {
 
   afterAll(async () => {
     await deleteUser(doctorId)
+    await deleteUser(secondDoctor)
   })
 
-  // Test para obtener una plantilla por su ID correctamente
+  //
   test('should success with 200 retrieve a patient template by its ID', async () => {
     try {
-      const response = await axios.get(
-        REQUEST_URL,
-        {
+      const response = await axios.get(REQUEST_URL, {
+        params: {
           doctorId: doctor.roleDependentInfo.id,
           templateId: templateId
         },
-        { headers: HEADERS }
-      )
+        headers: HEADERS
+      })
       expect(response.status).toBe(200)
       expect(response.data).toHaveProperty(
         'doctor',
@@ -107,7 +108,7 @@ describe('Get Patient Template by ID Tests', () => {
     }
   })
 
-  // Test para fallar si no se proporciona el doctorId
+  // DONE:
   test('should fail with 400 if "doctorId" is not provided', async () => {
     await checkFailGetRequest(
       {
@@ -118,7 +119,7 @@ describe('Get Patient Template by ID Tests', () => {
     )
   })
 
-  // Test para fallar si no se proporciona el templateId
+  // DONE:
   test('should fail with 400 if "templateId" is not provided', async () => {
     await checkFailGetRequest(
       {
@@ -129,9 +130,9 @@ describe('Get Patient Template by ID Tests', () => {
     )
   })
 
-  // Test para fallar si el doctor existe pero no es el propietario de la plantilla
+  // DONE:
   test('should fail with 403 if "doctorId" exist but is not the owner of the template', async () => {
-    const wrongDoctorId = 'anotherDoctorId'
+    const wrongDoctorId = secondDoctor.roleDependentInfo.id
 
     await checkFailGetRequest(
       {
@@ -143,7 +144,7 @@ describe('Get Patient Template by ID Tests', () => {
     )
   })
 
-  // Test para fallar si el doctorId no corresponde a un doctor existente
+  // DONE:
   test('should fail with 404 if "doctorId" does not correspond to an existent/active doctor', async () => {
     const nonExistentDoctorId = 'invalidDoctorId'
 
@@ -157,27 +158,13 @@ describe('Get Patient Template by ID Tests', () => {
     )
   })
 
-  // Test para fallar si la plantilla no existe
+  // DONE:
   test('should fail with 404 if "template" does not correspond to an existent template', async () => {
     const nonExistentTemplateId = 'invalidTemplateId'
 
     await checkFailGetRequest(
       {
-        templateId: nonExistentTemplateId,
-        doctorId
-      },
-      404,
-      COMMON_MSG.TEMPLATE_NOT_FOUND
-    )
-  })
-
-  // Test para obtener una plantilla por su ID inexistente
-  test('should fail with 404 when trying to retrieve a non-existent template', async () => {
-    const nonExistentTemplateId = 'invalidTemplateId' // ID inexistente
-
-    await checkFailGetRequest(
-      {
-        doctorId,
+        doctorId: doctor.roleDependentInfo.id,
         templateId: nonExistentTemplateId
       },
       404,
