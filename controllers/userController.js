@@ -51,9 +51,12 @@ exports.registerUser = async (req, res) => {
       )
     }
 
-    return res
-      .status(201)
-      .send({ status: 'success', message: 'User registered successfully' })
+    return res.status(201).send({
+      status: 'success',
+      message: 'User registered successfully',
+      userId: id,
+      roleId: roleInfo._id
+    })
   } catch (error) {
     if (error.code === 11000) {
       return res
@@ -133,10 +136,15 @@ const getUserById = async (id) => {
 
   let rolInfo
   if (user.rol === 'Doctor') {
-    rolInfo = await Doctor.find({ user: id }).exec()
+    rolInfo = await Doctor.findOne({ user: id }).lean().exec()
   } else if (user.rol === 'Assistant') {
-    rolInfo = await Assistant.find({ user: id }).exec()
+    rolInfo = await Assistant.findOne({ user: id }).lean().exec()
   }
+  rolInfo.id = rolInfo._id
+  delete rolInfo._id
+  delete rolInfo.__v
+  delete rolInfo.user
+  console.log(JSON.stringify(rolInfo, '', '\t'))
 
   const {
     _id,

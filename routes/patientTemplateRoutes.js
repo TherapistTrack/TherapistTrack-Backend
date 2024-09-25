@@ -6,4 +6,9 @@ router.post('/PatientTemplate', patientTemplateController.createTemplate)
 router.patch('/PatientTemplate', patientTemplateController.renameTemplate)
 router.delete('/PatientTemplate', patientTemplateController.deleteTemplate)
 router.get('/PatientTemplate', patientTemplateController.getTemplate)
-router.get('/PatientTemplate/list', patientTemplateController.getTemplates)
+router.get(
+  '/PatientTemplate/list',
+  patientTemplateController.getTemplatesDoctor
+)
+
+module.exports = router

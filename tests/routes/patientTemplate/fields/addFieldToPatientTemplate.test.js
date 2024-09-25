@@ -1,64 +1,52 @@
 const axios = require('axios')
 const { BASE_URL, getAuthToken } = require('../../../jest.setup')
-const { createTestDoctor, deleteUser } = require('../../../testHelpers')
-
-let doctorId, headers
-
-beforeAll(async () => {
-  const doctor = await createTestDoctor()
-  doctorId = doctor.id
-  headers = {
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${getAuthToken()}`,
-    Origin: 'http://localhost'
-  }
-})
-
-afterAll(async () => {
-  await deleteUser(doctorId)
-})
+const {
+  createTestDoctor,
+  deleteUser,
+  createTestPatientTemplate
+} = require('../../../testHelpers')
 
 describe('Create Patient Template Tests', () => {
-  // Test para agregar un campo exitosamente a una plantilla de paciente existente
-  it('should successfully add a new field to an existing patient template', async () => {
-    // Paso 1: Tener plantilla válida
-    const testTemplate = {
+  let doctorId, templateId, headers
+
+  beforeAll(async () => {
+    const doctor = await createTestDoctor()
+    doctorId = doctor.id
+    templateId = await createTestPatientTemplate(doctorId, {
       doctorId: doctorId,
       name: `testTemplate_${Date.now()}`,
-      patientTemplate: {
-        record: '12345',
-        names: 'Plantilla-2024',
-        fields: [
-          { name: 'Nombres', type: 'SHORT_TEXT', required: true },
-          { name: 'Apellidos', type: 'SHORT_TEXT', required: true },
-          { name: 'Edad', type: 'NUMBER', required: true }
-        ]
-      }
+      fields: [
+        {
+          name: 'Edad',
+          type: 'NUMBER',
+          required: true,
+          description: 'Edad del paciente'
+        },
+        {
+          name: 'Estado Civil',
+          type: 'CHOICE',
+          options: ['Soltero', 'Casado'],
+          required: true,
+          description: 'Estado civil del paciente'
+        }
+      ]
+    })
+    headers = {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${getAuthToken()}`,
+      Origin: 'http://localhost'
     }
+  })
 
-    let templateID
+  afterAll(async () => {
+    await deleteUser(doctorId)
+  })
 
-    // Crear la plantilla
-    try {
-      const response = await axios.post(
-        `${BASE_URL}/templates/create`,
-        testTemplate,
-        { headers }
-      )
-      expect(response.status).toBe(201)
-      templateID = response.data.data.patientTemplateId // Guardar el ID de la plantilla creada
-    } catch (error) {
-      console.error(
-        'Error creating template:',
-        error.response ? error.response.data : error.message
-      )
-      throw error
-    }
-
-    // Paso 2: Agregar un nuevo campo 'Phone Number'
+  // DONE:
+  it('should successfully add a new field to an existing patient template', async () => {
     const fieldToAdd = {
       doctorId: doctorId,
-      templateID: templateID, // Usar el ID de la plantilla creada
+      templateID: templateId, // Usar el ID de la plantilla creada
       patientTemplate: {
         name: 'Numero de Telefono', // Campo nuevo 'Phone Number'
         type: 'NUMBER',
@@ -69,13 +57,13 @@ describe('Create Patient Template Tests', () => {
 
     try {
       const response = await axios.post(
-        `${BASE_URL}/templates/addField`,
+        `${BASE_URL}/doctor/PatientTemplate/fields`,
         fieldToAdd,
         { headers }
       )
       expect(response.status).toBe(200) // El backend debería devolver un estado 200
       expect(response.data.message).toBe(
-        'Campo añadido a la plantilla de paciente exitosamente'
+        'Field added to patient template successfully'
       ) // Mensaje esperado
     } catch (error) {
       console.error(
@@ -86,72 +74,10 @@ describe('Create Patient Template Tests', () => {
     }
   })
 
-  // Test para validar que no se pueden agregar campos con el mismo nombre a una plantilla existente
-  it('should fail to add a new field with the same name as an existing field in a patient template', async () => {
-    // Paso 1: Tener una plantilla válida
-    const testTemplate = {
-      doctorId: doctorId,
-      name: `testTemplate_${Date.now()}`,
-      patientTemplate: {
-        record: '12345',
-        names: 'Plantilla-2024',
-        fields: [
-          { name: 'Nombres', type: 'SHORT_TEXT', required: true },
-          { name: 'Apellidos', type: 'SHORT_TEXT', required: true },
-          { name: 'Edad', type: 'NUMBER', required: true }
-        ]
-      }
-    }
-
-    let templateID
-
-    // Crear la plantilla
-    try {
-      const response = await axios.post(
-        `${BASE_URL}/templates/create`,
-        testTemplate,
-        { headers }
-      )
-      expect(response.status).toBe(201)
-      templateID = response.data.data.patientTemplateId // Guardar el ID de la plantilla creada
-    } catch (error) {
-      console.error(
-        'Error creating template:',
-        error.response ? error.response.data : error.message
-      )
-      throw error
-    }
-
-    // Paso 2: Intentar agregar un campo con el mismo nombre 'Nombres'
+  // DONE:
+  it('should fail with 400 if templateID not passed', async () => {
     const fieldToAdd = {
-      doctorId: doctorId,
-      templateID: templateID,
-      patientTemplate: {
-        name: 'Nombres',
-        type: 'SHORT_TEXT',
-        required: true,
-        description: 'Duplicate field test'
-      }
-    }
-
-    try {
-      const response = await axios.post(
-        `${BASE_URL}/templates/addField`,
-        fieldToAdd,
-        { headers }
-      )
-    } catch (error) {
-      expect(error.response.status).toBe(400) // El backend debería devolver un error 400
-      expect(error.response.data.message).toBe(
-        'Campos duplicados no permitidos'
-      )
-    }
-  })
-
-  // Test para validar falta de templateID
-  it('should fail to add a field without the templateID', async () => {
-    const fieldToAdd = {
-      doctorId: doctorId, // Un doctorId válido
+      doctorID: doctorId,
       patientTemplate: {
         name: 'Allergies',
         type: 'TEXT',
@@ -163,13 +89,124 @@ describe('Create Patient Template Tests', () => {
 
     try {
       const response = await axios.post(
-        `${BASE_URL}/templates/addField`,
+        `${BASE_URL}/doctor/PatientTemplate/fields`,
         fieldToAdd,
         { headers }
       )
+      if (response.status >= 200 && response.status < 300) {
+        fail(
+          `Expected a failure, but got response with status: ${response.status}`
+        )
+      }
     } catch (error) {
       expect(error.response.status).toBe(400)
-      expect(error.response.data.message).toBe('Falta el ID de la plantilla')
+      expect(error.response.data.message).toBe('Missing fields.')
     }
   })
+
+  // DONE:
+  test('should fail with 400 if doctorId not passed ', async () => {
+    const fieldToAdd = {
+      templateID: templateId,
+      patientTemplate: {
+        name: 'Allergies',
+        type: 'TEXT',
+        value: '',
+        required: false,
+        description: "Patient's known allergies"
+      }
+    }
+
+    try {
+      const response = await axios.post(
+        `${BASE_URL}/doctor/PatientTemplate/fields`,
+        fieldToAdd,
+        { headers }
+      )
+      if (response.status >= 200 && response.status < 300) {
+        fail(
+          `Expected a failure, but got response with status: ${response.status}`
+        )
+      }
+    } catch (error) {
+      expect(error.response.status).toBe(400)
+      expect(error.response.data.message).toBe('Missing fields.')
+    }
+  })
+
+  //
+  it('should fail with 403 if doctor is not the owner of the template', async () => {
+    const fieldToAdd = {
+      doctorId: 'invalidDoctorId', // Doctor incorrecto
+      templateID: templateId,
+      patientTemplate: {
+        name: 'Phone Number',
+        type: 'NUMBER',
+        required: true,
+        description: 'Teléfono del paciente'
+      }
+    }
+
+    try {
+      const response = await axios.post(
+        `${BASE_URL}/doctor/PatientTemplate/fields`,
+        fieldToAdd,
+        { headers }
+      )
+      if (response.status >= 200 && response.status < 300) {
+        fail(
+          `Expected a failure, but got response with status: ${response.status}`
+        )
+      }
+    } catch (error) {
+      expect(error.response.status).toBe(403) // El backend debería devolver un error 403
+      expect(error.response.data.message).toBe(
+        'Doctor is not the owner of the template'
+      )
+    }
+  })
+
+  // TODO:
+  test('should fail with 404 if doctorId is form a non active/valid user ', async () => {})
+
+  // TODO:
+  test('should fail with 404 if templateId does not exist ', async () => {})
+
+  // DONE:
+  it('should fail with 406 due to name alredy exist in template', async () => {
+    const fieldToAdd = {
+      doctorId: doctorId,
+      templateID: templateId,
+      patientTemplate: {
+        name: 'Edad',
+        type: 'NUMBER',
+        required: true,
+        description: 'Edad del paciente'
+      }
+    }
+
+    try {
+      const response = await axios.post(
+        `${BASE_URL}/doctor/PatientTemplate/fields`,
+        fieldToAdd,
+        { headers }
+      )
+      if (response.status >= 200 && response.status < 300) {
+        fail(
+          `Expected a failure, but got response with status: ${response.status}`
+        )
+      }
+    } catch (error) {
+      expect(error.response.status).toBe(406) // El backend debería devolver un error 406
+      expect(error.response.data.message).toBe(
+        'Field already existing in the template'
+      )
+    }
+  })
+
+  // TODO:
+  test("should fail with 406 creatin field 'Nombres' since it is a reserved name ", async () => {})
+
+  // TODO:
+  test("should fail with 406 creatin field 'Apellidos' since it is a reserved name ", async () => {})
 })
