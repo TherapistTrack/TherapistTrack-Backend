@@ -76,8 +76,10 @@ describe('Create Patient Template Tests', () => {
     try {
       const response = await axios.post(
         `${BASE_URL}/doctor/PatientTemplate/fields`,
-        fieldToAdd,
-        { headers }
+        {
+          data: fieldToAdd,
+          headers: HEADERS
+        }
       )
       expect(response.status).toBe(200) // El backend debería devolver un estado 200
       expect(response.data.message).toBe(

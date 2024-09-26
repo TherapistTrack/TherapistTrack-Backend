@@ -75,13 +75,10 @@ describe('Create Patient Template Tests', () => {
     }
 
     try {
-      const response = await axios.post(
-        `${BASE_URL}/doctor/PatientTemplate`,
-        testTemplate,
-        {
-          headers: HEADERS
-        }
-      )
+      const response = await axios.post(`${BASE_URL}/doctor/PatientTemplate`, {
+        data: testTemplate,
+        headers: HEADERS
+      })
       expect(response.status).toBe(200) // Comprobamos que se creó correctamente
       expect(response.data.message).toBe(
         'Patient template created successfully'

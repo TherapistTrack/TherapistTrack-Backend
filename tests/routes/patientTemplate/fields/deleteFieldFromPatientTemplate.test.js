@@ -59,8 +59,8 @@ describe('Delete Field from Patient Template Tests', () => {
   // DONE:
   it('should suceed with 200 delete an existing field from the patient template', async () => {
     const fieldToDelete = {
-      doctorId: doctorId,
-      templateID: templateID,
+      doctorId: doctor.roleDependentInfo.id,
+      templateId: templateId,
       name: 'Edad'
     }
 
@@ -69,7 +69,7 @@ describe('Delete Field from Patient Template Tests', () => {
         `${BASE_URL}/doctor/PatientTemplate/fields`,
         {
           data: fieldToDelete,
-          headers
+          headers: HEADERS
         }
       )
       expect(response.status).toBe(200)

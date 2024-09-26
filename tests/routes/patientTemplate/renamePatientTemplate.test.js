@@ -129,15 +129,14 @@ describe('Rename Patiente Template Tests', () => {
   // DONE:
   test('should rename with 200 a patient template correctly', async () => {
     try {
-      const response = await axios.delete(
-        REQUEST_URL,
-        {
+      const response = await axios.delete(REQUEST_URL, {
+        data: {
           doctorId: doctor.roleDependentInfo.id,
           templateID: templateId,
           name: 'newName'
         },
-        { headers: HEADERS }
-      )
+        headers: HEADERS
+      })
       expect(response.status).toBe(200)
       expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS)
     } catch (error) {
