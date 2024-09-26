@@ -9,6 +9,7 @@ const COMMON_MSG = {
   // 404: Resource not found
   DOCTOR_NOT_FOUND: 'Doctor not found.',
   TEMPLATE_NOT_FOUND: 'Template not found.',
+  FIELD_NOT_FOUND: 'Field not found.',
   // 406: Resource already in use
   RECORDS_USING: 'Item with that id/name already exist',
   // 409: Resources depend on this resource
