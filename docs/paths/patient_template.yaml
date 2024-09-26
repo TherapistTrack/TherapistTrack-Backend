@@ -85,7 +85,7 @@ doctorPatientTemplate:
                   type: integer
                 message:
                   type: string
-      '409':
+      '406':
         description: Nombre de la plantilla ya esta en uso.
         content:
           application/json:

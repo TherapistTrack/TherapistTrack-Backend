@@ -3,6 +3,7 @@ const COMMON_MSG = {
   REQUEST_SUCCESS: 'Request succesful.',
   // 400: Missing data on request
   MISSING_FIELDS: 'Missing Fields.',
+  RESERVED_FIELD_NAMES: 'Names as Apellidos and Nombres are reserved',
   // 403: Not authorized
   DOCTOR_IS_NOT_OWNER: 'Doctor is not the owner of template.',
   // 404: Resource not found
