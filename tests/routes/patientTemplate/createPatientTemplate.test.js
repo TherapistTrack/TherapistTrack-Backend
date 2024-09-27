@@ -10,7 +10,7 @@ const COMMON_MSG = require('../../../utils/errorMsg')
 describe('Create Patient Template Tests', () => {
   let userId, doctorId
 
-  const REQUEST_URL = `${REQUEST_URL}/doctor/PatientTemplate`
+  const REQUEST_URL = `${BASE_URL}/doctor/PatientTemplate`
 
   const HEADERS = {
     'Content-Type': 'application/json',
