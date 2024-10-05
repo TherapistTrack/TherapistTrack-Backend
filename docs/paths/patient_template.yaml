@@ -85,7 +85,7 @@ doctorPatientTemplate:
                   type: integer
                 message:
                   type: string
-      '409':
+      '406':
         description: Nombre de la plantilla ya esta en uso.
         content:
           application/json:
@@ -523,7 +523,7 @@ doctorPatientTemplateFields:
                 type: string
                 description: Identificador único del doctor.
                 example: '60d5ec49d8a0c540d8d6d8b5'
-              templateID:
+              templateId:
                 type: string
                 description: ID de la plantilla a modificar.
                 example: '42038caasdlj3234j255k'
@@ -647,7 +647,7 @@ doctorPatientTemplateFields:
                 type: string
                 description: Identificador único del doctor.
                 example: '60d5ec49d8a0c540d8d6d8b5'
-              templateID:
+              templateId:
                 type: string
                 description: ID de la plantilla a modificar.
                 example: '42038caasdlj3234j255k'
@@ -770,7 +770,7 @@ doctorPatientTemplateFields:
                 type: string
                 description: Identificador único del doctor que realiza la eliminación.
                 example: '60d5ec49d8a0c540d8d6d8b5'
-              templateID:
+              templateId:
                 type: string
                 description: ID de la plantilla a modificar.
                 example: '42038caasdlj3234j255k'

@@ -6,11 +6,12 @@ const BASE_URL = `http://127.0.0.1:${process.env.API_PORT}`
 let accessToken = null
 
 async function getAuthToken() {
-  if (process.env.RUNNING_MODE === 'TEST') {
-    return 'dummy-token'
+  if (accessToken) {
+    return accessToken
   }
 
-  if (accessToken) {
+  if (process.env.RUNNING_MODE === 'TEST') {
+    accessToken = 'dummy-token'
     return accessToken
   }
 

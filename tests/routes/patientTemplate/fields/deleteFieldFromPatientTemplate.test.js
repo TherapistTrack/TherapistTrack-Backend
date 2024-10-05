@@ -1,46 +1,66 @@
 const axios = require('axios')
 const { BASE_URL, getAuthToken } = require('../../../jest.setup')
 const { createTestDoctor, deleteUser } = require('../../../testHelpers')
+const COMMON_MSG = require('../../../../utils/errorMsg')
 
 describe('Delete Field from Patient Template Tests', () => {
-  let doctorId
-  let secondDoctorId
-  let templateID
-  let headers
+  let doctor, secondDoctor, templateId
+
+  const REQUEST_URL = `${BASE_URL}/doctor/PatientTemplate/fields`
+
+  const HEADERS = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${getAuthToken()}`,
+    Origin: 'http://localhost'
+  }
+
+  async function checkFailDeleteRequest(body, expectedCode, expectedMsg) {
+    await checkFailRequest(
+      'delete',
+      REQUEST_URL,
+      HEADERS,
+      {},
+      body,
+      expectedCode,
+      expectedMsg
+    )
+  }
 
   beforeAll(async () => {
-    const doctor = await createTestDoctor()
-    const secondDoctor = await createTestDoctor()
-    doctorId = doctor.id
-    secondDoctorId = secondDoctor.id
-    headers = {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${getAuthToken()}`,
-      Origin: 'http://localhost'
-    }
+    doctor = await createTestDoctor()
+    secondDoctor = await createTestDoctor()
 
-    // Crear una plantilla de paciente para usarla en los tests
-    const response = await axios.post(
-      `${BASE_URL}/doctor/PatientTemplate`,
-      {
-        doctorId: doctorId,
-        name: `testTemplate_${Date.now()}`,
-        fields: [{ name: 'Edad', type: 'NUMBER', required: true }]
-      },
-      { headers }
+    templateId = await createTestPatientTemplate(
+      doctor.roleDependentInfo.id,
+      `testTemplate_${Date.now()}`,
+      [
+        {
+          name: 'Edad',
+          type: 'NUMBER',
+          required: true,
+          description: 'Edad del paciente'
+        },
+        {
+          name: 'Estado Civil',
+          type: 'CHOICE',
+          options: ['Soltero', 'Casado'],
+          required: true,
+          description: 'Estado civil del paciente'
+        }
+      ]
     )
-    templateID = response.data.data.patientTemplateID
   })
 
   afterAll(async () => {
-    await deleteUser(doctorId)
+    await deleteUser(doctor.id)
+    await deleteUser(secondDoctor.id)
   })
 
   // DONE:
   it('should suceed with 200 delete an existing field from the patient template', async () => {
     const fieldToDelete = {
-      doctorId: doctorId,
-      templateID: templateID,
+      doctorId: doctor.roleDependentInfo.id,
+      templateId: templateId,
       name: 'Edad'
     }
 
@@ -49,7 +69,7 @@ describe('Delete Field from Patient Template Tests', () => {
         `${BASE_URL}/doctor/PatientTemplate/fields`,
         {
           data: fieldToDelete,
-          headers
+          headers: HEADERS
         }
       )
       expect(response.status).toBe(200)
@@ -65,174 +85,89 @@ describe('Delete Field from Patient Template Tests', () => {
 
   // DONE:
   it('should fail with 400 to delete a field without templateID', async () => {
-    const fieldToDelete = {
-      doctorId: doctorId,
-      name: 'Edad' // Omitimos templateID para provocar el error
-    }
-
-    try {
-      await axios.delete(`${BASE_URL}/doctor/PatientTemplate/fields`, {
-        data: fieldToDelete,
-        headers
-      })
-      if (response.status >= 200 && response.status < 300) {
-        fail(
-          `Expected a failure, but got response with status: ${response.status}`
-        )
-      }
-    } catch (error) {
-      expect(error.response.status).toBe(400)
-      expect(error.response.data.message).toBe(
-        'Missing or invalid fields in the request body'
-      )
-    }
+    checkFailDeleteRequest(
+      {
+        doctorId: doctor.roleDependentInfo.id,
+        name: 'Edad' // Omitimos templateID para provocar el error
+      },
+      400,
+      COMMON_MSG.MISSING_FIELDS
+    )
   })
 
   // DONE:
   it('should fail with 400 to delete a field without doctorId', async () => {
-    const fieldToDelete = {
-      templateID: templateID,
-      name: 'Edad'
-    }
-
-    try {
-      await axios.delete(`${BASE_URL}/doctor/PatientTemplate/fields`, {
-        data: fieldToDelete,
-        headers
-      })
-      if (response.status >= 200 && response.status < 300) {
-        fail(
-          `Expected a failure, but got response with status: ${response.status}`
-        )
-      }
-    } catch (error) {
-      expect(error.response.status).toBe(400)
-      expect(error.response.data.message).toBe(
-        'Missing or invalid fields in the request body'
-      )
-    }
+    checkFailDeleteRequest(
+      {
+        templateId: templateId,
+        name: 'Edad'
+      },
+      400,
+      COMMON_MSG.MISSING_FIELDS
+    )
   })
 
   // DONE:
   it('should fail with 400 to delete a field without name', async () => {
-    const fieldToDelete = {
-      doctorId: doctorId,
-      templateID: templateID
-    }
-
-    try {
-      await axios.delete(`${BASE_URL}/doctor/PatientTemplate/fields`, {
-        data: fieldToDelete,
-        headers
-      })
-      if (response.status >= 200 && response.status < 300) {
-        fail(
-          `Expected a failure, but got response with status: ${response.status}`
-        )
-      }
-    } catch (error) {
-      expect(error.response.status).toBe(400)
-      expect(error.response.data.message).toBe(
-        'Missing or invalid fields in the request body'
-      )
-    }
+    checkFailDeleteRequest(
+      {
+        doctorId: doctor.roleDependentInfo.id,
+        templateId: templateId
+      },
+      400,
+      COMMON_MSG.MISSING_FIELDS
+    )
   })
 
   // DONE:
   it('should fail with 403 if doctor is not owner of the template', async () => {
-    const fieldToDelete = {
-      doctorId: secondDoctorId, // ID incorrecto
-      templateID: templateID,
-      name: 'Edad'
-    }
-
-    try {
-      await axios.delete(`${BASE_URL}/doctor/PatientTemplate/fields`, {
-        data: fieldToDelete,
-        headers
-      })
-      if (response.status >= 200 && response.status < 300) {
-        fail(
-          `Expected a failure, but got response with status: ${response.status}`
-        )
-      }
-    } catch (error) {
-      expect(error.response.status).toBe(403)
-      expect(error.response.data.message).toBe(
-        'Doctor is not the owner of template'
-      )
-    }
+    checkFailDeleteRequest(
+      {
+        doctorId: secondDoctor.roleDependentInfo.id,
+        templateId: templateId,
+        name: 'Edad'
+      },
+      403,
+      COMMON_MSG.DOCTOR_IS_NOT_OWNER
+    )
   })
 
   // DONE:
   it('should fail with 404 when doctorId is not valid/active', async () => {
-    const nonExistentFieldToDelete = {
-      doctorId: 'nonExistentDoctor',
-      templateID: templateID,
-      name: 'Edad'
-    }
-
-    try {
-      await axios.delete(`${BASE_URL}/doctor/PatientTemplate/fields`, {
-        data: nonExistentFieldToDelete,
-        headers
-      })
-      if (response.status >= 200 && response.status < 300) {
-        fail(
-          `Expected a failure, but got response with status: ${response.status}`
-        )
-      }
-    } catch (error) {
-      expect(error.response.status).toBe(404)
-      expect(error.response.data.message).toBe('doctorId not found')
-    }
+    checkFailDeleteRequest(
+      {
+        doctorId: 'nonExistentDoctor',
+        templateId: templateId,
+        name: 'Edad'
+      },
+      404,
+      COMMON_MSG.DOCTOR_NOT_FOUND
+    )
   })
 
   // DONE:
   it('should fail with 404 when templateID is not valid/existent', async () => {
-    const nonExistentFieldToDelete = {
-      doctorId: doctorId,
-      templateID: 'nonExistentTemplate',
-      name: 'Edad'
-    }
-
-    try {
-      await axios.delete(`${BASE_URL}/doctor/PatientTemplate/fields`, {
-        data: nonExistentFieldToDelete,
-        headers
-      })
-      if (response.status >= 200 && response.status < 300) {
-        fail(
-          `Expected a failure, but got response with status: ${response.status}`
-        )
-      }
-    } catch (error) {
-      expect(error.response.status).toBe(404)
-      expect(error.response.data.message).toBe('template not found')
-    }
+    checkFailDeleteRequest(
+      {
+        doctorId: doctor.roleDependentInfo.id,
+        templateId: 'nonExistentTemplate',
+        name: 'Edad'
+      },
+      404,
+      COMMON_MSG.TEMPLATE_NOT_FOUND
+    )
   })
 
   // DONE:
   it('should fail with 404 when "name" does not exist', async () => {
-    const nonExistentFieldToDelete = {
-      doctorId: doctorId,
-      templateID: templateID,
-      name: 'doesNotExist'
-    }
-
-    try {
-      await axios.delete(`${BASE_URL}/doctor/PatientTemplate/fields`, {
-        data: nonExistentFieldToDelete,
-        headers
-      })
-      if (response.status >= 200 && response.status < 300) {
-        fail(
-          `Expected a failure, but got response with status: ${response.status}`
-        )
-      }
-    } catch (error) {
-      expect(error.response.status).toBe(404)
-      expect(error.response.data.message).toBe('Field not found')
-    }
+    checkFailDeleteRequest(
+      {
+        doctorId: doctor.roleDependentInfo.id,
+        templateId: 'nonExistentTemplate',
+        name: 'doesNotExist'
+      },
+      404,
+      COMMON_MSG.FIELD_NOT_FOUND
+    )
   })
 })

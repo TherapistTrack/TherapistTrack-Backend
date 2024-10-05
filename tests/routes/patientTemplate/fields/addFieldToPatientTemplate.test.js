@@ -5,17 +5,39 @@ const {
   deleteUser,
   createTestPatientTemplate
 } = require('../../../testHelpers')
+const COMMON_MSG = require('../../../../utils/errorMsg')
 
 describe('Create Patient Template Tests', () => {
-  let doctorId, templateId, headers
+  let doctor, secondDoctor, templateId
+
+  const REQUEST_URL = `${BASE_URL}/doctor/PatientTemplate/fields`
+
+  const HEADERS = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${getAuthToken()}`,
+    Origin: 'http://localhost'
+  }
+
+  async function checkFailCreateRequest(body, expectedCode, expectedMsg) {
+    await checkFailRequest(
+      'post',
+      REQUEST_URL,
+      HEADERS,
+      {},
+      body,
+      expectedCode,
+      expectedMsg
+    )
+  }
 
   beforeAll(async () => {
-    const doctor = await createTestDoctor()
-    doctorId = doctor.id
-    templateId = await createTestPatientTemplate(doctorId, {
-      doctorId: doctorId,
-      name: `testTemplate_${Date.now()}`,
-      fields: [
+    doctor = await createTestDoctor()
+    secondDoctor = await createTestDoctor()
+
+    templateId = await createTestPatientTemplate(
+      doctor.roleDependentInfo.id,
+      `testTemplate_${Date.now()}`,
+      [
         {
           name: 'Edad',
           type: 'NUMBER',
@@ -30,23 +52,19 @@ describe('Create Patient Template Tests', () => {
           description: 'Estado civil del paciente'
         }
       ]
-    })
-    headers = {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${getAuthToken()}`,
-      Origin: 'http://localhost'
-    }
+    )
   })
 
   afterAll(async () => {
-    await deleteUser(doctorId)
+    await deleteUser(doctor.id)
+    await deleteUser(secondDoctor.id)
   })
 
   // DONE:
   it('should successfully add a new field to an existing patient template', async () => {
     const fieldToAdd = {
-      doctorId: doctorId,
-      templateID: templateId, // Usar el ID de la plantilla creada
+      doctorId: doctor.roleDependentInfo.id,
+      templateId: templateId, // Usar el ID de la plantilla creada
       patientTemplate: {
         name: 'Numero de Telefono', // Campo nuevo 'Phone Number'
         type: 'NUMBER',
@@ -58,8 +76,10 @@ describe('Create Patient Template Tests', () => {
     try {
       const response = await axios.post(
         `${BASE_URL}/doctor/PatientTemplate/fields`,
-        fieldToAdd,
-        { headers }
+        {
+          data: fieldToAdd,
+          headers: HEADERS
+        }
       )
       expect(response.status).toBe(200) // El backend debería devolver un estado 200
       expect(response.data.message).toBe(
@@ -76,137 +96,145 @@ describe('Create Patient Template Tests', () => {
 
   // DONE:
   it('should fail with 400 if templateID not passed', async () => {
-    const fieldToAdd = {
-      doctorID: doctorId,
-      patientTemplate: {
-        name: 'Allergies',
-        type: 'TEXT',
-        value: '',
-        required: false,
-        description: "Patient's known allergies"
-      }
-    }
-
-    try {
-      const response = await axios.post(
-        `${BASE_URL}/doctor/PatientTemplate/fields`,
-        fieldToAdd,
-        { headers }
-      )
-      if (response.status >= 200 && response.status < 300) {
-        fail(
-          `Expected a failure, but got response with status: ${response.status}`
-        )
-      }
-    } catch (error) {
-      expect(error.response.status).toBe(400)
-      expect(error.response.data.message).toBe('Missing fields.')
-    }
+    checkFailCreateRequest(
+      {
+        doctorId: doctor.roleDependentInfo.id,
+        patientTemplate: {
+          name: 'Allergies',
+          type: 'TEXT',
+          value: '',
+          required: false,
+          description: "Patient's known allergies"
+        }
+      },
+      400,
+      COMMON_MSG.MISSING_FIELDS
+    )
   })
 
   // DONE:
   test('should fail with 400 if doctorId not passed ', async () => {
-    const fieldToAdd = {
-      templateID: templateId,
-      patientTemplate: {
-        name: 'Allergies',
-        type: 'TEXT',
-        value: '',
-        required: false,
-        description: "Patient's known allergies"
-      }
-    }
-
-    try {
-      const response = await axios.post(
-        `${BASE_URL}/doctor/PatientTemplate/fields`,
-        fieldToAdd,
-        { headers }
-      )
-      if (response.status >= 200 && response.status < 300) {
-        fail(
-          `Expected a failure, but got response with status: ${response.status}`
-        )
-      }
-    } catch (error) {
-      expect(error.response.status).toBe(400)
-      expect(error.response.data.message).toBe('Missing fields.')
-    }
+    checkFailCreateRequest(
+      {
+        templateId: templateId,
+        patientTemplate: {
+          name: 'Allergies',
+          type: 'TEXT',
+          value: '',
+          required: false,
+          description: "Patient's known allergies"
+        }
+      },
+      400,
+      COMMON_MSG.MISSING_FIELDS
+    )
   })
 
-  //
+  // DONE:
+  test("should fail with 400 creating field 'Nombres' since it is a reserved name ", async () => {
+    checkFailCreateRequest(
+      {
+        doctorId: doctor.roleDependentInfo.id,
+        templateId: templateId,
+        patientTemplate: {
+          name: 'Nombres',
+          type: 'NUMBER',
+          required: true,
+          description: 'Edad del paciente'
+        }
+      },
+      400,
+      COMMON_MSG.RESERVED_FIELD_NAMES
+    )
+  })
+
+  // DONE:
+  test("should fail with 400 creating field 'Apellidos' since it is a reserved name ", async () => {
+    checkFailCreateRequest(
+      {
+        doctorId: doctor.roleDependentInfo.id,
+        templateId: templateId,
+        patientTemplate: {
+          name: 'Apellidos',
+          type: 'NUMBER',
+          required: true,
+          description: 'Edad del paciente'
+        }
+      },
+      400,
+      COMMON_MSG.RESERVED_FIELD_NAMES
+    )
+  })
+
+  // DONE:
   it('should fail with 403 if doctor is not the owner of the template', async () => {
-    const fieldToAdd = {
-      doctorId: 'invalidDoctorId', // Doctor incorrecto
-      templateID: templateId,
-      patientTemplate: {
-        name: 'Phone Number',
-        type: 'NUMBER',
-        required: true,
-        description: 'Teléfono del paciente'
-      }
-    }
-
-    try {
-      const response = await axios.post(
-        `${BASE_URL}/doctor/PatientTemplate/fields`,
-        fieldToAdd,
-        { headers }
-      )
-      if (response.status >= 200 && response.status < 300) {
-        fail(
-          `Expected a failure, but got response with status: ${response.status}`
-        )
-      }
-    } catch (error) {
-      expect(error.response.status).toBe(403) // El backend debería devolver un error 403
-      expect(error.response.data.message).toBe(
-        'Doctor is not the owner of the template'
-      )
-    }
+    checkFailCreateRequest(
+      {
+        doctorId: secondDoctor.roleDependentInfo.id, // Doctor incorrecto
+        templateId: templateId,
+        patientTemplate: {
+          name: 'Phone Number',
+          type: 'NUMBER',
+          required: true,
+          description: 'Teléfono del paciente'
+        }
+      },
+      403,
+      COMMON_MSG.DOCTOR_IS_NOT_OWNER
+    )
   })
 
-  // TODO:
-  test('should fail with 404 if doctorId is form a non active/valid user ', async () => {})
+  // DONE:
+  test('should fail with 404 if doctorId is form a non active/valid user ', async () => {
+    checkFailCreateRequest(
+      {
+        doctorId: 'invalidDoctorId', // Doctor incorrecto
+        templateId: templateId,
+        patientTemplate: {
+          name: 'Phone Number',
+          type: 'NUMBER',
+          required: true,
+          description: 'Teléfono del paciente'
+        }
+      },
+      404,
+      COMMON_MSG.DOCTOR_NOT_FOUND
+    )
+  })
 
-  // TODO:
-  test('should fail with 404 if templateId does not exist ', async () => {})
+  // DONE:
+  test('should fail with 404 if templateId does not exist ', async () => {
+    checkFailCreateRequest(
+      {
+        doctorId: doctor.roleDependentInfo.id,
+        templateId: 'nonExistentTemplate',
+        patientTemplate: {
+          name: 'Phone Number',
+          type: 'NUMBER',
+          required: true,
+          description: 'Teléfono del paciente'
+        }
+      },
+      404,
+      COMMON_MSG.TEMPLATE_NOT_FOUND
+    )
+  })
 
   // DONE:
   it('should fail with 406 due to name alredy exist in template', async () => {
-    const fieldToAdd = {
-      doctorId: doctorId,
-      templateID: templateId,
-      patientTemplate: {
-        name: 'Edad',
-        type: 'NUMBER',
-        required: true,
-        description: 'Edad del paciente'
-      }
-    }
-
-    try {
-      const response = await axios.post(
-        `${BASE_URL}/doctor/PatientTemplate/fields`,
-        fieldToAdd,
-        { headers }
-      )
-      if (response.status >= 200 && response.status < 300) {
-        fail(
-          `Expected a failure, but got response with status: ${response.status}`
-        )
-      }
-    } catch (error) {
-      expect(error.response.status).toBe(406) // El backend debería devolver un error 406
-      expect(error.response.data.message).toBe(
-        'Field already existing in the template'
-      )
-    }
+    checkFailCreateRequest(
+      {
+        doctorId: doctor.roleDependentInfo.id,
+        templateId: templateId,
+        patientTemplate: {
+          name: 'Edad',
+          type: 'NUMBER',
+          required: true,
+          description: 'Edad del paciente'
+        }
+      },
+      406,
+      COMMON_MSG.RECORDS_USING
+    )
   })
-
-  // TODO:
-  test("should fail with 406 creatin field 'Nombres' since it is a reserved name ", async () => {})
-
-  // TODO:
-  test("should fail with 406 creatin field 'Apellidos' since it is a reserved name ", async () => {})
 })
