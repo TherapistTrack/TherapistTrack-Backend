@@ -4,13 +4,14 @@ const COMMON_MSG = require('../../../utils/errorMsg')
 const {
   createTestDoctor,
   deleteUser,
-  checkFailRequest
+  checkFailRequest,
+  createTestFileTemplate
 } = require('../../testHelpers')
 
-describe('Rename Patiente Template Tests', () => {
+describe('Rename File Template Tests', () => {
   let doctor, secondDoctor, templateId
 
-  const REQUEST_URL = `${BASE_URL}/doctor/PatientTemplate`
+  const REQUEST_URL = `${BASE_URL}/doctor/FileTemplate`
 
   const HEADERS = {
     'Content-Type': 'application/json',
@@ -32,7 +33,7 @@ describe('Rename Patiente Template Tests', () => {
   beforeAll(async () => {
     doctor = await createTestDoctor()
     secondDoctor = await createTestDoctor()
-    templateId = await createTestPatientTemplate(
+    templateId = await createTestFileTemplate(
       doctor.roleDependentInfo.id,
       `testTemplate_${Date.now()}`,
       [

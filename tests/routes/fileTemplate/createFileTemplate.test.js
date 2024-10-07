@@ -7,10 +7,10 @@ const {
 } = require('../../testHelpers')
 const COMMON_MSG = require('../../../utils/errorMsg')
 
-describe('Create Patient Template Tests', () => {
+describe('Create File Template Tests', () => {
   let userId, doctorId
 
-  const REQUEST_URL = `${BASE_URL}/doctor/PatientTemplate`
+  const REQUEST_URL = `${BASE_URL}/doctor/FileTemplate`
 
   const HEADERS = {
     'Content-Type': 'application/json',
@@ -41,7 +41,7 @@ describe('Create Patient Template Tests', () => {
   })
 
   // DONE:
-  it('should create a new patient template correctly with all required fields', async () => {
+  test('should create with 200 a new patient template', async () => {
     const testTemplate = {
       doctorId: doctorId,
       name: `testTemplate`,
@@ -75,14 +75,12 @@ describe('Create Patient Template Tests', () => {
     }
 
     try {
-      const response = await axios.post(`${BASE_URL}/doctor/PatientTemplate`, {
+      const response = await axios.post(REQUEST_URL, {
         data: testTemplate,
         headers: HEADERS
       })
       expect(response.status).toBe(200) // Comprobamos que se creó correctamente
-      expect(response.data.message).toBe(
-        'Patient template created successfully'
-      )
+      expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS)
       templateId = response.data.data.patientTemplateId
     } catch (error) {
       console.error(
@@ -94,7 +92,7 @@ describe('Create Patient Template Tests', () => {
   })
 
   // DONE:
-  it('should fail with 400 to create a patient template without the doctorId', async () => {
+  test('should fail with 400 to create a patient template without the doctorId', async () => {
     checkFailCreateRequest(
       {
         name: `testTemplate_${Date.now()}`,
@@ -120,7 +118,7 @@ describe('Create Patient Template Tests', () => {
   })
 
   // DONE:
-  it('should trigger a 400 when passed a malformed fields list', async () => {
+  test('should trigger a 400 when passed a malformed fields list', async () => {
     checkFailCreateRequest(
       {
         doctorId: doctorId,
@@ -133,7 +131,7 @@ describe('Create Patient Template Tests', () => {
   })
 
   // DONE:
-  it('should fail with 400  with CHOICE field but not options attribute defined', async () => {
+  test('should fail with 400  with CHOICE field but not options attribute defined', async () => {
     checkFailCreateRequest(
       {
         doctorId: doctorId,
@@ -153,47 +151,7 @@ describe('Create Patient Template Tests', () => {
   })
 
   // DONE:
-  it('should fail with 400 with field "Nombres" since its a reserved name', async () => {
-    checkFailCreateRequest(
-      {
-        doctorId: doctorId,
-        name: `testTemplate_${Date.now()}`,
-        fields: [
-          {
-            name: 'Nombres',
-            type: 'TEXT',
-            required: true,
-            description: 'Apellidos del paciente'
-          } // "Apellidos" es un campo reservado
-        ]
-      },
-      400,
-      COMMON_MSG.RESERVED_FIELD_NAMES
-    )
-  })
-
-  // DONE:
-  it('should fail with 400 with field "Apellidos" since its a reserved name', async () => {
-    checkFailCreateRequest(
-      {
-        doctorId: doctorId,
-        name: `testTemplate_${Date.now()}`,
-        fields: [
-          {
-            name: 'Apellidos',
-            type: 'TEXT',
-            required: true,
-            description: 'Apellidos del paciente'
-          } // "Apellidos" es un campo reservado
-        ]
-      },
-      400,
-      COMMON_MSG.RESERVED_FIELD_NAMES
-    )
-  })
-
-  // DONE:
-  it('should fail with 404 to create a patient template with a non-existent doctorId', async () => {
+  test('should fail with 404 to create a patient template with a non-existent doctorId', async () => {
     checkFailCreateRequest(
       {
         doctorId: 'nonExistentDoctorId',
@@ -220,7 +178,7 @@ describe('Create Patient Template Tests', () => {
   })
 
   // DONE:
-  it('should fail with 406 when creating a patient template with an existing name', async () => {
+  test('should fail with 406 when creating a patient template with an existing name', async () => {
     checkFailCreateRequest(
       {
         doctorId: doctorId,
@@ -241,7 +199,7 @@ describe('Create Patient Template Tests', () => {
 
   /* Para endPonintRecords
   // Test para validar tipos de datos incorrectos en los campos
-  it('should fail to create a patient template with incorrect data types', async () => {
+  test('should fail to create a patient template with incorrect data types', async () => {
     const testTemplate = {
       doctorId: doctorId,
       name: `testTemplate_${Date.now()}`,

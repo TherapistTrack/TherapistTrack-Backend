@@ -4,13 +4,14 @@ const COMMON_MSG = require('../../../utils/errorMsg')
 const {
   createTestDoctor,
   deleteUser,
-  checkFailRequest
+  checkFailRequest,
+  createTestFileTemplate
 } = require('../../testHelpers')
 
-describe('Delete Patiente Template Tests', () => {
+describe('Delete File Template Tests', () => {
   let doctor, secondDoctor, templateId
 
-  const REQUEST_URL = `${BASE_URL}/doctor/PatientTemplate`
+  const REQUEST_URL = `${BASE_URL}/doctor/FileTemplate`
 
   const HEADERS = {
     'Content-Type': 'application/json',
@@ -32,7 +33,7 @@ describe('Delete Patiente Template Tests', () => {
   beforeAll(async () => {
     doctor = await createTestDoctor()
     secondDoctor = await createTestDoctor()
-    templateId = await createTestPatientTemplate(
+    templateId = await createTestFileTemplate(
       doctor.roleDependentInfo.id,
       `testTemplate_${Date.now()}`,
       [
@@ -74,7 +75,7 @@ describe('Delete Patiente Template Tests', () => {
   })
 
   // DONE:
-  test("should fail with 403 to delete template if 'doctorid' exist but is not the owner of this template", async () => {
+  test("should fail with 403 to delete template if 'doctorId' exist but is not the owner of this template", async () => {
     await checkFailDeleteRequest(
       {
         doctorId: secondDoctor.roleDependentInfo.id,
@@ -86,7 +87,7 @@ describe('Delete Patiente Template Tests', () => {
   })
 
   // DONE:
-  test("should fail with 404 to delete template if 'doctorid' is not from a valid/active user", async () => {
+  test("should fail with 404 to delete template if 'doctorId' is not from a valid/active user", async () => {
     await checkFailDeleteRequest(
       {
         doctorId: 'NonExistentDoctor',
@@ -98,7 +99,7 @@ describe('Delete Patiente Template Tests', () => {
   })
 
   // DONE:
-  test("should fail with 404 to delete template if 'template' is not from a valid/existent template", async () => {
+  test("should fail with 404 to delete template if 'templateId' is not from a valid/existent template", async () => {
     await checkFailDeleteRequest(
       {
         doctorId: secondDoctor.roleDependentInfo.id,
