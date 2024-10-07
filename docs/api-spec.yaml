@@ -63,12 +63,15 @@ paths:
     $ref: './paths/patient_template.yaml#/doctorPatientTemplateList'
   /doctor/PatientTemplate/fields:
     $ref: './paths/patient_template.yaml#/doctorPatientTemplateFields'
-  /doctor/FileTemplate:
-    $ref: './paths/doctor_configuration.yaml#/doctorFileTemplate'
-  /doctor/FileTemplate/fields:
-    $ref: './paths/doctor_configuration.yaml#/doctorFileTemplateFields'
 
   /records/:
     $ref: './paths/record_operations.yaml#/baseRecordRoute'
   /records/search:
     $ref: './paths/record_operations.yaml#/searchRecords'
+    
+  /doctor/FileTemplate:
+    $ref: './paths/file_template.yaml#/doctorFileTemplate'
+  /doctor/FileTemplate/list:
+    $ref: './paths/file_template.yaml#/doctorFileTemplateList'
+  /doctor/FileTemplate/fields:
+    $ref: './paths/file_template.yaml#/doctorFileTemplateFields'
