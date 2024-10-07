@@ -3,7 +3,7 @@ const { BASE_URL, getAuthToken } = require('../../../jest.setup')
 const {
   createTestDoctor,
   deleteUser,
-  createTestPatientTemplate,
+  createTestFileTemplate,
   checkFailRequest
 } = require('../../../testHelpers')
 const COMMON_MSG = require('../../../../utils/errorMsg')
@@ -11,7 +11,7 @@ const COMMON_MSG = require('../../../../utils/errorMsg')
 describe('Edit Field from Patient Template Tests', () => {
   let doctor, secondDoctor, templateId
 
-  const REQUEST_URL = `${BASE_URL}/doctor/PatientTemplate/fields`
+  const REQUEST_URL = `${BASE_URL}/doctor/FileTemplate/fields`
 
   const HEADERS = {
     'Content-Type': 'application/json',
@@ -35,22 +35,22 @@ describe('Edit Field from Patient Template Tests', () => {
     doctor = await createTestDoctor()
     secondDoctor = await createTestDoctor()
 
-    templateId = await createTestPatientTemplate(
+    templateId = await createTestFileTemplate(
       doctor.roleDependentInfo.id,
       `testTemplate_${Date.now()}`,
       [
         {
-          name: 'Edad',
-          type: 'NUMBER',
+          name: 'Resumen',
+          type: 'TEXT',
           required: true,
-          description: 'Edad del paciente'
+          description: ''
         },
         {
-          name: 'Estado Civil',
+          name: 'Avance',
           type: 'CHOICE',
-          options: ['Soltero', 'Casado'],
+          options: ['Positivo', 'Neutro', 'Negativo'],
           required: true,
-          description: 'Estado civil del paciente'
+          description: 'Estado civil del archivo'
         }
       ]
     )
@@ -71,7 +71,7 @@ describe('Edit Field from Patient Template Tests', () => {
           name: 'Edad',
           type: 'NUMBER',
           required: true,
-          description: 'Edad del paciente'
+          description: 'Edad del archivo'
         }
       },
       400,
@@ -89,7 +89,7 @@ describe('Edit Field from Patient Template Tests', () => {
           name: 'Edad',
           type: 'NUMBER',
           required: true,
-          description: 'Edad del paciente'
+          description: 'Edad del archivo'
         }
       },
       400,
@@ -107,7 +107,7 @@ describe('Edit Field from Patient Template Tests', () => {
           name: 'Edad',
           type: 'NUMBER',
           required: true,
-          description: 'Edad del paciente'
+          description: 'Edad del archivo'
         }
       },
       400,
@@ -126,7 +126,7 @@ describe('Edit Field from Patient Template Tests', () => {
           name: 'Edad',
           type: 'NUMBER',
           required: true,
-          description: 'Edad del paciente'
+          description: 'Edad del archivo'
         }
       },
       403,
@@ -145,7 +145,7 @@ describe('Edit Field from Patient Template Tests', () => {
           name: 'Edad',
           type: 'NUMBER',
           required: true,
-          description: 'Edad del paciente'
+          description: 'Edad del archivo'
         }
       },
       404,
@@ -164,7 +164,7 @@ describe('Edit Field from Patient Template Tests', () => {
           name: 'Edad',
           type: 'NUMBER',
           required: true,
-          description: 'Edad del paciente'
+          description: 'Edad del archivo'
         }
       },
       404,
@@ -183,7 +183,7 @@ describe('Edit Field from Patient Template Tests', () => {
           name: 'Edad',
           type: 'NUMBER',
           required: true,
-          description: 'Edad del paciente'
+          description: 'Edad del archivo'
         }
       },
       404,
@@ -202,7 +202,7 @@ describe('Edit Field from Patient Template Tests', () => {
           name: 'Estado Civil',
           options: [],
           required: true,
-          description: 'Apellido del paciente'
+          description: 'Apellido del archivo'
         }
       },
       406,
@@ -210,48 +210,10 @@ describe('Edit Field from Patient Template Tests', () => {
     )
   })
 
-  // DONE:
-  test("should fail with 400 to rename field to 'Nombres' since its a reserved name", async () => {
-    checkFailEditRequest(
-      {
-        doctorId: doctor.roleDependentInfo.id,
-        templateId: templateId,
-        oldFieldName: 'Edad',
-        fieldData: {
-          name: 'Nombres',
-          options: [],
-          required: true,
-          description: 'Nombre del paciente'
-        }
-      },
-      400,
-      COMMON_MSG.RESERVED_FIELD_NAMES
-    )
-  })
-
-  // DONE:
-  test("should fail with 400 to rename field to 'Apellidos' since its a reserved name", async () => {
-    checkFailEditRequest(
-      {
-        doctorId: doctor.roleDependentInfo.id,
-        templateId: templateId,
-        oldFieldName: 'Edad',
-        fieldData: {
-          name: 'Apellidos',
-          options: [],
-          required: true,
-          description: 'Apellido del paciente'
-        }
-      },
-      400,
-      COMMON_MSG.RESERVED_FIELD_NAMES
-    )
-  })
-
   // TODO: test edit property that is already atached to real records.
   //
   // DONE:
-  test('should edit with 200 the name of an existing field in a patient template', async () => {
+  test('should edit with 200 the name of an existing field in a file template', async () => {
     const fieldToEdit = {
       doctorId: doctor.roleDependentInfo.id,
       templateId: templateId,
@@ -260,18 +222,15 @@ describe('Edit Field from Patient Template Tests', () => {
         name: 'Edad Actualizada',
         type: 'NUMBER',
         required: true,
-        description: 'Edad actualizada del paciente'
+        description: 'Edad actualizada del archivo'
       }
     }
 
     try {
-      const response = await axios.put(
-        `${BASE_URL}/doctor/PatientTemplate/fields`,
-        {
-          data: fieldToEdit,
-          headers: HEADERS
-        }
-      )
+      const response = await axios.put(REQUEST_URL, {
+        data: fieldToEdit,
+        headers: HEADERS
+      })
       expect(response.status).toBe(200)
       expect(response.data.message).toBe('Field successfully edited')
     } catch (error) {
@@ -293,20 +252,17 @@ describe('Edit Field from Patient Template Tests', () => {
         name: 'Edad Actualizada',
         type: 'NUMBER',
         required: false, // Cambiar "Edad" a no obligatorio
-        description: 'Edad no obligatoria del paciente'
+        description: 'Edad no obligatoria del archivo'
       }
     }
 
     try {
-      const response = await axios.put(
-        `${BASE_URL}/doctor/PatientTemplate/fields`,
-        {
-          data: fieldToEdit,
-          headers: HEADERS
-        }
-      )
+      const response = await axios.put(REQUEST_URL, {
+        data: fieldToEdit,
+        headers: HEADERS
+      })
       expect(response.status).toBe(200)
-      expect(response.data.message).toBe('Field successfully edited')
+      expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS)
     } catch (error) {
       console.error(
         'Error editing field:',

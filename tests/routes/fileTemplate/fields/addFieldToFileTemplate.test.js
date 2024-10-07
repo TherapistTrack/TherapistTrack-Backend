@@ -3,7 +3,7 @@ const { BASE_URL, getAuthToken } = require('../../../jest.setup')
 const {
   createTestDoctor,
   deleteUser,
-  createTestPatientTemplate,
+  createTestFileTemplate,
   checkFailRequest
 } = require('../../../testHelpers')
 const COMMON_MSG = require('../../../../utils/errorMsg')
@@ -35,20 +35,20 @@ describe('Create File Template Tests', () => {
     doctor = await createTestDoctor()
     secondDoctor = await createTestDoctor()
 
-    templateId = await createTestPatientTemplate(
+    templateId = await createTestFileTemplate(
       doctor.roleDependentInfo.id,
       `testTemplate_${Date.now()}`,
       [
         {
-          name: 'Edad',
-          type: 'NUMBER',
+          name: 'Resumen',
+          type: 'TEXT',
           required: true,
-          description: 'Edad del paciente'
+          description: ''
         },
         {
-          name: 'Estado Civil',
+          name: 'Avance',
           type: 'CHOICE',
-          options: ['Soltero', 'Casado'],
+          options: ['Positivo', 'Neutro', 'Negativo'],
           required: true,
           description: 'Estado civil del paciente'
         }
@@ -62,30 +62,25 @@ describe('Create File Template Tests', () => {
   })
 
   // DONE:
-  test('should successfully add a new field to an existing file template', async () => {
+  test('should success with 200 add a new field to an existing file template', async () => {
     const fieldToAdd = {
       doctorId: doctor.roleDependentInfo.id,
       templateId: templateId, // Usar el ID de la plantilla creada
-      patientTemplate: {
-        name: 'Numero de Telefono', // Campo nuevo 'Phone Number'
+      field: {
+        name: 'Campo1', // Campo nuevo 'Phone Number'
         type: 'NUMBER',
         required: true,
-        description: 'Teléfono de contacto del paciente'
+        description: 'Campo de prueba'
       }
     }
 
     try {
-      const response = await axios.post(
-        `${BASE_URL}/doctor/PatientTemplate/fields`,
-        {
-          data: fieldToAdd,
-          headers: HEADERS
-        }
-      )
+      const response = await axios.post(REQUEST_URL, {
+        data: fieldToAdd,
+        headers: HEADERS
+      })
       expect(response.status).toBe(200) // El backend debería devolver un estado 200
-      expect(response.data.message).toBe(
-        'Field added to patient template successfully'
-      ) // Mensaje esperado
+      expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS) // Mensaje esperado
     } catch (error) {
       console.error(
         'Error adding field:',
@@ -100,7 +95,7 @@ describe('Create File Template Tests', () => {
     checkFailCreateRequest(
       {
         doctorId: doctor.roleDependentInfo.id,
-        patientTemplate: {
+        field: {
           name: 'Allergies',
           type: 'TEXT',
           value: '',
@@ -114,11 +109,11 @@ describe('Create File Template Tests', () => {
   })
 
   // DONE:
-  test('should fail with 400 if doctorId not passed ', async () => {
+  test('should fail with 400 if doctorId is not passed ', async () => {
     checkFailCreateRequest(
       {
         templateId: templateId,
-        patientTemplate: {
+        field: {
           name: 'Allergies',
           type: 'TEXT',
           value: '',
@@ -128,42 +123,6 @@ describe('Create File Template Tests', () => {
       },
       400,
       COMMON_MSG.MISSING_FIELDS
-    )
-  })
-
-  // DONE:
-  test("should fail with 400 creating field 'Nombres' since it is a reserved name ", async () => {
-    checkFailCreateRequest(
-      {
-        doctorId: doctor.roleDependentInfo.id,
-        templateId: templateId,
-        patientTemplate: {
-          name: 'Nombres',
-          type: 'NUMBER',
-          required: true,
-          description: 'Edad del paciente'
-        }
-      },
-      400,
-      COMMON_MSG.RESERVED_FIELD_NAMES
-    )
-  })
-
-  // DONE:
-  test("should fail with 400 creating field 'Apellidos' since it is a reserved name ", async () => {
-    checkFailCreateRequest(
-      {
-        doctorId: doctor.roleDependentInfo.id,
-        templateId: templateId,
-        patientTemplate: {
-          name: 'Apellidos',
-          type: 'NUMBER',
-          required: true,
-          description: 'Edad del paciente'
-        }
-      },
-      400,
-      COMMON_MSG.RESERVED_FIELD_NAMES
     )
   })
 
@@ -173,7 +132,7 @@ describe('Create File Template Tests', () => {
       {
         doctorId: secondDoctor.roleDependentInfo.id, // Doctor incorrecto
         templateId: templateId,
-        patientTemplate: {
+        field: {
           name: 'Phone Number',
           type: 'NUMBER',
           required: true,
@@ -191,7 +150,7 @@ describe('Create File Template Tests', () => {
       {
         doctorId: 'invalidDoctorId', // Doctor incorrecto
         templateId: templateId,
-        patientTemplate: {
+        field: {
           name: 'Phone Number',
           type: 'NUMBER',
           required: true,
@@ -209,7 +168,7 @@ describe('Create File Template Tests', () => {
       {
         doctorId: doctor.roleDependentInfo.id,
         templateId: 'nonExistentTemplate',
-        patientTemplate: {
+        field: {
           name: 'Phone Number',
           type: 'NUMBER',
           required: true,
@@ -227,7 +186,7 @@ describe('Create File Template Tests', () => {
       {
         doctorId: doctor.roleDependentInfo.id,
         templateId: templateId,
-        patientTemplate: {
+        field: {
           name: 'Edad',
           type: 'NUMBER',
           required: true,
