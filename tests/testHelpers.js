@@ -80,7 +80,7 @@ async function createTestDoctor() {
       phones: ['12345678'],
       rol: 'Doctor',
       mails: ['test-doctor@example.com'],
-      rolDependentInfo: {
+      roleDependentInfo: {
         collegiateNumber: '12345',
         specialty: 'testSpecialty'
       }
@@ -94,9 +94,13 @@ async function createTestDoctor() {
     doctorUser.roleDependentInfo.id = response.data.roleId // Adding role specific id
     return doctorUser
   } catch (error) {
-    console.log(
-      `Status: ${error.response.status} \nBody: ${JSON.stringify(error.response.data)}`
-    )
+    if (error.response) {
+      console.log(
+        `Status: ${error.response.status} \nBody: ${JSON.stringify(error.response.data)}`
+      )
+    } else {
+      console.error(`Error: ${error.message || error}`)
+    }
     throw new Error('Test failed')
   }
 }
