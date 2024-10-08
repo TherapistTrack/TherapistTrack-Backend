@@ -62,7 +62,7 @@ describe('Delete Field from Patient Template Tests', () => {
   })
 
   // DONE:
-  it('should suceed with 200 delete an existing field from the patient template', async () => {
+  test('should suceed with 200 delete an existing field from the patient template', async () => {
     const fieldToDelete = {
       doctorId: doctor.roleDependentInfo.id,
       templateId: templateId,
@@ -70,15 +70,12 @@ describe('Delete Field from Patient Template Tests', () => {
     }
 
     try {
-      const response = await axios.delete(
-        `${BASE_URL}/doctor/PatientTemplate/fields`,
-        {
-          data: fieldToDelete,
-          headers: HEADERS
-        }
-      )
+      const response = await axios.delete(REQUEST_URL, {
+        data: fieldToDelete,
+        headers: HEADERS
+      })
       expect(response.status).toBe(200)
-      expect(response.data.message).toBe('Field successfully deleted')
+      expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS)
     } catch (error) {
       console.error(
         'Error deleting field:',
@@ -89,7 +86,7 @@ describe('Delete Field from Patient Template Tests', () => {
   })
 
   // DONE:
-  it('should fail with 400 to delete a field without templateID', async () => {
+  test('should fail with 400 to delete a field without templateID', async () => {
     checkFailDeleteRequest(
       {
         doctorId: doctor.roleDependentInfo.id,
@@ -101,7 +98,7 @@ describe('Delete Field from Patient Template Tests', () => {
   })
 
   // DONE:
-  it('should fail with 400 to delete a field without doctorId', async () => {
+  test('should fail with 400 to delete a field without doctorId', async () => {
     checkFailDeleteRequest(
       {
         templateId: templateId,
@@ -113,7 +110,7 @@ describe('Delete Field from Patient Template Tests', () => {
   })
 
   // DONE:
-  it('should fail with 400 to delete a field without name', async () => {
+  test('should fail with 400 to delete a field without name', async () => {
     checkFailDeleteRequest(
       {
         doctorId: doctor.roleDependentInfo.id,
@@ -125,7 +122,7 @@ describe('Delete Field from Patient Template Tests', () => {
   })
 
   // DONE:
-  it('should fail with 403 if doctor is not owner of the template', async () => {
+  test('should fail with 403 if doctor is not owner of the template', async () => {
     checkFailDeleteRequest(
       {
         doctorId: secondDoctor.roleDependentInfo.id,
@@ -138,7 +135,7 @@ describe('Delete Field from Patient Template Tests', () => {
   })
 
   // DONE:
-  it('should fail with 404 when doctorId is not valid/active', async () => {
+  test('should fail with 404 when doctorId is not valid/active', async () => {
     checkFailDeleteRequest(
       {
         doctorId: 'nonExistentDoctor',
@@ -151,7 +148,7 @@ describe('Delete Field from Patient Template Tests', () => {
   })
 
   // DONE:
-  it('should fail with 404 when templateID is not valid/existent', async () => {
+  test('should fail with 404 when templateID is not valid/existent', async () => {
     checkFailDeleteRequest(
       {
         doctorId: doctor.roleDependentInfo.id,
@@ -164,7 +161,7 @@ describe('Delete Field from Patient Template Tests', () => {
   })
 
   // DONE:
-  it('should fail with 404 when "name" does not exist', async () => {
+  test('should fail with 404 when "name" does not exist', async () => {
     checkFailDeleteRequest(
       {
         doctorId: doctor.roleDependentInfo.id,

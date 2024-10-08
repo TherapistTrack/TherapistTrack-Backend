@@ -4,14 +4,15 @@ const COMMON_MSG = require('../../../utils/errorMsg')
 const {
   createTestDoctor,
   deleteUser,
-  checkFailRequest
+  checkFailRequest,
+  createTestPatientTemplate
 } = require('../../testHelpers')
 
 describe('Get Patient Template by ID Tests', () => {
   let doctor, secondDoctor
   let templateId
 
-  const REQUEST_URL = `${BASE_URL}/doctor/PatientTemplate?templateId=${templateId}`
+  const REQUEST_URL = `${BASE_URL}/doctor/PatientTemplate`
 
   const HEADERS = {
     'Content-Type': 'application/json',
@@ -38,7 +39,7 @@ describe('Get Patient Template by ID Tests', () => {
     // Crear una plantilla de paciente para usarla en los tests
     templateId = await createTestPatientTemplate(
       doctor.roleDependentInfo.id,
-      `testTemplate_${Date.now()}`,
+      `Plantilla-2024`,
       [
         {
           name: 'Edad',
@@ -58,8 +59,8 @@ describe('Get Patient Template by ID Tests', () => {
   })
 
   afterAll(async () => {
-    await deleteUser(doctorId)
-    await deleteUser(secondDoctor)
+    await deleteUser(doctor.id)
+    await deleteUser(secondDoctor.id)
   })
 
   //
@@ -82,19 +83,17 @@ describe('Get Patient Template by ID Tests', () => {
       expect(response.data.fields).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            name: 'Nombres',
-            type: 'SHORT_TEXT',
-            required: true
-          }),
-          expect.objectContaining({
-            name: 'Apellidos',
-            type: 'SHORT_TEXT',
-            required: true
-          }),
-          expect.objectContaining({
             name: 'Edad',
             type: 'NUMBER',
-            required: true
+            required: true,
+            description: 'Edad del paciente'
+          }),
+          expect.objectContaining({
+            name: 'Estado Civil',
+            type: 'CHOICE',
+            options: ['Soltero', 'Casado'],
+            required: true,
+            description: 'Estado civil del paciente'
           })
         ])
       )

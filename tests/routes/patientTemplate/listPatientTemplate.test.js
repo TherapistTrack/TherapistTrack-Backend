@@ -4,7 +4,8 @@ const COMMON_MSG = require('../../../utils/errorMsg')
 const {
   createTestDoctor,
   deleteUser,
-  checkFailRequest
+  checkFailRequest,
+  createTestPatientTemplate
 } = require('../../testHelpers')
 
 describe('List Patiente Templates Tests', () => {

@@ -265,15 +265,12 @@ describe('Edit Field from Patient Template Tests', () => {
     }
 
     try {
-      const response = await axios.put(
-        `${BASE_URL}/doctor/PatientTemplate/fields`,
-        {
-          data: fieldToEdit,
-          headers: HEADERS
-        }
-      )
+      const response = await axios.put(REQUEST_URL, {
+        data: fieldToEdit,
+        headers: HEADERS
+      })
       expect(response.status).toBe(200)
-      expect(response.data.message).toBe('Field successfully edited')
+      expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS)
     } catch (error) {
       console.error(
         'Error editing field:',
@@ -298,15 +295,12 @@ describe('Edit Field from Patient Template Tests', () => {
     }
 
     try {
-      const response = await axios.put(
-        `${BASE_URL}/doctor/PatientTemplate/fields`,
-        {
-          data: fieldToEdit,
-          headers: HEADERS
-        }
-      )
+      const response = await axios.put(REQUEST_URL, {
+        data: fieldToEdit,
+        headers: HEADERS
+      })
       expect(response.status).toBe(200)
-      expect(response.data.message).toBe('Field successfully edited')
+      expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS)
     } catch (error) {
       console.error(
         'Error editing field:',
