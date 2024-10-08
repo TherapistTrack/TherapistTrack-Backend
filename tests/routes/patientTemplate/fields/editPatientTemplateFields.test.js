@@ -3,7 +3,8 @@ const { BASE_URL, getAuthToken } = require('../../../jest.setup')
 const {
   createTestDoctor,
   deleteUser,
-  createTestPatientTemplate
+  createTestPatientTemplate,
+  checkFailRequest
 } = require('../../../testHelpers')
 const COMMON_MSG = require('../../../../utils/errorMsg')
 

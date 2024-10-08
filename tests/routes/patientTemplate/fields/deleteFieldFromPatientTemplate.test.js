@@ -1,6 +1,11 @@
 const axios = require('axios')
 const { BASE_URL, getAuthToken } = require('../../../jest.setup')
-const { createTestDoctor, deleteUser } = require('../../../testHelpers')
+const {
+  createTestDoctor,
+  deleteUser,
+  createTestPatientTemplate,
+  checkFailRequest
+} = require('../../../testHelpers')
 const COMMON_MSG = require('../../../../utils/errorMsg')
 
 describe('Delete Field from Patient Template Tests', () => {
