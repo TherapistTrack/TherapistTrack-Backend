@@ -332,6 +332,10 @@ doctorPatientTemplate:
             schema:
               type: object
               properties:
+                status:
+                  type: integer
+                message:
+                  type: string
                 name:
                   type: string
                   description: Name of the template.
@@ -428,6 +432,10 @@ doctorPatientTemplateList:
             schema:
               type: object
               properties:
+                status:
+                  type: integer
+                message:
+                  type: string
                 templates:
                   type: array
                   items:
