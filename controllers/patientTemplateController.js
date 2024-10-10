@@ -71,6 +71,7 @@ exports.createTemplate = async (req, res) => {
 
 exports.renameTemplate = async (req, res) => {
   const { doctorId, templateId, name } = req.body
+  console.log('templateId', templateId)
 
   try {
     if (!doctorId || !templateId || !name) {
@@ -94,6 +95,7 @@ exports.renameTemplate = async (req, res) => {
     }
 
     const patientemplate = await PatientTemplate.findById(templateId)
+    console.log('patientemplate', patientemplate)
 
     if (!patientemplate) {
       return res
@@ -105,13 +107,6 @@ exports.renameTemplate = async (req, res) => {
       return res
         .status(403)
         .send({ status: 'error', message: COMMON_MSG.DOCTOR_IS_NOT_OWNER })
-    }
-
-    const isValidObjectId2 = mongoose.Types.ObjectId.isValid(templateId)
-    if (!isValidObjectId2) {
-      return res
-        .status(404)
-        .json({ status: 'error', message: COMMON_MSG.TEMPLATE_NOT_FOUND })
     }
 
     const updatedTemplate = await PatientTemplate.findByIdAndUpdate(

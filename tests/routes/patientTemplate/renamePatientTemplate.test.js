@@ -53,6 +53,19 @@ describe('Rename Patiente Template Tests', () => {
   })
 
   // DONE:
+  test("should fail with 403 to rename template if 'doctorid' exist but is not the owner of this template", async () => {
+    await checkFailRenameRequest(
+      {
+        doctorId: secondDoctor.roleDependentInfo.id,
+        templateId: templateId,
+        name: 'NewName'
+      },
+      403,
+      COMMON_MSG.DOCTOR_IS_NOT_OWNER
+    )
+  })
+
+  // DONE:
   test('should rename with 200 a patient template correctly', async () => {
     try {
       const response = await axios.delete(REQUEST_URL, {
@@ -107,19 +120,6 @@ describe('Rename Patiente Template Tests', () => {
       },
       400,
       COMMON_MSG.MISSING_FIELDS
-    )
-  })
-
-  // DONE FALLA:
-  test("should fail with 403 to rename template if 'doctorid' exist but is not the owner of this template", async () => {
-    await checkFailRenameRequest(
-      {
-        doctorId: secondDoctor.roleDependentInfo.id,
-        templateId: templateId,
-        name: 'NewName'
-      },
-      403,
-      COMMON_MSG.DOCTOR_IS_NOT_OWNER
     )
   })
 
