@@ -38,6 +38,7 @@ describe('List Patiente Templates Tests', () => {
     templateId1 = await createTestPatientTemplate(
       doctor.roleDependentInfo.id,
       `testTemplate1_${Date.now()}`,
+      ['General', 'Urgente'],
       [
         {
           name: 'Edad',
@@ -58,6 +59,7 @@ describe('List Patiente Templates Tests', () => {
     templateId2 = await createTestPatientTemplate(
       doctor.roleDependentInfo.id,
       `testTemplate2_${Date.now()}`,
+      ['General', 'Urgente'],
       [
         {
           name: 'Altura',
@@ -77,6 +79,7 @@ describe('List Patiente Templates Tests', () => {
     templateId3 = await createTestPatientTemplate(
       doctor.roleDependentInfo.id,
       `testTemplate3_${Date.now()}`,
+      ['General', 'Urgente'],
       [
         {
           name: 'Tipo de Sangre',
@@ -96,7 +99,7 @@ describe('List Patiente Templates Tests', () => {
   })
 
   afterAll(async () => {
-    await deleteUser(doctorId)
+    await deleteUser(doctor.roleDependentInfo.id)
   })
 
   // DONE:
@@ -104,8 +107,7 @@ describe('List Patiente Templates Tests', () => {
     try {
       const response = await axios.get(REQUEST_URL, {
         params: {
-          doctorId: doctor.roleDependentInfo.id,
-          templateId: templateId
+          doctorId: doctor.roleDependentInfo.id
         },
         headers: HEADERS
       })

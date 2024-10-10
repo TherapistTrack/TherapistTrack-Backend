@@ -10,12 +10,13 @@ const fieldSchema = new mongoose.Schema({
 
 const plantillaSchema = new mongoose.Schema(
   {
-    doctorId: {
+    doctor: {
       type: mongoose.Schema.Types.ObjectId,
-      //ref: 'Doctor',
       required: true
     },
     name: { type: String, required: true },
+    categories: { type: [String], required: true },
+    lastUpdate: { type: Date, default: Date.now },
     fields: [fieldSchema]
   },
   { collection: 'PatientTemplate' }

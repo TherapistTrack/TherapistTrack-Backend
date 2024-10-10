@@ -135,10 +135,16 @@ async function deleteUser(userID) {
  * @returns {Promise<string>} a Promise to the templateId created.
  * @throws Will throw an error if the request fails.
  */
-async function createTestPatientTemplate(doctorId, templateName, fields) {
+async function createTestPatientTemplate(
+  doctorId,
+  templateName,
+  categories,
+  fields
+) {
   const testTemplate = {
-    doctorId: doctorId,
+    doctor: doctorId,
     name: templateName,
+    categories: categories,
     fields: fields
   }
 

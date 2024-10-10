@@ -36,6 +36,7 @@ describe('Rename Patiente Template Tests', () => {
     templateId = await createTestPatientTemplate(
       doctor.roleDependentInfo.id,
       `testTemplate_${Date.now()}`,
+      ['General', 'Urgente'],
       [
         {
           name: 'Edad',
@@ -50,6 +51,28 @@ describe('Rename Patiente Template Tests', () => {
   afterAll(async () => {
     deleteUser(doctor.id)
     deleteUser(secondDoctor.id)
+  })
+
+  // DONE:
+  test('should rename with 200 a patient template correctly', async () => {
+    try {
+      const response = await axios.delete(REQUEST_URL, {
+        data: {
+          doctorId: doctor.roleDependentInfo.id,
+          templateId: templateId,
+          name: 'newName'
+        },
+        headers: HEADERS
+      })
+      expect(response.status).toBe(200)
+      expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS)
+    } catch (error) {
+      console.error(
+        'Error renaming template:',
+        error.response ? error.response.data : error.message
+      )
+      throw error
+    }
   })
 
   // DONE:
@@ -88,11 +111,11 @@ describe('Rename Patiente Template Tests', () => {
     )
   })
 
-  // DONE:
-  test("should fail with 403 to rename template if 'doctorid' exist but is not the owner of this template", async () => {
+  // DONE FALLA:
+  test("should fail with 404 to rename template if 'doctorid' exist but is not the owner of this template", async () => {
     checkFailRenameRequest(
       {
-        doctorId: doctor.roleDependentInfo.id,
+        doctorId: secondDoctor.roleDependentInfo.id,
         templateId: templateId,
         name: 'NewName'
       },
@@ -125,27 +148,5 @@ describe('Rename Patiente Template Tests', () => {
       404,
       COMMON_MSG.TEMPLATE_NOT_FOUND
     )
-  })
-
-  // DONE:
-  test('should rename with 200 a patient template correctly', async () => {
-    try {
-      const response = await axios.delete(REQUEST_URL, {
-        data: {
-          doctorId: doctor.roleDependentInfo.id,
-          templateID: templateId,
-          name: 'newName'
-        },
-        headers: HEADERS
-      })
-      expect(response.status).toBe(200)
-      expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS)
-    } catch (error) {
-      console.error(
-        'Error renaming template:',
-        error.response ? error.response.data : error.message
-      )
-      throw error
-    }
   })
 })

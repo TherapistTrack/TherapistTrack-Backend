@@ -40,6 +40,7 @@ describe('Get Patient Template by ID Tests', () => {
     templateId = await createTestPatientTemplate(
       doctor.roleDependentInfo.id,
       `Plantilla-2024`,
+      ['General', 'Urgente'],
       [
         {
           name: 'Edad',
@@ -74,13 +75,13 @@ describe('Get Patient Template by ID Tests', () => {
         headers: HEADERS
       })
       expect(response.status).toBe(200)
-      expect(response.data).toHaveProperty(
+      expect(response.data.data).toHaveProperty(
         'doctor',
         doctor.roleDependentInfo.id
       )
-      expect(response.data).toHaveProperty('lastUpdated')
-      expect(response.data).toHaveProperty('name', 'Plantilla-2024')
-      expect(response.data.fields).toEqual(
+      expect(response.data.data).toHaveProperty('lastUpdate')
+      expect(response.data.data).toHaveProperty('name', 'Plantilla-2024')
+      expect(response.data.data.fields).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
             name: 'Edad',
@@ -122,7 +123,7 @@ describe('Get Patient Template by ID Tests', () => {
   test('should fail with 400 if "templateId" is not provided', async () => {
     await checkFailGetRequest(
       {
-        doctorId
+        doctorId: doctor.roleDependentInfo.id
       },
       400,
       COMMON_MSG.MISSING_FIELDS
@@ -135,11 +136,11 @@ describe('Get Patient Template by ID Tests', () => {
 
     await checkFailGetRequest(
       {
-        templateId,
-        doctorId: wrongDoctorId
+        doctorId: wrongDoctorId,
+        templateId
       },
       403,
-      COMMON_MSG.NOT_OWNER
+      COMMON_MSG.DOCTOR_IS_NOT_OWNER
     )
   })
 
@@ -149,8 +150,8 @@ describe('Get Patient Template by ID Tests', () => {
 
     await checkFailGetRequest(
       {
-        templateId,
-        doctorId: nonExistentDoctorId
+        doctorId: nonExistentDoctorId,
+        templateId
       },
       404,
       COMMON_MSG.DOCTOR_NOT_FOUND
