@@ -1,4 +1,5 @@
-const { User, findUser, Doctor, Assistant } = require('../models/userModel')
+const { User, Doctor, Assistant } = require('../models/userModel')
+const COMMON_MSG = require('../utils/errorMsg')
 const mongoose = require('mongoose')
 
 exports.registerUser = async (req, res) => {
@@ -25,40 +26,57 @@ exports.registerUser = async (req, res) => {
     })
     await newUser.save() // Save without session
 
-    // CREATING ROLES
-    let roleInfo
+    if (rol !== 'Admin') {
+      // CREATING ROLES
+      let roleInfo
 
-    if (rol === 'Doctor') {
-      let { collegiateNumber, specialty } = rolDependentInfo
-      roleInfo = new Doctor({ user: newUser._id, collegiateNumber, specialty })
-      await roleInfo.save()
-    } else if (rol === 'Assistant') {
-      let { startDate, endDate, DPI } = rolDependentInfo
-      startDate = Date.parse(startDate)
+      if (rol === 'Doctor') {
+        let { collegiateNumber, specialty } = rolDependentInfo
+        roleInfo = new Doctor({
+          user: newUser._id,
+          collegiateNumber,
+          specialty
+        })
+        await roleInfo.save()
+      } else if (rol === 'Assistant') {
+        let { startDate, endDate, DPI } = rolDependentInfo
+        startDate = Date.parse(startDate)
 
-      // IF END DATE IS PASSED
-      if (endDate) {
-        endDate = Date.parse(endDate)
-        roleInfo = new Assistant({ user: newUser._id, startDate, endDate, DPI })
+        // IF END DATE IS PASSED
+        if (endDate) {
+          endDate = Date.parse(endDate)
+          roleInfo = new Assistant({
+            user: newUser._id,
+            startDate,
+            endDate,
+            DPI
+          })
+        } else {
+          roleInfo = new Assistant({ user: newUser._id, startDate, DPI })
+        }
+
+        await roleInfo.save()
       } else {
-        roleInfo = new Assistant({ user: newUser._id, startDate, DPI })
+        throw new Error(
+          'Invalid Role. Could only be Doctor and Assistant. Is case sensitive.'
+        )
       }
+      // Store the roleId in User to.
+      newUser.roleDependentInfo = roleInfo._id
+      await newUser.save()
 
-      await roleInfo.save()
-    } else {
-      throw new Error(
-        'Invalid Role. Could only be Doctor and Assistant. Is case sensitive.'
-      )
+      return res.status(201).send({
+        status: 201,
+        message: COMMON_MSG.REQUEST_SUCCESS,
+        userId: id,
+        roleId: roleInfo._id
+      })
     }
-    // Store the roleId in User to.
-    newUser.roleDependentInfo = roleInfo._id
-    await newUser.save()
 
     return res.status(201).send({
-      status: 'success',
-      message: 'User registered successfully',
-      userId: id,
-      roleId: roleInfo._id
+      status: 201,
+      message: COMMON_MSG.REQUEST_SUCCESS,
+      userId: id
     })
   } catch (error) {
     if (error.code === 11000) {
