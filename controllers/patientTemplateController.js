@@ -71,7 +71,6 @@ exports.createTemplate = async (req, res) => {
 
 exports.renameTemplate = async (req, res) => {
   const { doctorId, templateId, name } = req.body
-  console.log('templateId', templateId)
 
   try {
     if (!doctorId || !templateId || !name) {
@@ -95,7 +94,6 @@ exports.renameTemplate = async (req, res) => {
     }
 
     const patientemplate = await PatientTemplate.findById(templateId)
-    console.log('patientemplate', patientemplate)
 
     if (!patientemplate) {
       return res

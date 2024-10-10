@@ -54,13 +54,14 @@ describe('Rename Patiente Template Tests', () => {
 
   // DONE:
   test('should rename with 200 a patient template correctly', async () => {
+    const data = {
+      doctorId: doctor.roleDependentInfo.id,
+      templateId: templateId,
+      name: 'newName'
+    }
+
     try {
-      const response = await axios.patch(REQUEST_URL, {
-        data: {
-          doctorId: doctor.roleDependentInfo.id,
-          templateId: templateId,
-          name: 'newName'
-        },
+      const response = await axios.patch(REQUEST_URL, data, {
         headers: HEADERS
       })
       expect(response.status).toBe(200)
