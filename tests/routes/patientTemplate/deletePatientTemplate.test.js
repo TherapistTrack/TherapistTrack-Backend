@@ -20,7 +20,7 @@ describe('Delete Patiente Template Tests', () => {
   }
 
   async function checkFailDeleteRequest(body, expectedCode, expectedMsg) {
-    checkFailRequest(
+    return checkFailRequest(
       'delete',
       REQUEST_URL,
       HEADERS,
@@ -49,8 +49,7 @@ describe('Delete Patiente Template Tests', () => {
   })
 
   afterAll(async () => {
-    deleteUser(doctor.id)
-    deleteUser(secondDoctor.id)
+    await Promise.all([deleteUser(doctor.id), deleteUser(secondDoctor.id)])
   })
 
   // DONE:

@@ -20,7 +20,7 @@ describe('Delete Field from Patient Template Tests', () => {
   }
 
   async function checkFailDeleteRequest(body, expectedCode, expectedMsg) {
-    await checkFailRequest(
+    return checkFailRequest(
       'delete',
       REQUEST_URL,
       HEADERS,
@@ -57,8 +57,7 @@ describe('Delete Field from Patient Template Tests', () => {
   })
 
   afterAll(async () => {
-    await deleteUser(doctor.id)
-    await deleteUser(secondDoctor.id)
+    await Promise.all([deleteUser(doctor.id), deleteUser(secondDoctor.id)])
   })
 
   // DONE:

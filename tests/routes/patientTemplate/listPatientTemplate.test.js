@@ -20,7 +20,7 @@ describe('List Patiente Templates Tests', () => {
   }
 
   async function checkFailListRequest(queryParams, expectedCode, expectedMsg) {
-    await checkFailRequest(
+    return checkFailRequest(
       'get',
       REQUEST_URL,
       HEADERS,

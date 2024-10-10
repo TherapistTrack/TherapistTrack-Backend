@@ -21,7 +21,7 @@ describe('Get Patient Template by ID Tests', () => {
   }
 
   async function checkFailGetRequest(queryParams, expectedCode, expectedMsg) {
-    await checkFailRequest(
+    return checkFailRequest(
       'get',
       REQUEST_URL,
       HEADERS,
@@ -60,8 +60,7 @@ describe('Get Patient Template by ID Tests', () => {
   })
 
   afterAll(async () => {
-    await deleteUser(doctor.id)
-    await deleteUser(secondDoctor.id)
+    await Promise.all([deleteUser(doctor.id), deleteUser(secondDoctor.id)])
   })
 
   //

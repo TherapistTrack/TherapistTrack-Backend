@@ -20,7 +20,7 @@ describe('Create Patient Template Tests', () => {
   }
 
   async function checkFailCreateRequest(body, expectedCode, expectedMsg) {
-    await checkFailRequest(
+    return checkFailRequest(
       'post',
       REQUEST_URL,
       HEADERS,
@@ -57,8 +57,7 @@ describe('Create Patient Template Tests', () => {
   })
 
   afterAll(async () => {
-    await deleteUser(doctor.id)
-    await deleteUser(secondDoctor.id)
+    await Promise.all([deleteUser(doctor.id), deleteUser(secondDoctor.id)])
   })
 
   // DONE:
@@ -92,7 +91,7 @@ describe('Create Patient Template Tests', () => {
 
   // DONE:
   test('should fail with 400 if templateID not passed', async () => {
-    checkFailCreateRequest(
+    await checkFailCreateRequest(
       {
         doctorId: doctor.roleDependentInfo.id,
         field: {
@@ -110,7 +109,7 @@ describe('Create Patient Template Tests', () => {
 
   // DONE:
   test('should fail with 400 if doctorId not passed ', async () => {
-    checkFailCreateRequest(
+    await checkFailCreateRequest(
       {
         templateId: templateId,
         field: {
@@ -128,7 +127,7 @@ describe('Create Patient Template Tests', () => {
 
   // DONE:
   test("should fail with 400 creating field 'Nombres' since it is a reserved name ", async () => {
-    checkFailCreateRequest(
+    await checkFailCreateRequest(
       {
         doctorId: doctor.roleDependentInfo.id,
         templateId: templateId,
@@ -146,7 +145,7 @@ describe('Create Patient Template Tests', () => {
 
   // DONE:
   test("should fail with 400 creating field 'Apellidos' since it is a reserved name ", async () => {
-    checkFailCreateRequest(
+    await checkFailCreateRequest(
       {
         doctorId: doctor.roleDependentInfo.id,
         templateId: templateId,
@@ -164,7 +163,7 @@ describe('Create Patient Template Tests', () => {
 
   // DONE:
   test('should fail with 403 if doctor is not the owner of the template', async () => {
-    checkFailCreateRequest(
+    await checkFailCreateRequest(
       {
         doctorId: secondDoctor.roleDependentInfo.id, // Doctor incorrecto
         templateId: templateId,
@@ -182,7 +181,7 @@ describe('Create Patient Template Tests', () => {
 
   // DONE:
   test('should fail with 404 if doctorId is form a non active/valid user ', async () => {
-    checkFailCreateRequest(
+    await checkFailCreateRequest(
       {
         doctorId: 'invalidDoctorId', // Doctor incorrecto
         templateId: templateId,
@@ -200,7 +199,7 @@ describe('Create Patient Template Tests', () => {
 
   // DONE:
   test('should fail with 404 if templateId does not exist ', async () => {
-    checkFailCreateRequest(
+    await checkFailCreateRequest(
       {
         doctorId: doctor.roleDependentInfo.id,
         templateId: 'nonExistentTemplate',
@@ -218,7 +217,7 @@ describe('Create Patient Template Tests', () => {
 
   // DONE:
   test('should fail with 406 due to name alredy exist in template', async () => {
-    checkFailCreateRequest(
+    await checkFailCreateRequest(
       {
         doctorId: doctor.roleDependentInfo.id,
         templateId: templateId,
