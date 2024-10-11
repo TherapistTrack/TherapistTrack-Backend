@@ -155,17 +155,23 @@ const getUserById = async (id) => {
     throw new Error('User not found')
   }
 
-  let rolInfo
-  if (user.rol === 'Doctor') {
-    rolInfo = await Doctor.findOne({ user: id }).lean().exec()
-  } else if (user.rol === 'Assistant') {
-    rolInfo = await Assistant.findOne({ user: id }).lean().exec()
+  let rolInfo = undefined
+  if (user.rol !== 'Admin') {
+    if (user.rol === 'Doctor') {
+      rolInfo = await Doctor.findOne({ user: id }).lean().exec()
+    } else if (user.rol === 'Assistant') {
+      rolInfo = await Assistant.findOne({ user: id }).lean().exec()
+    } else {
+      throw new Error(
+        'User role not valid, must be Admin, Doctor or Assistant.'
+      )
+    }
+    rolInfo.id = rolInfo._id
+    delete rolInfo._id
+    delete rolInfo.__v
+    delete rolInfo.user
+    // console.log(JSON.stringify(rolInfo, '', '\t'))
   }
-  rolInfo.id = rolInfo._id
-  delete rolInfo._id
-  delete rolInfo.__v
-  delete rolInfo.user
-  console.log(JSON.stringify(rolInfo, '', '\t'))
 
   const {
     _id,
@@ -178,6 +184,7 @@ const getUserById = async (id) => {
     createdAt,
     updatedAt
   } = user
+
   return {
     id: _id,
     names,
