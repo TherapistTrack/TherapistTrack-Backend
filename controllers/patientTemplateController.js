@@ -490,9 +490,6 @@ exports.updateField = async (req, res) => {
         .json({ status: 'error', message: COMMON_MSG.RECORDS_USING })
     }
 
-    console.log(patientemplate.fields[fieldIndex].name)
-    console.log(fieldData.name)
-
     patientemplate.fields[fieldIndex].name = fieldData.name
     patientemplate.fields[fieldIndex].type = fieldData.type
     patientemplate.fields[fieldIndex].options = fieldData.options
