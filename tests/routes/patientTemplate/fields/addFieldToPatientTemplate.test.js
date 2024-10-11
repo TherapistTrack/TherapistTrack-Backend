@@ -38,6 +38,7 @@ describe('Create Patient Template Tests', () => {
     templateId = await createTestPatientTemplate(
       doctor.roleDependentInfo.id,
       `testTemplate_${Date.now()}`,
+      ['General', 'Urgente'],
       [
         {
           name: 'Edad',
@@ -74,8 +75,7 @@ describe('Create Patient Template Tests', () => {
     }
 
     try {
-      const response = await axios.post(REQUEST_URL, {
-        data: fieldToAdd,
+      const response = await axios.post(REQUEST_URL, fieldToAdd, {
         headers: HEADERS
       })
       expect(response.status).toBe(200) // El backend debería devolver un estado 200

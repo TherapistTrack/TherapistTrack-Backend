@@ -38,6 +38,7 @@ describe('Edit Field from Patient Template Tests', () => {
     templateId = await createTestPatientTemplate(
       doctor.roleDependentInfo.id,
       `testTemplate_${Date.now()}`,
+      ['General'],
       [
         {
           name: 'Edad',
@@ -264,8 +265,7 @@ describe('Edit Field from Patient Template Tests', () => {
     }
 
     try {
-      const response = await axios.put(REQUEST_URL, {
-        data: fieldToEdit,
+      const response = await axios.put(REQUEST_URL, fieldToEdit, {
         headers: HEADERS
       })
       expect(response.status).toBe(200)
@@ -283,7 +283,7 @@ describe('Edit Field from Patient Template Tests', () => {
   test('should edit with 200 an existing field to change required status', async () => {
     const fieldToEdit = {
       doctorId: doctor.roleDependentInfo.id,
-      templateID: templateId,
+      templateId: templateId,
       oldFieldName: 'Edad Actualizada',
       fieldData: {
         name: 'Edad Actualizada',
@@ -294,8 +294,7 @@ describe('Edit Field from Patient Template Tests', () => {
     }
 
     try {
-      const response = await axios.put(REQUEST_URL, {
-        data: fieldToEdit,
+      const response = await axios.put(REQUEST_URL, fieldToEdit, {
         headers: HEADERS
       })
       expect(response.status).toBe(200)

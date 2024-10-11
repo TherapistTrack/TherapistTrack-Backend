@@ -38,6 +38,7 @@ describe('Delete Field from Patient Template Tests', () => {
     templateId = await createTestPatientTemplate(
       doctor.roleDependentInfo.id,
       `testTemplate_${Date.now()}`,
+      ['General'],
       [
         {
           name: 'Edad',
@@ -164,7 +165,7 @@ describe('Delete Field from Patient Template Tests', () => {
     checkFailDeleteRequest(
       {
         doctorId: doctor.roleDependentInfo.id,
-        templateId: 'nonExistentTemplate',
+        templateId: templateId,
         name: 'doesNotExist'
       },
       404,
