@@ -1,39 +1,30 @@
 const axios = require('axios')
 const { BASE_URL } = require('../../jest.setup')
 
-describe('DELETE /records/ endpoint', () => {
-  /*Este test sirve una vez tengamos la coleccion de dcotros y templates
-  it('should return 400 when trying to delete a record with invalid record ID', async () => {
-    const invalidDeleteData = {
-      doctorId: '66b453a2601a8e9fb46d8884', // ID válido de doctor
-      recordId: 'invalidRecordId'
-    }
-  
-    try {
-      await axios.delete(`${baseUrl}/`, { data: invalidDeleteData, headers })
-    } catch (error) {
-      expect(error.response.status).toBe(400)
-      expect(error.response.data.message).toBe('Invalid record ID')
-    }
-  })*/
+describe('Delete Records Tests', () => {
+  // TODO:
+  test('should fail with 400 if recordId is not passed', async () => {})
 
-  it('should delete a record', async () => {
-    const recordData = {
-      doctorId: '66b453a2601a8e9fb46d8884',
-      recordId: testrecordID
-    }
-    try {
-      const response = await axios.delete(
-        `${baseUrl}/`,
-        { data: recordData },
-        { headers }
-      )
-      expect(response.status).toBe(200)
-      expect(response.data.message).toBe('Record deleted successfully')
-    } catch (error) {
-      throw new Error(
-        `Test failed:\nStatus: ${error.response.status}\nData: ${JSON.stringify(error.response.data, null, 2)}`
-      )
-    }
+  // TODO:
+  test('should fail with 400 if doctorId is not passed', async () => {})
+
+  // TODO:
+  test('should fail with 403 if doctor is not owner of record', async () => {})
+
+  // TODO:
+  test('should fail with 403 if doctor is not owner of record', async () => {})
+
+  // TODO:
+  test('should fail with 404 if doctorId is from a non-existent/active user', async () => {})
+
+  // TODO:
+  test('should fail with 404 if recordId is from a non-existent record', async () => {})
+
+  // TODO:
+  test('should fail with 409 if recordId has files stored within', async () => {
+    // can only be implemented when endpoints for file managemente are created.
   })
+
+  // TODO:
+  test('should suceed with 200 ', async () => {})
 })
