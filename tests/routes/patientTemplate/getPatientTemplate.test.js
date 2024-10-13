@@ -74,6 +74,10 @@ describe('Get Patient Template by ID Tests', () => {
         headers: HEADERS
       })
       expect(response.status).toBe(200)
+      expect(response.data.data).toHaveProperty(
+        'doctor',
+        doctor.roleDependentInfo.id
+      )
       expect(response.data.data).toHaveProperty('lastUpdate')
       expect(response.data.data).toHaveProperty('name', 'Plantilla-2024')
       expect(response.data.data.fields).toEqual(
