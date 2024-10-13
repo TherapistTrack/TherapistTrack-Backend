@@ -188,7 +188,7 @@ baseRecordRoute:
           application/json:
             schema:
               $ref: '#/components/schemas/ErrorResponse'
-      '406':
+      '405':
         description: No se puede editar. Los valores de ciertos campos no corresponden con el tipo esperado (TEXT, NUMBER, FLOAT, CHOICE).
         content:
           application/json:
@@ -424,6 +424,24 @@ searchRecords:
                       type: 
                         type: string
                         example: "NUMBER"
+      '400':
+        description: Faltan campos o son inválidos en el cuerpo de la solicitud.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+      '404':
+        description: Expediente o doctor no encontrados.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+      '500':
+        description: Error interno del servidor.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
   post:
     tags:
       - Operaciones de expedientes
@@ -578,8 +596,8 @@ searchRecords:
                   type: integer
                   description: Número total de expedientes que coinciden con los filtros.
                   example: 25
-      '404':
-        description: No se encontraron expedientes con los filtros especificados.
+      '405':
+        description: Los valores de ciertos campos no corresponden con el tipo esperado (TEXT, NUMBER, FLOAT, CHOICE)
         content:
           application/json:
             schema:
