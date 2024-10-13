@@ -6,6 +6,7 @@ const mongoose = require('mongoose')
 
 exports.createTemplate = async (req, res) => {
   const { doctorId, name, categories, fields } = req.body
+
   try {
     if (!doctorId || !name || !categories || !fields) {
       return res
@@ -64,7 +65,7 @@ exports.createTemplate = async (req, res) => {
     }
 
     const template = new PatientTemplate({
-      doctorId,
+      doctor: doctorId,
       name,
       categories,
       fields
@@ -135,7 +136,6 @@ exports.renameTemplate = async (req, res) => {
       data: [updatedTemplate.doctor, updatedTemplate._id]
     })
   } catch (error) {
-    console.log(error.message)
     res.status(500).json({ error: COMMON_MSG.INTERNAL_SERVER_ERROR })
   }
 }
