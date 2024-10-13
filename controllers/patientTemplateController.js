@@ -117,6 +117,13 @@ exports.renameTemplate = async (req, res) => {
         .send({ status: 'error', message: COMMON_MSG.DOCTOR_IS_NOT_OWNER })
     }
 
+    const existingTemplate = await PatientTemplate.findOne({ name })
+    if (existingTemplate) {
+      return res
+        .status(406)
+        .json({ status: 'error', message: COMMON_MSG.RECORDS_USING })
+    }
+
     const updatedTemplate = await PatientTemplate.findByIdAndUpdate(
       templateId,
       { name },
