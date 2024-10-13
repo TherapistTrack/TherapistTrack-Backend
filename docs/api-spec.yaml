@@ -54,7 +54,5 @@ paths:
 
   /records/:
     $ref: './paths/record_operations.yaml#/baseRecordRoute'
-  /records/list:
-    $ref: './paths/record_operations.yaml#/listRecords'
-  /records/records:
-    $ref: './paths/record_operations.yaml#/getRecordById'
+  /records/search:
+    $ref: './paths/record_operations.yaml#/searchRecords'
