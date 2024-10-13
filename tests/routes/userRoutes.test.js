@@ -33,7 +33,7 @@ describe('User Endpoints', () => {
       phones: ['12345678'],
       rol: 'Doctor',
       mails: ['test-doctor@example.com'],
-      rolDependentInfo: {
+      roleDependentInfo: {
         collegiateNumber: '12345',
         specialty: 'testSpecialty'
       }
@@ -46,7 +46,7 @@ describe('User Endpoints', () => {
       phones: ['12345678'],
       rol: 'Assistant',
       mails: ['test-assistant@example.com'],
-      rolDependentInfo: {
+      roleDependentInfo: {
         startDate: '08/14/2024',
         endDate: '08/15/2024',
         DPI: '2340934'

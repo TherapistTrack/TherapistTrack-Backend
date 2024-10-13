@@ -19,7 +19,7 @@ describe('Create Patient Template Tests', () => {
   }
 
   async function checkFailCreateRequest(body, expectedCode, expectedMsg) {
-    await checkFailRequest(
+    return checkFailRequest(
       'post',
       REQUEST_URL,
       HEADERS,
@@ -33,7 +33,7 @@ describe('Create Patient Template Tests', () => {
   beforeAll(async () => {
     const doctor = await createTestDoctor()
     userId = doctor.id
-    doctorId = doctor.rolDependentInfo.id
+    doctorId = doctor.roleDependentInfo.id
   })
 
   afterAll(async () => {
@@ -41,48 +41,46 @@ describe('Create Patient Template Tests', () => {
   })
 
   // DONE:
-  it('should create a new patient template correctly with all required fields', async () => {
+  test('should create a new patient template correctly with all required fields', async () => {
     const testTemplate = {
       doctorId: doctorId,
       name: `testTemplate`,
+      categories: ['General', 'Urgente'],
       fields: [
         {
           name: 'Edad',
           type: 'NUMBER',
-          required: true,
-          description: 'Edad del paciente'
+          description: 'Edad del paciente',
+          required: true
         },
         {
           name: 'Hijos',
           type: 'TEXT',
-          required: true,
-          decription: 'Hijos del paciente'
+          description: 'Hijos del paciente',
+          required: true
         },
         {
           name: 'Estado Civil',
           type: 'CHOICE',
           options: ['Soltero', 'Casado'],
-          required: true,
-          description: 'Estado civil del paciente'
+          description: 'Estado civil del paciente',
+          required: true
         },
         {
           name: 'Fecha de Nacimiento',
           type: 'DATE',
-          required: false,
-          decription: 'Fecha de Nacimiento del paciente'
+          description: 'Fecha de Nacimiento del paciente',
+          required: false
         }
       ]
     }
 
     try {
-      const response = await axios.post(`${BASE_URL}/doctor/PatientTemplate`, {
-        data: testTemplate,
+      const response = await axios.post(REQUEST_URL, testTemplate, {
         headers: HEADERS
       })
-      expect(response.status).toBe(200) // Comprobamos que se creó correctamente
-      expect(response.data.message).toBe(
-        'Patient template created successfully'
-      )
+      expect(response.status).toBe(201) // Comprobamos que se creó correctamente
+      expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS)
       templateId = response.data.data.patientTemplateId
     } catch (error) {
       console.error(
@@ -94,10 +92,11 @@ describe('Create Patient Template Tests', () => {
   })
 
   // DONE:
-  it('should fail with 400 to create a patient template without the doctorId', async () => {
-    checkFailCreateRequest(
+  test('should fail with 400 to create a patient template without the doctorId', async () => {
+    await checkFailCreateRequest(
       {
         name: `testTemplate_${Date.now()}`,
+        categories: ['General', 'Urgente'],
         fields: [
           {
             name: 'Edad',
@@ -120,11 +119,12 @@ describe('Create Patient Template Tests', () => {
   })
 
   // DONE:
-  it('should trigger a 400 when passed a malformed fields list', async () => {
-    checkFailCreateRequest(
+  test('should trigger a 400 when passed a malformed fields list', async () => {
+    await checkFailCreateRequest(
       {
         doctorId: doctorId,
         name: `testTemplate_${Date.now()}`,
+        categories: ['General', 'Urgente'],
         fields: 'This should be an array, not a string'
       },
       400,
@@ -133,11 +133,40 @@ describe('Create Patient Template Tests', () => {
   })
 
   // DONE:
-  it('should fail with 400  with CHOICE field but not options attribute defined', async () => {
-    checkFailCreateRequest(
+  test('should trigger a 400 when passed a malformed categories list', async () => {
+    await checkFailCreateRequest(
       {
         doctorId: doctorId,
         name: `testTemplate_${Date.now()}`,
+        categories: 'This should be an array, not a string',
+        fields: [
+          {
+            name: 'Edad',
+            type: 'NUMBER',
+            required: true,
+            description: 'Edad del paciente'
+          },
+          {
+            name: 'Estado Civil',
+            type: 'CHOICE',
+            options: ['Soltero', 'Casado'],
+            required: true,
+            description: 'Estado civil del paciente'
+          }
+        ]
+      },
+      400,
+      COMMON_MSG.MISSING_FIELDS
+    )
+  })
+
+  // DONE:
+  test('should fail with 400 with CHOICE field but not options attribute defined', async () => {
+    await checkFailCreateRequest(
+      {
+        doctorId: doctorId,
+        name: `testTemplate_${Date.now()}`,
+        categories: ['General', 'Urgente'],
         fields: [
           {
             name: 'Estado Civil',
@@ -153,11 +182,12 @@ describe('Create Patient Template Tests', () => {
   })
 
   // DONE:
-  it('should fail with 400 with field "Nombres" since its a reserved name', async () => {
-    checkFailCreateRequest(
+  test('should fail with 400 with field "Nombres" since its a reserved name', async () => {
+    await checkFailCreateRequest(
       {
         doctorId: doctorId,
         name: `testTemplate_${Date.now()}`,
+        categories: ['General', 'Urgente'],
         fields: [
           {
             name: 'Nombres',
@@ -173,11 +203,12 @@ describe('Create Patient Template Tests', () => {
   })
 
   // DONE:
-  it('should fail with 400 with field "Apellidos" since its a reserved name', async () => {
-    checkFailCreateRequest(
+  test('should fail with 400 with field "Apellidos" since its a reserved name', async () => {
+    await checkFailCreateRequest(
       {
         doctorId: doctorId,
         name: `testTemplate_${Date.now()}`,
+        categories: ['General', 'Urgente'],
         fields: [
           {
             name: 'Apellidos',
@@ -193,11 +224,12 @@ describe('Create Patient Template Tests', () => {
   })
 
   // DONE:
-  it('should fail with 404 to create a patient template with a non-existent doctorId', async () => {
-    checkFailCreateRequest(
+  test('should fail with 404 to create a patient template with a non-existent doctorId', async () => {
+    await checkFailCreateRequest(
       {
         doctorId: 'nonExistentDoctorId',
         name: `testTemplate_${Date.now()}`,
+        categories: ['General', 'Urgente'],
         fields: [
           {
             name: 'Edad',
@@ -220,11 +252,12 @@ describe('Create Patient Template Tests', () => {
   })
 
   // DONE:
-  it('should fail with 406 when creating a patient template with an existing name', async () => {
-    checkFailCreateRequest(
+  test('should fail with 406 when creating a patient template with an existing name', async () => {
+    await checkFailCreateRequest(
       {
         doctorId: doctorId,
         name: 'testTemplate',
+        categories: ['General', 'Urgente'],
         fields: [
           {
             name: 'Edad',
@@ -239,9 +272,36 @@ describe('Create Patient Template Tests', () => {
     )
   })
 
+  //DONE:
+  test('should fail with 400 to create a patient template with two or more duplicate fields', async () => {
+    await checkFailCreateRequest(
+      {
+        doctorId: doctorId,
+        name: `testTemplate_${Date.now()}`,
+        categories: ['General', 'Urgente'],
+        fields: [
+          {
+            name: 'Edad',
+            type: 'NUMBER',
+            required: true,
+            description: 'Edad del paciente'
+          },
+          {
+            name: 'Edad',
+            type: 'NUMBER',
+            required: true,
+            description: 'Edad del paciente'
+          }
+        ]
+      },
+      400,
+      COMMON_MSG.DUPLICATE_FIELD_NAMES
+    )
+  })
+
   /* Para endPonintRecords
   // Test para validar tipos de datos incorrectos en los campos
-  it('should fail to create a patient template with incorrect data types', async () => {
+  test('should fail to create a patient template with incorrect data types', async () => {
     const testTemplate = {
       doctorId: doctorId,
       name: `testTemplate_${Date.now()}`,

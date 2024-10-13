@@ -1,5 +1,5 @@
 const mongoose = require('mongoose')
-
+const { checkIsActive } = require('../utils/checkingTool')
 const DoctorSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.ObjectId, required: true },
@@ -90,6 +90,16 @@ const findUser = async (username) => {
   }
 }
 
+const findUserByRoleID = async (roleID) => {
+  try {
+    const result = await User.findOne({ roleDependentInfo: roleID })
+    return result
+  } catch (error) {
+    console.error('Error executing MongoDB query:', error)
+    throw error
+  }
+}
+
 module.exports = {
   UserSchema,
   DoctorSchema,
@@ -97,5 +107,6 @@ module.exports = {
   User,
   Doctor,
   Assistant,
-  findUser
+  findUser,
+  findUserByRoleID
 }

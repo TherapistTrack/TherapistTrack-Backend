@@ -4,7 +4,8 @@ const COMMON_MSG = require('../../../utils/errorMsg')
 const {
   createTestDoctor,
   deleteUser,
-  checkFailRequest
+  checkFailRequest,
+  createTestPatientTemplate
 } = require('../../testHelpers')
 
 describe('Delete Patiente Template Tests', () => {
@@ -19,7 +20,7 @@ describe('Delete Patiente Template Tests', () => {
   }
 
   async function checkFailDeleteRequest(body, expectedCode, expectedMsg) {
-    checkFailRequest(
+    return checkFailRequest(
       'delete',
       REQUEST_URL,
       HEADERS,
@@ -35,6 +36,7 @@ describe('Delete Patiente Template Tests', () => {
     templateId = await createTestPatientTemplate(
       doctor.roleDependentInfo.id,
       `testTemplate_${Date.now()}`,
+      ['General', 'Urgente'],
       [
         {
           name: 'Edad',
@@ -47,8 +49,7 @@ describe('Delete Patiente Template Tests', () => {
   })
 
   afterAll(async () => {
-    deleteUser(doctor.id)
-    deleteUser(secondDoctor.id)
+    await Promise.all([deleteUser(doctor.id), deleteUser(secondDoctor.id)])
   })
 
   // DONE:
@@ -111,13 +112,14 @@ describe('Delete Patiente Template Tests', () => {
 
   // DONE:
   test('should delete with 200 a patient template correctly', async () => {
+    const data = {
+      doctorId: doctor.roleDependentInfo.id,
+      templateId: templateId
+    }
     try {
       const response = await axios.delete(REQUEST_URL, {
-        data: {
-          doctorId: doctor.roleDependentInfo.id,
-          templateID: templateId
-        },
-        headers: HEADERS
+        headers: HEADERS,
+        data: data
       })
       expect(response.status).toBe(200)
       expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS)

@@ -13,7 +13,8 @@
     "format": "npm run prettier:fix && npm run lint:fix",
     "commit": "cz",
     "prepare": "husky",
-    "dev": "nodemon ./server.js"
+    "dev": "nodemon ./server.js",
+    "docs": "redocly preview-docs ./docs/api-spec.yaml"
   },
   "keywords": [],
   "author": "",

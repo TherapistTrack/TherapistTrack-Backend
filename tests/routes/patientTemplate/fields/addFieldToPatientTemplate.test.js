@@ -3,7 +3,8 @@ const { BASE_URL, getAuthToken } = require('../../../jest.setup')
 const {
   createTestDoctor,
   deleteUser,
-  createTestPatientTemplate
+  createTestPatientTemplate,
+  checkFailRequest
 } = require('../../../testHelpers')
 const COMMON_MSG = require('../../../../utils/errorMsg')
 
@@ -19,7 +20,7 @@ describe('Create Patient Template Tests', () => {
   }
 
   async function checkFailCreateRequest(body, expectedCode, expectedMsg) {
-    await checkFailRequest(
+    return checkFailRequest(
       'post',
       REQUEST_URL,
       HEADERS,
@@ -37,6 +38,7 @@ describe('Create Patient Template Tests', () => {
     templateId = await createTestPatientTemplate(
       doctor.roleDependentInfo.id,
       `testTemplate_${Date.now()}`,
+      ['General', 'Urgente'],
       [
         {
           name: 'Edad',
@@ -56,16 +58,15 @@ describe('Create Patient Template Tests', () => {
   })
 
   afterAll(async () => {
-    await deleteUser(doctor.id)
-    await deleteUser(secondDoctor.id)
+    await Promise.all([deleteUser(doctor.id), deleteUser(secondDoctor.id)])
   })
 
   // DONE:
-  it('should successfully add a new field to an existing patient template', async () => {
+  test('should success with 200 add a new field to an existing patient template', async () => {
     const fieldToAdd = {
       doctorId: doctor.roleDependentInfo.id,
       templateId: templateId, // Usar el ID de la plantilla creada
-      patientTemplate: {
+      field: {
         name: 'Numero de Telefono', // Campo nuevo 'Phone Number'
         type: 'NUMBER',
         required: true,
@@ -74,17 +75,11 @@ describe('Create Patient Template Tests', () => {
     }
 
     try {
-      const response = await axios.post(
-        `${BASE_URL}/doctor/PatientTemplate/fields`,
-        {
-          data: fieldToAdd,
-          headers: HEADERS
-        }
-      )
+      const response = await axios.post(REQUEST_URL, fieldToAdd, {
+        headers: HEADERS
+      })
       expect(response.status).toBe(200) // El backend debería devolver un estado 200
-      expect(response.data.message).toBe(
-        'Field added to patient template successfully'
-      ) // Mensaje esperado
+      expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS) // Mensaje esperado
     } catch (error) {
       console.error(
         'Error adding field:',
@@ -95,11 +90,11 @@ describe('Create Patient Template Tests', () => {
   })
 
   // DONE:
-  it('should fail with 400 if templateID not passed', async () => {
-    checkFailCreateRequest(
+  test('should fail with 400 if templateID not passed', async () => {
+    await checkFailCreateRequest(
       {
         doctorId: doctor.roleDependentInfo.id,
-        patientTemplate: {
+        field: {
           name: 'Allergies',
           type: 'TEXT',
           value: '',
@@ -114,10 +109,10 @@ describe('Create Patient Template Tests', () => {
 
   // DONE:
   test('should fail with 400 if doctorId not passed ', async () => {
-    checkFailCreateRequest(
+    await checkFailCreateRequest(
       {
         templateId: templateId,
-        patientTemplate: {
+        field: {
           name: 'Allergies',
           type: 'TEXT',
           value: '',
@@ -132,11 +127,11 @@ describe('Create Patient Template Tests', () => {
 
   // DONE:
   test("should fail with 400 creating field 'Nombres' since it is a reserved name ", async () => {
-    checkFailCreateRequest(
+    await checkFailCreateRequest(
       {
         doctorId: doctor.roleDependentInfo.id,
         templateId: templateId,
-        patientTemplate: {
+        field: {
           name: 'Nombres',
           type: 'NUMBER',
           required: true,
@@ -150,11 +145,11 @@ describe('Create Patient Template Tests', () => {
 
   // DONE:
   test("should fail with 400 creating field 'Apellidos' since it is a reserved name ", async () => {
-    checkFailCreateRequest(
+    await checkFailCreateRequest(
       {
         doctorId: doctor.roleDependentInfo.id,
         templateId: templateId,
-        patientTemplate: {
+        field: {
           name: 'Apellidos',
           type: 'NUMBER',
           required: true,
@@ -167,12 +162,12 @@ describe('Create Patient Template Tests', () => {
   })
 
   // DONE:
-  it('should fail with 403 if doctor is not the owner of the template', async () => {
-    checkFailCreateRequest(
+  test('should fail with 403 if doctor is not the owner of the template', async () => {
+    await checkFailCreateRequest(
       {
         doctorId: secondDoctor.roleDependentInfo.id, // Doctor incorrecto
         templateId: templateId,
-        patientTemplate: {
+        field: {
           name: 'Phone Number',
           type: 'NUMBER',
           required: true,
@@ -186,11 +181,11 @@ describe('Create Patient Template Tests', () => {
 
   // DONE:
   test('should fail with 404 if doctorId is form a non active/valid user ', async () => {
-    checkFailCreateRequest(
+    await checkFailCreateRequest(
       {
         doctorId: 'invalidDoctorId', // Doctor incorrecto
         templateId: templateId,
-        patientTemplate: {
+        field: {
           name: 'Phone Number',
           type: 'NUMBER',
           required: true,
@@ -204,11 +199,11 @@ describe('Create Patient Template Tests', () => {
 
   // DONE:
   test('should fail with 404 if templateId does not exist ', async () => {
-    checkFailCreateRequest(
+    await checkFailCreateRequest(
       {
         doctorId: doctor.roleDependentInfo.id,
         templateId: 'nonExistentTemplate',
-        patientTemplate: {
+        field: {
           name: 'Phone Number',
           type: 'NUMBER',
           required: true,
@@ -221,12 +216,12 @@ describe('Create Patient Template Tests', () => {
   })
 
   // DONE:
-  it('should fail with 406 due to name alredy exist in template', async () => {
-    checkFailCreateRequest(
+  test('should fail with 406 due to name alredy exist in template', async () => {
+    await checkFailCreateRequest(
       {
         doctorId: doctor.roleDependentInfo.id,
         templateId: templateId,
-        patientTemplate: {
+        field: {
           name: 'Edad',
           type: 'NUMBER',
           required: true,
