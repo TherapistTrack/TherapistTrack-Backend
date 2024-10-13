@@ -26,6 +26,14 @@ doctorPatientTemplate:
                 type: string
                 description: Name of the template.
                 example: 'Plantilla2024'
+              categories:
+                type: array
+                description: Lista de posibles categorias.
+                items:
+                  type: string
+                  example: 
+                    - "consultas"
+                    - "tests"
               fields:
                 type: array
                 items:
