@@ -391,7 +391,8 @@ searchRecords:
     tags:
       - Operaciones de expedientes
     summary: Listar campos posibles
-    description: La DB tiene expedientes que siguen variedad de plantillas. Este endpoint permite conocer todos los posibles campos bajo los que se pueden filtrar y ordenar expedientes. 
+    description: |
+      La DB tiene expedientes que siguen variedad de plantillas. Este endpoint permite conocer todos los posibles campos bajo los que se pueden filtrar y ordenar expedientes. Tomando en cuenta todos los campos existentes entre la variedad de expedientes.
     parameters:
       - in: query
         name: doctorId
@@ -446,7 +447,66 @@ searchRecords:
     tags:
       - Operaciones de expedientes
     summary: Buscar y filtrar expedientes
-    description: Permite a los usuarios listar todos los expedientes asociados a un doctor específico, con soporte para filtros, paginación y ordenamiento.
+    description: |
+      Permite a los usuarios listar todos los expedientes asociados a un doctor específico, con soporte para filtros, paginación y ordenamiento.
+      
+      Estos son los filtros y modos de ordenamiento existentes para cada tipo de dato:
+
+      SHORT_TEXT & TEXT
+        - filtros
+          - **contains**: 1 input. Ej: ["enmedio"]
+          - **starts_with**: 1 input. Ej: ["hola"]
+          - **ends_with**: 1 input. Ej: ["adios"]
+        - ordenamiento:
+          - **asc**: A - Z - expedientes sin atributo
+          - **desc**: expedientes sin atributo - Z - A
+
+      DATE: 
+        - Nota: Datos deben estar en formato ISO8601. 
+        - filtros
+          - **After**: 1 input. Ej: ['2024-10-13T14:30:00Z']
+          - **before**: 1 input. Ej: ['2024-10-13T14:30:00Z']
+          - **between**: 2 inputs. Ej : ['2024-10-13T14:30:00Z', '2024-15-13T14:30:00Z']
+        - ordenamiento:
+          - **asc**: mas antiguo - mas reciente - expedientes sin atributo
+          - **desc**: expedientes sin atributo - mas reciente - mas antiguo
+
+      NUMBER & FLOAT
+        - filtros
+          - **less_than**: 1 input . Ej: [13]
+          - **equal_than**: 1 input Ej: [11]
+          - **greater_than**: 1 input.  Ej: [52]
+        - ordenamiento:
+          - **asc**: menor valor - mayor valor - expedientes sin atributo
+          - **desc**: mayor valor - menor valor - expedientes sin atributo
+
+      CHOICE
+        - filtros
+          - **is**: 1 input. Ej ["opcion1"]
+          - **is_not**: 1 input. Ej: ["opcion2"]
+          - **is_not_empty**: 0 inputs. Ej : []
+        - ordenamiento:
+          - **asc**: A - Z - expedientes sin atributo
+          - **desc**: expedientes sin atributo - Z - A
+    
+      Por ultimo, para el filtrado es necesario especificar el campo `logicGate`, que se refiere a como se van a aplicar los filtros. Por ejemplo, si se enviansen los filtros:
+      ```
+      [
+        { name: "field1", logicGate: "and"},
+        { name: "field2", logicGate: "or"},
+        { name: "field3", logicGate: "or"},
+        { name: "field4", logicGate: "and"},
+      ]
+      ```
+      Se traduciria en un query como:
+      ```
+        field1 AND (field2 OR (field3 OR (field4))
+      ```
+      Darse cuenta como el ultimo `logicGate AND` no se toma en cuenta, porque ya no hay otro filtro con que concatenarlo.
+
+
+      Nota: Este es un ejemplo simplicado, obviamente falta enviar `value` y `type`.
+
     requestBody:
       required: true
       content:

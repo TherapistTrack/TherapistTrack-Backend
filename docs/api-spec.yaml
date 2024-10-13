@@ -16,7 +16,19 @@ tags:
   - name: Plantillas de Archivo
     description: Gestión de plantillas de archivos.
   - name: Operaciones de expedientes
-    description: Gestión de expedientes, incluyendo creación, actualización y eliminación.
+    description: |
+      Los expedientes guardan información y archivos sobre un paciente, para ello siguen el patron definido por plantillas, en ellas se define el tipo de campo.
+
+      _Se buscara ser muy rigoroso con que los datos guardados sigan el tipo especificado por la plantilla_. Actualmente estos son los tipos soportados:
+
+      **SHORT_TEXT & TEXT**: guardado de cadenas de texto.
+
+      **DATE**: Debe estar en formato ISO8601 (ex: 2024-10-13T14:30:00Z)
+
+      **NUMBER & FLOAT**: Datos enteros y decimales respectivamente.
+
+      **CHOICE**: Guarda campos con opciones de seleccion predefinidas.
+
   - name: Operaciones de archivo
     description: Operaciones relacionadas con la gestión de archivos.
 
