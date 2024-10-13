@@ -43,7 +43,7 @@ describe('Create Patient Template Tests', () => {
   // DONE:
   test('should create a new patient template correctly with all required fields', async () => {
     const testTemplate = {
-      doctorId: doctorId,
+      doctor: doctorId,
       name: `testTemplate`,
       categories: ['General', 'Urgente'],
       fields: [
@@ -122,7 +122,7 @@ describe('Create Patient Template Tests', () => {
   test('should trigger a 400 when passed a malformed fields list', async () => {
     await checkFailCreateRequest(
       {
-        doctorId: doctorId,
+        doctor: doctorId,
         name: `testTemplate_${Date.now()}`,
         categories: ['General', 'Urgente'],
         fields: 'This should be an array, not a string'
@@ -136,7 +136,7 @@ describe('Create Patient Template Tests', () => {
   test('should trigger a 400 when passed a malformed categories list', async () => {
     await checkFailCreateRequest(
       {
-        doctorId: doctorId,
+        doctor: doctorId,
         name: `testTemplate_${Date.now()}`,
         categories: 'This should be an array, not a string',
         fields: [
@@ -164,7 +164,7 @@ describe('Create Patient Template Tests', () => {
   test('should fail with 400 with CHOICE field but not options attribute defined', async () => {
     await checkFailCreateRequest(
       {
-        doctorId: doctorId,
+        doctor: doctorId,
         name: `testTemplate_${Date.now()}`,
         categories: ['General', 'Urgente'],
         fields: [
@@ -185,7 +185,7 @@ describe('Create Patient Template Tests', () => {
   test('should fail with 400 with field "Nombres" since its a reserved name', async () => {
     await checkFailCreateRequest(
       {
-        doctorId: doctorId,
+        doctor: doctorId,
         name: `testTemplate_${Date.now()}`,
         categories: ['General', 'Urgente'],
         fields: [
@@ -206,7 +206,7 @@ describe('Create Patient Template Tests', () => {
   test('should fail with 400 with field "Apellidos" since its a reserved name', async () => {
     await checkFailCreateRequest(
       {
-        doctorId: doctorId,
+        doctor: doctorId,
         name: `testTemplate_${Date.now()}`,
         categories: ['General', 'Urgente'],
         fields: [
@@ -227,7 +227,7 @@ describe('Create Patient Template Tests', () => {
   test('should fail with 404 to create a patient template with a non-existent doctorId', async () => {
     await checkFailCreateRequest(
       {
-        doctorId: 'nonExistentDoctorId',
+        doctor: 'nonExistentDoctorId',
         name: `testTemplate_${Date.now()}`,
         categories: ['General', 'Urgente'],
         fields: [
@@ -255,7 +255,7 @@ describe('Create Patient Template Tests', () => {
   test('should fail with 406 when creating a patient template with an existing name', async () => {
     await checkFailCreateRequest(
       {
-        doctorId: doctorId,
+        doctor: doctorId,
         name: 'testTemplate',
         categories: ['General', 'Urgente'],
         fields: [
@@ -272,12 +272,12 @@ describe('Create Patient Template Tests', () => {
     )
   })
 
-  // DONE:
-  test('should fail with 406 when creating template with two fields that have the same name', async () => {
+  //DONE:
+  test('should fail with 400 to create a patient template with two or more duplicate fields', async () => {
     await checkFailCreateRequest(
       {
-        doctorId: doctorId,
-        name: 'testTemplate',
+        doctor: doctorId,
+        name: `testTemplate_${Date.now()}`,
         categories: ['General', 'Urgente'],
         fields: [
           {
@@ -288,14 +288,14 @@ describe('Create Patient Template Tests', () => {
           },
           {
             name: 'Edad',
-            type: 'FLOAT',
+            type: 'NUMBER',
             required: true,
             description: 'Edad del paciente'
           }
         ]
       },
-      406,
-      COMMON_MSG.RECORDS_USING
+      400,
+      COMMON_MSG.DUPLICATE_FIELD_NAMES
     )
   })
 
