@@ -37,8 +37,12 @@ async function checkFailRequest(
       )
     }
   } catch (error) {
-    expect(error.response.status).toBe(expectedCode)
-    expect(error.response.data.message).toBe(expectedMsg)
+    if (error.response) {
+      expect(error.response.status).toBe(expectedCode)
+      expect(error.response.data.message).toBe(expectedMsg)
+    } else {
+      fail(`Unexpected Error: ${error}`)
+    }
   }
 }
 
