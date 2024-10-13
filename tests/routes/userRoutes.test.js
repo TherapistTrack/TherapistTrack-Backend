@@ -1,76 +1,69 @@
 const axios = require('axios')
 const { BASE_URL, getAuthToken } = require('../jest.setup')
-const COMMON_MSG = require('../../utils/errorMsg')
-const { checkFailRequest, generateObjectId } = require('../testHelpers')
 
 describe('User Endpoints', () => {
-  const HEADERS = {
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${getAuthToken()}`,
-    Origin: 'http://localhost'
-  }
+  let doctorUser
+  let assistantUser
+  let headers
 
-  const doctorUser = {
-    id: generateObjectId(),
-    names: 'Test',
-    lastNames: 'User',
-    phones: ['12345678'],
-    rol: 'Doctor',
-    mails: ['test-doctor@example.com'],
-    rolDependentInfo: {
-      collegiateNumber: '12345',
-      specialty: 'testSpecialty'
+  beforeAll(async () => {
+    const token = await getAuthToken()
+    headers = {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      Origin: 'http://localhost'
     }
 
-  }
-
-  const assistantUser = {
-    id: generateObjectId(),
-    names: 'Test',
-    lastNames: 'User',
-    phones: ['12345678'],
-    rol: 'Assistant',
-    mails: ['test-assistant@example.com'],
-    rolDependentInfo: {
-      startDate: '08/14/2024',
-      endDate: '08/15/2024',
-      DPI: '2340934'
+    // Generar IDs válidos de 24 caracteres
+    const generateObjectId = () => {
+      const timestamp = Math.floor(Date.now() / 1000)
+        .toString(16)
+        .padStart(8, '0')
+      const randomPart = Math.random()
+        .toString(16)
+        .substr(2, 16)
+        .padEnd(16, '0')
+      return timestamp + randomPart
     }
-  }
 
-  const adminUser = {
-    id: generateObjectId(),
-    names: 'Test',
-    lastNames: 'User',
-    phones: ['12345678'],
-    rol: 'Admin',
-    mails: ['test-assistant@example.com']
-  }
+    doctorUser = {
+      id: generateObjectId(),
+      names: 'Test',
+      lastNames: 'User',
+      phones: ['12345678'],
+      rol: 'Doctor',
+      mails: ['test-doctor@example.com'],
+      roleDependentInfo: {
+        collegiateNumber: '12345',
+        specialty: 'testSpecialty'
+      }
+    }
 
-  async function checkFailCreateRequest(body, expectedCode, expectedMsg) {
-    await checkFailRequest(
-      'post',
-      REQUEST_URL,
-      HEADERS,
-      {},
-      body,
-      expectedCode,
-      expectedMsg
-    )
-  }
+    assistantUser = {
+      id: generateObjectId(),
+      names: 'Test',
+      lastNames: 'User',
+      phones: ['12345678'],
+      rol: 'Assistant',
+      mails: ['test-assistant@example.com'],
+      roleDependentInfo: {
+        startDate: '08/14/2024',
+        endDate: '08/15/2024',
+        DPI: '2340934'
+      }
+    }
+  })
 
-  beforeAll(async () => {})
-
-  test('should register a new Doctor', async () => {
+  it('should register a new Doctor', async () => {
     try {
       const response = await axios.post(
         `${BASE_URL}/users/register`,
         doctorUser,
-        { headers: HEADERS }
+        { headers }
       )
       expect(response.status).toBe(201)
-      expect(response.data.status).toBe(201)
-      expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS)
+      expect(response.data.status).toBe('success')
+      expect(response.data.message).toBe('User registered successfully')
     } catch (error) {
       console.log(
         `Status: ${error.response.status} \nBody: ${JSON.stringify(error.response.data)}`
@@ -79,16 +72,16 @@ describe('User Endpoints', () => {
     }
   })
 
-  test('should register a new Assistant', async () => {
+  it('should register a new Assistant', async () => {
     try {
       const response = await axios.post(
         `${BASE_URL}/users/register`,
         assistantUser,
-        { headers: HEADERS }
+        { headers }
       )
       expect(response.status).toBe(201)
-      expect(response.data.status).toBe(201)
-      expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS)
+      expect(response.data.status).toBe('success')
+      expect(response.data.message).toBe('User registered successfully')
     } catch (error) {
       throw new Error(
         `Test Failed: \nStatus: ${error.response.status} \nBody: ${JSON.stringify(error.response.data)}`
@@ -96,32 +89,15 @@ describe('User Endpoints', () => {
     }
   })
 
-  test('should register a new Admin', async () => {
-    try {
-      const response = await axios.post(
-        `${BASE_URL}/users/register`,
-        adminUser,
-        { headers: HEADERS }
-      )
-      expect(response.status).toBe(201)
-      expect(response.data.status).toBe(201)
-      expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS)
-    } catch (error) {
-      throw new Error(
-        `Test Failed: \nStatus: ${error.response.status} \nBody: ${JSON.stringify(error.response.data)}`
-      )
-    }
-  })
-
-  test('should update the user information', async () => {
+  it('should update the user information', async () => {
     try {
       const updateData = { ...assistantUser }
       updateData.names = 'NEW NAME'
       await axios.put(`${BASE_URL}/users/update`, updateData, {
-        headers: HEADERS
+        headers
       })
       const newUser = await axios.get(`${BASE_URL}/users/${assistantUser.id}`, {
-        headers: HEADERS
+        headers
       })
 
       expect(newUser.data.data.names).toBe('NEW NAME')
@@ -132,12 +108,12 @@ describe('User Endpoints', () => {
     }
   })
 
-  test('should not register an existent user', async () => {
+  it('should not register an existent user', async () => {
     try {
       const response = await axios.post(
         `${BASE_URL}/users/register`,
         doctorUser,
-        { headers: HEADERS }
+        { headers }
       )
       expect(true).toBe(false) // Request should fail, but it didnt
     } catch (error) {
@@ -149,10 +125,10 @@ describe('User Endpoints', () => {
     }
   })
 
-  test('should retrieve a User info by ID', async () => {
+  it('should retrieve a User info by ID', async () => {
     try {
       const response = await axios.get(`${BASE_URL}/users/${doctorUser.id}`, {
-        headers: HEADERS
+        headers
       })
       expect(response.status).toBe(200)
     } catch (error) {
@@ -163,12 +139,12 @@ describe('User Endpoints', () => {
     }
   })
 
-  test('should retrieve info from the User requesting', async () => {
+  it('should retrieve info from the User requesting', async () => {
     try {
       const response = await axios.post(
         `${BASE_URL}/users/@me`,
         { id: doctorUser.id },
-        { headers: HEADERS }
+        { headers }
       )
       expect(response.status).toBe(200)
     } catch (error) {
@@ -179,13 +155,11 @@ describe('User Endpoints', () => {
     }
   })
 
-  test('should give a list of files with the two already registered users', async () => {
+  it('should give a list of files with the two already registered users', async () => {
     try {
-      const response = await axios.get(`${BASE_URL}/users/list`, {
-        headers: HEADERS
-      })
+      const response = await axios.get(`${BASE_URL}/users/list`, { headers })
       expect(response.status).toBe(200)
-      expect(response.data.users.length).toBe(3)
+      expect(response.data.users.length).toBe(2)
     } catch (error) {
       throw new Error(
         `Test Failed:\n Status: ${error.response.status} \nBody: ${JSON.stringify(error.response.data)}`
@@ -193,15 +167,15 @@ describe('User Endpoints', () => {
     }
   })
 
-  test('should delete Doctor and assistant', async () => {
+  it('should delete Doctor and assistant', async () => {
     try {
       const response1 = await axios.delete(`${BASE_URL}/users/delete`, {
         data: { id: doctorUser.id },
-        headers: HEADERS
+        headers
       })
       const response2 = await axios.delete(`${BASE_URL}/users/delete`, {
         data: { id: assistantUser.id },
-        headers: HEADERS
+        headers
       })
       expect(response1.status).toBe(200)
       expect(response2.status).toBe(200)
@@ -213,7 +187,7 @@ describe('User Endpoints', () => {
   })
 
   /*
-  test('should fail to update non-existent user', async () => {
+  it('should fail to update non-existent user', async () => {
     const updateData = { username: 'nonexistentuser', name: 'UpdatedName' }
     const response = await axios
       .put(`${BASE_URL}/users/update`, updateData, { headers })

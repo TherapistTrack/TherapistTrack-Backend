@@ -1,5 +1,4 @@
-const { User, Doctor, Assistant } = require('../models/userModel')
-const COMMON_MSG = require('../utils/errorMsg')
+const { User, findUser, Doctor, Assistant } = require('../models/userModel')
 const mongoose = require('mongoose')
 
 exports.registerUser = async (req, res) => {
@@ -26,57 +25,40 @@ exports.registerUser = async (req, res) => {
     })
     await newUser.save() // Save without session
 
-    if (rol !== 'Admin') {
-      // CREATING ROLES
-      let roleInfo
+    // CREATING ROLES
+    let roleInfo
 
-      if (rol === 'Doctor') {
-        let { collegiateNumber, specialty } = rolDependentInfo
-        roleInfo = new Doctor({
-          user: newUser._id,
-          collegiateNumber,
-          specialty
-        })
-        await roleInfo.save()
-      } else if (rol === 'Assistant') {
-        let { startDate, endDate, DPI } = rolDependentInfo
-        startDate = Date.parse(startDate)
+    if (rol === 'Doctor') {
+      let { collegiateNumber, specialty } = roleDependentInfo
+      roleInfo = new Doctor({ user: newUser._id, collegiateNumber, specialty })
+      await roleInfo.save()
+    } else if (rol === 'Assistant') {
+      let { startDate, endDate, DPI } = roleDependentInfo
+      startDate = Date.parse(startDate)
 
-        // IF END DATE IS PASSED
-        if (endDate) {
-          endDate = Date.parse(endDate)
-          roleInfo = new Assistant({
-            user: newUser._id,
-            startDate,
-            endDate,
-            DPI
-          })
-        } else {
-          roleInfo = new Assistant({ user: newUser._id, startDate, DPI })
-        }
-
-        await roleInfo.save()
+      // IF END DATE IS PASSED
+      if (endDate) {
+        endDate = Date.parse(endDate)
+        roleInfo = new Assistant({ user: newUser._id, startDate, endDate, DPI })
       } else {
-        throw new Error(
-          'Invalid Role. Could only be Doctor and Assistant. Is case sensitive.'
-        )
+        roleInfo = new Assistant({ user: newUser._id, startDate, DPI })
       }
-      // Store the roleId in User to.
-      newUser.roleDependentInfo = roleInfo._id
-      await newUser.save()
 
-      return res.status(201).send({
-        status: 201,
-        message: COMMON_MSG.REQUEST_SUCCESS,
-        userId: id,
-        roleId: roleInfo._id
-      })
+      await roleInfo.save()
+    } else {
+      throw new Error(
+        'Invalid Role. Could only be Doctor and Assistant. Is case sensitive.'
+      )
     }
+    // Store the roleId in User to.
+    newUser.roleDependentInfo = roleInfo._id
+    await newUser.save()
 
     return res.status(201).send({
-      status: 201,
-      message: COMMON_MSG.REQUEST_SUCCESS,
-      userId: id
+      status: 'success',
+      message: 'User registered successfully',
+      userId: id,
+      roleId: roleInfo._id
     })
   } catch (error) {
     if (error.code === 11000) {
@@ -155,23 +137,17 @@ const getUserById = async (id) => {
     throw new Error('User not found')
   }
 
-  let rolInfo = undefined
-  if (user.rol !== 'Admin') {
-    if (user.rol === 'Doctor') {
-      rolInfo = await Doctor.findOne({ user: id }).lean().exec()
-    } else if (user.rol === 'Assistant') {
-      rolInfo = await Assistant.findOne({ user: id }).lean().exec()
-    } else {
-      throw new Error(
-        'User role not valid, must be Admin, Doctor or Assistant.'
-      )
-    }
-    rolInfo.id = rolInfo._id
-    delete rolInfo._id
-    delete rolInfo.__v
-    delete rolInfo.user
-    // console.log(JSON.stringify(rolInfo, '', '\t'))
+  let rolInfo
+  if (user.rol === 'Doctor') {
+    rolInfo = await Doctor.findOne({ user: id }).lean().exec()
+  } else if (user.rol === 'Assistant') {
+    rolInfo = await Assistant.findOne({ user: id }).lean().exec()
   }
+  rolInfo.id = rolInfo._id
+  delete rolInfo._id
+  delete rolInfo.__v
+  delete rolInfo.user
+  console.log(JSON.stringify(rolInfo, '', '\t'))
 
   const {
     _id,
@@ -184,7 +160,6 @@ const getUserById = async (id) => {
     createdAt,
     updatedAt
   } = user
-
   return {
     id: _id,
     names,
