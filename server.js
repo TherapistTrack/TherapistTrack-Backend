@@ -33,6 +33,7 @@ async function main() {
 
   // Error Handling Middleware
   app.use((err, req, res, next) => {
+    // console.log(err.stack)
     if (err instanceof UnauthorizedError) {
       return res
         .status(401)

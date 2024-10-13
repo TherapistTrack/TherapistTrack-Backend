@@ -169,8 +169,15 @@ describe('Create Patient Template Tests', () => {
         categories: ['General', 'Urgente'],
         fields: [
           {
+            name: 'Edad',
+            type: 'NUMBER',
+            required: true,
+            description: 'Edad del paciente'
+          },
+          {
             name: 'Estado Civil',
             type: 'CHOICE',
+            options: ['Soltero', 'Casado'],
             required: true,
             description: 'Estado civil del paciente'
           }
@@ -262,6 +269,34 @@ describe('Create Patient Template Tests', () => {
           {
             name: 'Edad',
             type: 'NUMBER',
+            required: true,
+            description: 'Edad del paciente'
+          }
+        ]
+      },
+      406,
+      COMMON_MSG.RECORDS_USING
+    )
+  })
+
+  // DONE:
+  test('should fail with 406 when creating template with two fields that have the same name', async () => {
+    await checkFailCreateRequest(
+
+      {
+        doctorId: doctorId,
+        name: 'testTemplate',
+        categories: ['General', 'Urgente'],
+        fields: [
+          {
+            name: 'Edad',
+            type: 'NUMBER',
+            required: true,
+            description: 'Edad del paciente'
+          },
+          {
+            name: 'Edad',
+            type: 'FLOAT',
             required: true,
             description: 'Edad del paciente'
           }

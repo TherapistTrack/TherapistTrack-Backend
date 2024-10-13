@@ -14,6 +14,7 @@ exports.createTemplate = async (req, res) => {
         .json({ status: 'error', message: COMMON_MSG.MISSING_FIELDS })
     }
 
+
     if (
       !Array.isArray(fields) ||
       fields.length === 0 ||
@@ -88,6 +89,7 @@ exports.renameTemplate = async (req, res) => {
       return res
         .status(400)
         .send({ status: 'error', message: COMMON_MSG.MISSING_FIELDS })
+
     }
 
     const isValidObjectId = mongoose.Types.ObjectId.isValid(doctorId)
@@ -132,10 +134,12 @@ exports.renameTemplate = async (req, res) => {
     )
 
     res.status(200).json({
+
       message: COMMON_MSG.REQUEST_SUCCESS,
       data: [updatedTemplate.doctor, updatedTemplate._id]
     })
   } catch (error) {
+
     res.status(500).json({ error: COMMON_MSG.INTERNAL_SERVER_ERROR })
   }
 }
