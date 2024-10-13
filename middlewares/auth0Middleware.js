@@ -9,28 +9,43 @@ if (!process.env.AUTH_ISSUER_BASE_URL || !process.env.AUTH_AUDIENCE) {
   throw 'Make sure you have AUTH_ISSUER_BASE_URL, and AUTH_AUDIENCE in your .env file'
 }
 
-const checkJwt = auth({
-  issuerBaseURL: process.env.AUTH_ISSUER_BASE_URL,
-  audience: process.env.AUTH_AUDIENCE
-})
+let checkJwt
+let requiredPermissions
 
-const requiredPermissions = (requiredPermissions) => {
-  return (req, res, next) => {
-    const permissionCheck = claimCheck((payload) => {
-      const permissions = payload.permissions || []
+if (process.env.RUNNING_MODE === 'TEST') {
+  checkJwt = (req, res, next) => {
+    next()
+  }
 
-      const hasPermissions = requiredPermissions.every((requiredPermission) =>
-        permissions.includes(requiredPermission)
-      )
+  requiredPermissions = (requiredPermissions) => {
+    return (req, res, next) => {
+      next()
+    }
+  }
+} else {
+  checkJwt = auth({
+    issuerBaseURL: process.env.AUTH_ISSUER_BASE_URL,
+    audience: process.env.AUTH_AUDIENCE
+  })
 
-      if (!hasPermissions) {
-        throw new InsufficientScopeError()
-      }
+  requiredPermissions = (requiredPermissions) => {
+    return (req, res, next) => {
+      const permissionCheck = claimCheck((payload) => {
+        const permissions = payload.permissions || []
 
-      return hasPermissions
-    })
+        const hasPermissions = requiredPermissions.every((requiredPermission) =>
+          permissions.includes(requiredPermission)
+        )
 
-    permissionCheck(req, res, next)
+        if (!hasPermissions) {
+          throw new InsufficientScopeError()
+        }
+
+        return hasPermissions
+      })
+
+      permissionCheck(req, res, next)
+    }
   }
 }
 

@@ -11,9 +11,11 @@ servers:
 tags:
   - name: Gestión de usuarios
     description: Gestión de usuarios, incluyendo registro, actualización y eliminación.
-  - name: Configuración de Doctor
+  - name: Plantillas de Paciente/Expediente
     description: Gestión de plantillas de paciente y expediente.
-  - name: Manipulación de expedientes
+  - name: Plantillas de Archivo
+    description: Gestión de plantillas de archivos.
+  - name: Operaciones de expedientes
     description: Gestión de expedientes, incluyendo creación, actualización y eliminación.
   - name: Operaciones de archivo
     description: Operaciones relacionadas con la gestión de archivos.
@@ -44,9 +46,11 @@ paths:
     $ref: './paths/file_operations.yaml#/getFileById'
 
   /doctor/PatientTemplate:
-    $ref: './paths/doctor_configuration.yaml#/doctorPatientTemplate'
+    $ref: './paths/patient_template.yaml#/doctorPatientTemplate'
+  /doctor/PatientTemplate/list:
+    $ref: './paths/patient_template.yaml#/doctorPatientTemplateList'
   /doctor/PatientTemplate/fields:
-    $ref: './paths/doctor_configuration.yaml#/doctorPatientTemplateFields'
+    $ref: './paths/patient_template.yaml#/doctorPatientTemplateFields'
   /doctor/FileTemplate:
     $ref: './paths/doctor_configuration.yaml#/doctorFileTemplate'
   /doctor/FileTemplate/fields:

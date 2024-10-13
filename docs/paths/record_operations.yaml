@@ -1,7 +1,7 @@
 baseRecordRoute:
   post:
     tags:
-      - Manipulación de expedientes
+      - Operaciones de expedientes
     summary: Crear expediente para un paciente
     description: Permite a un doctor crear el expediente de un paciente EN BASE A UNA PLANTILLA, cualquier dato que no coincida con las especificaciones de la plantilla devolvera un fallo.
     requestBody:
@@ -101,7 +101,7 @@ baseRecordRoute:
     
   put:
     tags:
-      - Manipulación de expedientes
+      - Operaciones de expedientes
     summary: Editar un expediente
     description: 'Editara un expediente. Nota: solo se permitira de nombre, apellidos y el valor de los campos, además es necesario pasar TODOS los campos del paciente, no solo el que fue editado, siempre siguiendo su plantilla.'
     requestBody:
@@ -203,7 +203,7 @@ baseRecordRoute:
 
   delete:
     tags:
-      - Manipulación de expedientes
+      - Operaciones de expedientes
     summary: Eliminar un expediente
     description: Permite a los usuarios eliminar un expediente existente SOLO SI este no contiene archivos dentro de sí.
     requestBody:
@@ -270,7 +270,7 @@ baseRecordRoute:
 
   get:
     tags:
-      - Manipulación de expedientes
+      - Operaciones de expedientes
     summary: Obtener un expediente
     description: Permite a los usuarios obtener la información de un expediente en especifico.
     parameters:
@@ -389,7 +389,7 @@ baseRecordRoute:
 searchRecords:
   get:
     tags:
-      - Manipulación de expedientes
+      - Operaciones de expedientes
     summary: Listar campos posibles
     description: La DB tiene expedientes que siguen variedad de plantillas. Este endpoint permite conocer todos los posibles campos bajo los que se pueden filtrar y ordenar expedientes. 
     parameters:
@@ -426,7 +426,7 @@ searchRecords:
                         example: "NUMBER"
   post:
     tags:
-      - Manipulación de expedientes
+      - Operaciones de expedientes
     summary: Buscar y filtrar expedientes
     description: Permite a los usuarios listar todos los expedientes asociados a un doctor específico, con soporte para filtros, paginación y ordenamiento.
     requestBody:

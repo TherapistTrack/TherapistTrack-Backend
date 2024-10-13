@@ -9,6 +9,12 @@ async function getAuthToken() {
   if (accessToken) {
     return accessToken
   }
+
+  if (process.env.RUNNING_MODE === 'TEST') {
+    accessToken = 'dummy-token'
+    return accessToken
+  }
+
   try {
     const response = await axios.post(
       `${process.env.AUTH_ISSUER_BASE_URL}oauth/token`,
