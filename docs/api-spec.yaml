@@ -15,6 +15,20 @@ tags:
     description: Gestión de plantillas de paciente y expediente.
   - name: Plantillas de Archivo
     description: Gestión de plantillas de archivos.
+  - name: Operaciones de expedientes
+    description: |
+      Los expedientes guardan información y archivos sobre un paciente, para ello siguen el patron definido por plantillas, en ellas se define el tipo de campo.
+
+      _Se buscara ser muy rigoroso con que los datos guardados sigan el tipo especificado por la plantilla_. Actualmente estos son los tipos soportados:
+
+      **SHORT_TEXT & TEXT**: guardado de cadenas de texto.
+
+      **DATE**: Debe estar en formato ISO8601 (ex: 2024-10-13T14:30:00Z)
+
+      **NUMBER & FLOAT**: Datos enteros y decimales respectivamente.
+
+      **CHOICE**: Guarda campos con opciones de seleccion predefinidas.
+
   - name: Operaciones de archivo
     description: Operaciones relacionadas con la gestión de archivos.
 
@@ -32,13 +46,15 @@ paths:
   /users/{:id}:
     $ref: './paths/user_management.yaml#/userGetByID'
 
-  /files/create:
+  /createFile:
     $ref: './paths/file_operations.yaml#/createFile'
-  /files/:
+  /updateFile:
     $ref: './paths/file_operations.yaml#/updateFile'
-  /files/listFiles:
+  /deleteFile:
+    $ref: './paths/file_operations.yaml#/deleteFile'
+  /listFiles:
     $ref: './paths/file_operations.yaml#/listFiles'
-  /files/file:
+  /getFileById:
     $ref: './paths/file_operations.yaml#/getFileById'
 
   /doctor/PatientTemplate:
@@ -47,3 +63,12 @@ paths:
     $ref: './paths/patient_template.yaml#/doctorPatientTemplateList'
   /doctor/PatientTemplate/fields:
     $ref: './paths/patient_template.yaml#/doctorPatientTemplateFields'
+  /doctor/FileTemplate:
+    $ref: './paths/doctor_configuration.yaml#/doctorFileTemplate'
+  /doctor/FileTemplate/fields:
+    $ref: './paths/doctor_configuration.yaml#/doctorFileTemplateFields'
+
+  /records/:
+    $ref: './paths/record_operations.yaml#/baseRecordRoute'
+  /records/search:
+    $ref: './paths/record_operations.yaml#/searchRecords'
