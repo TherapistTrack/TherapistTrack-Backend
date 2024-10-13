@@ -142,7 +142,7 @@ async function createTestPatientTemplate(
   fields
 ) {
   const testTemplate = {
-    doctor: doctorId,
+    doctorId: doctorId,
     name: templateName,
     categories: categories,
     fields: fields

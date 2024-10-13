@@ -5,9 +5,9 @@ const COMMON_MSG = require('../utils/errorMsg')
 const mongoose = require('mongoose')
 
 exports.createTemplate = async (req, res) => {
-  const { doctor, name, categories, fields } = req.body
+  const { doctorId, name, categories, fields } = req.body
   try {
-    if (!doctor || !name || !categories || !fields) {
+    if (!doctorId || !name || !categories || !fields) {
       return res
         .status(400)
         .json({ status: 'error', message: COMMON_MSG.MISSING_FIELDS })
@@ -46,7 +46,7 @@ exports.createTemplate = async (req, res) => {
         .json({ status: 'error', message: COMMON_MSG.RECORDS_USING })
     }
 
-    const isValidObjectId = mongoose.Types.ObjectId.isValid(doctor)
+    const isValidObjectId = mongoose.Types.ObjectId.isValid(doctorId)
     if (!isValidObjectId) {
       return res
         .status(404)
@@ -54,7 +54,7 @@ exports.createTemplate = async (req, res) => {
     }
 
     const template = new PatientTemplate({
-      doctor,
+      doctor: doctorId,
       name,
       categories,
       fields
