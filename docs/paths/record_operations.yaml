@@ -50,7 +50,6 @@ baseRecordRoute:
                             - "Opción 1"
                             - "Opción 2"
                         value:
-                          type: Value
                           description: Valor del campo, tiene coincidir con el TIPO indicado por la plantilla
                           example: "Opción 1"
             required:
