@@ -9,7 +9,7 @@ const {
 } = require('../../testHelpers')
 
 describe('Rename Patiente Template Tests', () => {
-  let doctor, secondDoctor, templateId
+  let doctor, secondDoctor, templateId, secondTemplateId
 
   const REQUEST_URL = `${BASE_URL}/doctor/PatientTemplate`
 
@@ -36,6 +36,19 @@ describe('Rename Patiente Template Tests', () => {
     templateId = await createTestPatientTemplate(
       doctor.roleDependentInfo.id,
       `testTemplate_${Date.now()}`,
+      ['General', 'Urgente'],
+      [
+        {
+          name: 'Edad',
+          type: 'NUMBER',
+          required: true,
+          description: 'Edad del paciente'
+        }
+      ]
+    )
+    secondTemplateId = await createTestPatientTemplate(
+      doctor.roleDependentInfo.id,
+      `secondTemplate`,
       ['General', 'Urgente'],
       [
         {
@@ -147,6 +160,18 @@ describe('Rename Patiente Template Tests', () => {
       },
       404,
       COMMON_MSG.TEMPLATE_NOT_FOUND
+    )
+  })
+  // DONE:
+  test('should fail with 406 when trying to rename template to with a existent template name', async () => {
+    await checkFailRenameRequest(
+      {
+        doctorId: doctor.roleDependentInfo.id,
+        templateId: secondTemplateId,
+        name: 'newName'
+      },
+      406,
+      COMMON_MSG.RECORDS_USING
     )
   })
 })
