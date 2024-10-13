@@ -21,6 +21,7 @@ describe('User Endpoints', () => {
       collegiateNumber: '12345',
       specialty: 'testSpecialty'
     }
+
   }
 
   const assistantUser = {

@@ -3,7 +3,7 @@ const COMMON_MSG = require('../utils/errorMsg')
 const mongoose = require('mongoose')
 
 exports.registerUser = async (req, res) => {
-  const { id, names, lastNames, phones, mails, rol, rolDependentInfo } =
+  const { id, names, lastNames, phones, mails, rol, roleDependentInfo } =
     req.body
 
   try {
@@ -116,7 +116,7 @@ exports.deleteUser = async (req, res) => {
 
 exports.updateUser = async (req, res) => {
   try {
-    const { id, names, lastNames, phones, mails, rol, rolDependentInfo } =
+    const { id, names, lastNames, phones, mails, rol, roleDependentInfo } =
       req.body
     if (!id || !rol) {
       throw new Error('And User ID and rol must be provided.')
@@ -139,9 +139,9 @@ exports.updateUser = async (req, res) => {
       }
     )
     if (rol === 'Doctor') {
-      await Doctor.updateOne({ user: id }, { $set: rolDependentInfo })
+      await Doctor.updateOne({ user: id }, { $set: roleDependentInfo })
     } else if (rol === 'Assistant') {
-      await Assistant.updateOne({ user: id }, { $set: rolDependentInfo })
+      await Assistant.updateOne({ user: id }, { $set: roleDependentInfo })
     }
     res.send({ status: 'success', message: 'User updated successfully' })
   } catch (error) {
@@ -195,7 +195,7 @@ const getUserById = async (id) => {
     isActive,
     createdAt,
     updatedAt,
-    rolDependentInfo: rolInfo
+    roleDependentInfo: rolInfo
   }
 }
 
@@ -236,14 +236,15 @@ exports.getUser = async (req, res) => {
 exports.listUser = async (req, res) => {
   try {
     const users = await User.find({ isActive: true })
-      .select('_id names lastNames')
+      .select('_id names lastNames, rol')
       .exec()
 
     // Transform the data to rename _id to id
     const transformedUsers = users.map((user) => ({
       id: user._id, // Rename _id to id
       names: user.names,
-      lastNames: user.lastNames
+      lastNames: user.lastNames,
+      role: user.rol
     }))
 
     res.status(200).json({ status: 'success', users: transformedUsers })

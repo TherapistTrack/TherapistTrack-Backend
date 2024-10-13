@@ -4,14 +4,15 @@ const COMMON_MSG = require('../../../utils/errorMsg')
 const {
   createTestDoctor,
   deleteUser,
-  checkFailRequest
+  checkFailRequest,
+  createTestPatientTemplate
 } = require('../../testHelpers')
 
 describe('Get Patient Template by ID Tests', () => {
   let doctor, secondDoctor
   let templateId
 
-  const REQUEST_URL = `${BASE_URL}/doctor/PatientTemplate?templateId=${templateId}`
+  const REQUEST_URL = `${BASE_URL}/doctor/PatientTemplate`
 
   const HEADERS = {
     'Content-Type': 'application/json',
@@ -20,7 +21,7 @@ describe('Get Patient Template by ID Tests', () => {
   }
 
   async function checkFailGetRequest(queryParams, expectedCode, expectedMsg) {
-    await checkFailRequest(
+    return checkFailRequest(
       'get',
       REQUEST_URL,
       HEADERS,
@@ -38,7 +39,8 @@ describe('Get Patient Template by ID Tests', () => {
     // Crear una plantilla de paciente para usarla en los tests
     templateId = await createTestPatientTemplate(
       doctor.roleDependentInfo.id,
-      `testTemplate_${Date.now()}`,
+      `Plantilla-2024`,
+      ['General', 'Urgente'],
       [
         {
           name: 'Edad',
@@ -58,8 +60,7 @@ describe('Get Patient Template by ID Tests', () => {
   })
 
   afterAll(async () => {
-    await deleteUser(doctorId)
-    await deleteUser(secondDoctor)
+    await Promise.all([deleteUser(doctor.id), deleteUser(secondDoctor.id)])
   })
 
   //
@@ -73,28 +74,26 @@ describe('Get Patient Template by ID Tests', () => {
         headers: HEADERS
       })
       expect(response.status).toBe(200)
-      expect(response.data).toHaveProperty(
+      expect(response.data.data).toHaveProperty(
         'doctor',
         doctor.roleDependentInfo.id
       )
-      expect(response.data).toHaveProperty('lastUpdated')
-      expect(response.data).toHaveProperty('name', 'Plantilla-2024')
-      expect(response.data.fields).toEqual(
+      expect(response.data.data).toHaveProperty('lastUpdate')
+      expect(response.data.data).toHaveProperty('name', 'Plantilla-2024')
+      expect(response.data.data.fields).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({
-            name: 'Nombres',
-            type: 'SHORT_TEXT',
-            required: true
-          }),
-          expect.objectContaining({
-            name: 'Apellidos',
-            type: 'SHORT_TEXT',
-            required: true
-          }),
           expect.objectContaining({
             name: 'Edad',
             type: 'NUMBER',
-            required: true
+            required: true,
+            description: 'Edad del paciente'
+          }),
+          expect.objectContaining({
+            name: 'Estado Civil',
+            type: 'CHOICE',
+            options: ['Soltero', 'Casado'],
+            required: true,
+            description: 'Estado civil del paciente'
           })
         ])
       )
@@ -123,7 +122,7 @@ describe('Get Patient Template by ID Tests', () => {
   test('should fail with 400 if "templateId" is not provided', async () => {
     await checkFailGetRequest(
       {
-        doctorId
+        doctorId: doctor.roleDependentInfo.id
       },
       400,
       COMMON_MSG.MISSING_FIELDS
@@ -136,11 +135,11 @@ describe('Get Patient Template by ID Tests', () => {
 
     await checkFailGetRequest(
       {
-        templateId,
-        doctorId: wrongDoctorId
+        doctorId: wrongDoctorId,
+        templateId
       },
       403,
-      COMMON_MSG.NOT_OWNER
+      COMMON_MSG.DOCTOR_IS_NOT_OWNER
     )
   })
 
@@ -150,8 +149,8 @@ describe('Get Patient Template by ID Tests', () => {
 
     await checkFailGetRequest(
       {
-        templateId,
-        doctorId: nonExistentDoctorId
+        doctorId: nonExistentDoctorId,
+        templateId
       },
       404,
       COMMON_MSG.DOCTOR_NOT_FOUND

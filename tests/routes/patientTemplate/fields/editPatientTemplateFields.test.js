@@ -3,7 +3,8 @@ const { BASE_URL, getAuthToken } = require('../../../jest.setup')
 const {
   createTestDoctor,
   deleteUser,
-  createTestPatientTemplate
+  createTestPatientTemplate,
+  checkFailRequest
 } = require('../../../testHelpers')
 const COMMON_MSG = require('../../../../utils/errorMsg')
 
@@ -19,7 +20,7 @@ describe('Edit Field from Patient Template Tests', () => {
   }
 
   async function checkFailEditRequest(body, expectedCode, expectedMsg) {
-    await checkFailRequest(
+    return checkFailRequest(
       'put',
       REQUEST_URL,
       HEADERS,
@@ -37,6 +38,7 @@ describe('Edit Field from Patient Template Tests', () => {
     templateId = await createTestPatientTemplate(
       doctor.roleDependentInfo.id,
       `testTemplate_${Date.now()}`,
+      ['General'],
       [
         {
           name: 'Edad',
@@ -56,8 +58,7 @@ describe('Edit Field from Patient Template Tests', () => {
   })
 
   afterAll(async () => {
-    await deleteUser(doctor.id)
-    await deleteUser(secondDoctor.id)
+    await Promise.all([deleteUser(doctor.id), deleteUser(secondDoctor.id)])
   })
 
   // DONE:
@@ -264,15 +265,11 @@ describe('Edit Field from Patient Template Tests', () => {
     }
 
     try {
-      const response = await axios.put(
-        `${BASE_URL}/doctor/PatientTemplate/fields`,
-        {
-          data: fieldToEdit,
-          headers: HEADERS
-        }
-      )
+      const response = await axios.put(REQUEST_URL, fieldToEdit, {
+        headers: HEADERS
+      })
       expect(response.status).toBe(200)
-      expect(response.data.message).toBe('Field successfully edited')
+      expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS)
     } catch (error) {
       console.error(
         'Error editing field:',
@@ -286,7 +283,7 @@ describe('Edit Field from Patient Template Tests', () => {
   test('should edit with 200 an existing field to change required status', async () => {
     const fieldToEdit = {
       doctorId: doctor.roleDependentInfo.id,
-      templateID: templateId,
+      templateId: templateId,
       oldFieldName: 'Edad Actualizada',
       fieldData: {
         name: 'Edad Actualizada',
@@ -297,15 +294,11 @@ describe('Edit Field from Patient Template Tests', () => {
     }
 
     try {
-      const response = await axios.put(
-        `${BASE_URL}/doctor/PatientTemplate/fields`,
-        {
-          data: fieldToEdit,
-          headers: HEADERS
-        }
-      )
+      const response = await axios.put(REQUEST_URL, fieldToEdit, {
+        headers: HEADERS
+      })
       expect(response.status).toBe(200)
-      expect(response.data.message).toBe('Field successfully edited')
+      expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS)
     } catch (error) {
       console.error(
         'Error editing field:',
