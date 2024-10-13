@@ -36,32 +36,36 @@ describe('User Endpoints', () => {
       endDate: '08/15/2024',
       DPI: '2340934'
     }
-  }
 
-  const adminUser = {
-    id: generateObjectId(),
-    names: 'Test',
-    lastNames: 'User',
-    phones: ['12345678'],
-    rol: 'Admin',
-    mails: ['test-assistant@example.com']
-  }
+    doctorUser = {
+      id: generateObjectId(),
+      names: 'Test',
+      lastNames: 'User',
+      phones: ['12345678'],
+      rol: 'Doctor',
+      mails: ['test-doctor@example.com'],
+      roleDependentInfo: {
+        collegiateNumber: '12345',
+        specialty: 'testSpecialty'
+      }
+    }
 
-  async function checkFailCreateRequest(body, expectedCode, expectedMsg) {
-    await checkFailRequest(
-      'post',
-      REQUEST_URL,
-      HEADERS,
-      {},
-      body,
-      expectedCode,
-      expectedMsg
-    )
-  }
+    assistantUser = {
+      id: generateObjectId(),
+      names: 'Test',
+      lastNames: 'User',
+      phones: ['12345678'],
+      rol: 'Assistant',
+      mails: ['test-assistant@example.com'],
+      roleDependentInfo: {
+        startDate: '08/14/2024',
+        endDate: '08/15/2024',
+        DPI: '2340934'
+      }
+    }
+  })
 
-  beforeAll(async () => {})
-
-  test('should register a new Doctor', async () => {
+  it('should register a new Doctor', async () => {
     try {
       const response = await axios.post(
         `${BASE_URL}/users/register`,

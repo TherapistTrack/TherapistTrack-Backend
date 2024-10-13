@@ -37,8 +37,12 @@ async function checkFailRequest(
       )
     }
   } catch (error) {
-    expect(error.response.status).toBe(expectedCode)
-    expect(error.response.data.message).toBe(expectedMsg)
+    if (error.response) {
+      expect(error.response.status).toBe(expectedCode)
+      expect(error.response.data.message).toBe(expectedMsg)
+    } else {
+      fail(`Unexpected Error: ${error}`)
+    }
   }
 }
 
@@ -164,10 +168,42 @@ async function createTestPatientTemplate(
   }
 }
 
+/**
+ * Creates a patient template for a doctor.
+ *
+ * @param {string} userID - Doctor ID to create the template for.
+ * @param {object} template - tempalte structure.
+ * @returns {Promise<string>} a Promise to the templateId created.
+ * @throws Will throw an error if the request fails.
+ */
+async function createTestFileTemplate(doctorId, templateName, fields) {
+  const testTemplate = {
+    doctorId: doctorId,
+    name: templateName,
+    fields: fields
+  }
+
+  try {
+    const response = await axios.post(
+      `${BASE_URL}/doctor/FileTemplate`,
+      testTemplate,
+      { headers }
+    )
+    return response.data.data.fileTemplateId // Guardar el ID de la plantilla creada
+  } catch (error) {
+    console.error(
+      'Error creating template:',
+      error.response ? error.response.data : error.message
+    )
+    throw error
+  }
+}
+
 module.exports = {
   checkFailRequest,
   generateObjectId,
   createTestDoctor,
   deleteUser,
-  createTestPatientTemplate
+  createTestPatientTemplate,
+  createTestFileTemplate
 }
