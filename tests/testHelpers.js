@@ -32,7 +32,7 @@ async function checkFailRequest(
       data: body
     })
     if (response.status >= 200 && response.status < 300) {
-      fail(
+      throw new Error(
         `Expected a failure, but got response with status: ${response.status}`
       )
     }
@@ -41,7 +41,7 @@ async function checkFailRequest(
       expect(error.response.status).toBe(expectedCode)
       expect(error.response.data.message).toBe(expectedMsg)
     } else {
-      fail(`Unexpected Error: ${error}`)
+      throw error
     }
   }
 }
