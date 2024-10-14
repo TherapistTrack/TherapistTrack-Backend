@@ -128,7 +128,7 @@ describe('Rename Patiente Template Tests', () => {
   // DONE:
   test('should rename with 200 a patient template correctly', async () => {
     try {
-      const response = await axios.delete(REQUEST_URL, {
+      const response = await axios.patch(REQUEST_URL, {
         data: {
           doctorId: doctor.roleDependentInfo.id,
           templateID: templateId,
