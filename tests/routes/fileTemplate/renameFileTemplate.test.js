@@ -19,7 +19,7 @@ describe('Rename Patiente Template Tests', () => {
   }
 
   async function checkFailRenameRequest(body, expectedCode, expectedMsg) {
-    checkFailRequest(
+    return checkFailRequest(
       'patch',
       REQUEST_URL,
       HEADERS,
@@ -47,13 +47,12 @@ describe('Rename Patiente Template Tests', () => {
   })
 
   afterAll(async () => {
-    deleteUser(doctor.id)
-    deleteUser(secondDoctor.id)
+    await Promise.all([deleteUser(doctor.id), deleteUser(secondDoctor.id)])
   })
 
   // DONE:
   test("should fail with 400 to rename template if 'doctorId' is not provided", async () => {
-    checkFailRenameRequest(
+    await checkFailRenameRequest(
       {
         templateId: templateId,
         name: 'NewName'
@@ -65,7 +64,7 @@ describe('Rename Patiente Template Tests', () => {
 
   // DONE:
   test("should fail with 400 to rename template if 'templateId' is not provided", async () => {
-    checkFailRenameRequest(
+    await checkFailRenameRequest(
       {
         doctorId: doctor.roleDependentInfo.id,
         name: 'NewName'
@@ -77,7 +76,7 @@ describe('Rename Patiente Template Tests', () => {
 
   // DONE:
   test("should fail with 400 to rename template if 'name' is not provide", async () => {
-    checkFailRenameRequest(
+    await checkFailRenameRequest(
       {
         doctorId: doctor.roleDependentInfo.id,
         templateId: templateId
@@ -89,7 +88,7 @@ describe('Rename Patiente Template Tests', () => {
 
   // DONE:
   test("should fail with 403 to rename template if 'doctorid' exist but is not the owner of this template", async () => {
-    checkFailRenameRequest(
+    await checkFailRenameRequest(
       {
         doctorId: doctor.roleDependentInfo.id,
         templateId: templateId,
@@ -102,7 +101,7 @@ describe('Rename Patiente Template Tests', () => {
 
   // DONE:
   test("should fail with 404 to rename template if 'doctorid' is not from a valid/active user", async () => {
-    checkFailRenameRequest(
+    await checkFailRenameRequest(
       {
         doctorId: 'nonExistentDoctor',
         templateId: templateId,
@@ -115,7 +114,7 @@ describe('Rename Patiente Template Tests', () => {
 
   // DONE:
   test("should fail with 404 to rename template if 'template' is not from a valid/active template", async () => {
-    checkFailRenameRequest(
+    await checkFailRenameRequest(
       {
         doctorId: doctor.roleDependentInfo.id,
         templateId: 'notExistentTemplate',
@@ -129,7 +128,7 @@ describe('Rename Patiente Template Tests', () => {
   // DONE:
   test('should rename with 200 a patient template correctly', async () => {
     try {
-      const response = await axios.delete(REQUEST_URL, {
+      const response = await axios.patch(REQUEST_URL, {
         data: {
           doctorId: doctor.roleDependentInfo.id,
           templateID: templateId,

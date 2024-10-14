@@ -20,7 +20,7 @@ describe('Create File Template Tests', () => {
   }
 
   async function checkFailCreateRequest(body, expectedCode, expectedMsg) {
-    await checkFailRequest(
+    return checkFailRequest(
       'post',
       REQUEST_URL,
       HEADERS,
@@ -57,8 +57,7 @@ describe('Create File Template Tests', () => {
   })
 
   afterAll(async () => {
-    await deleteUser(doctor.id)
-    await deleteUser(secondDoctor.id)
+    await Promise.all(deleteUser(doctor.id), deleteUser(secondDoctor.id))
   })
 
   // DONE:
@@ -75,13 +74,10 @@ describe('Create File Template Tests', () => {
     }
 
     try {
-      const response = await axios.post(
-        `${BASE_URL}/doctor/PatientTemplate/fields`,
-        {
-          data: fieldToAdd,
-          headers: HEADERS
-        }
-      )
+      const response = await axios.post(REQUEST_URL, {
+        data: fieldToAdd,
+        headers: HEADERS
+      })
       expect(response.status).toBe(200) // El backend debería devolver un estado 200
       expect(response.data.message).toBe(
         'Field added to patient template successfully'
@@ -97,13 +93,12 @@ describe('Create File Template Tests', () => {
 
   // DONE:
   test('should fail with 400 if templateID not passed', async () => {
-    checkFailCreateRequest(
+    await checkFailCreateRequest(
       {
         doctorId: doctor.roleDependentInfo.id,
         patientTemplate: {
           name: 'Allergies',
           type: 'TEXT',
-          value: '',
           required: false,
           description: "Patient's known allergies"
         }
@@ -115,13 +110,12 @@ describe('Create File Template Tests', () => {
 
   // DONE:
   test('should fail with 400 if doctorId not passed ', async () => {
-    checkFailCreateRequest(
+    await checkFailCreateRequest(
       {
         templateId: templateId,
         patientTemplate: {
           name: 'Allergies',
           type: 'TEXT',
-          value: '',
           required: false,
           description: "Patient's known allergies"
         }
@@ -133,7 +127,7 @@ describe('Create File Template Tests', () => {
 
   // DONE:
   test("should fail with 400 creating field 'Nombres' since it is a reserved name ", async () => {
-    checkFailCreateRequest(
+    await checkFailCreateRequest(
       {
         doctorId: doctor.roleDependentInfo.id,
         templateId: templateId,
@@ -151,7 +145,7 @@ describe('Create File Template Tests', () => {
 
   // DONE:
   test("should fail with 400 creating field 'Apellidos' since it is a reserved name ", async () => {
-    checkFailCreateRequest(
+    await checkFailCreateRequest(
       {
         doctorId: doctor.roleDependentInfo.id,
         templateId: templateId,
@@ -169,7 +163,7 @@ describe('Create File Template Tests', () => {
 
   // DONE:
   test('should fail with 403 if doctor is not the owner of the template', async () => {
-    checkFailCreateRequest(
+    await checkFailCreateRequest(
       {
         doctorId: secondDoctor.roleDependentInfo.id, // Doctor incorrecto
         templateId: templateId,
@@ -187,7 +181,7 @@ describe('Create File Template Tests', () => {
 
   // DONE:
   test('should fail with 404 if doctorId is form a non active/valid user ', async () => {
-    checkFailCreateRequest(
+    await checkFailCreateRequest(
       {
         doctorId: 'invalidDoctorId', // Doctor incorrecto
         templateId: templateId,
@@ -205,7 +199,7 @@ describe('Create File Template Tests', () => {
 
   // DONE:
   test('should fail with 404 if templateId does not exist ', async () => {
-    checkFailCreateRequest(
+    await checkFailCreateRequest(
       {
         doctorId: doctor.roleDependentInfo.id,
         templateId: 'nonExistentTemplate',
@@ -223,7 +217,7 @@ describe('Create File Template Tests', () => {
 
   // DONE:
   test('should fail with 406 due to name already exist in template', async () => {
-    checkFailCreateRequest(
+    await checkFailCreateRequest(
       {
         doctorId: doctor.roleDependentInfo.id,
         templateId: templateId,

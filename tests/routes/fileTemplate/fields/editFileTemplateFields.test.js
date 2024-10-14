@@ -20,7 +20,7 @@ describe('Edit Field from Patient Template Tests', () => {
   }
 
   async function checkFailEditRequest(body, expectedCode, expectedMsg) {
-    await checkFailRequest(
+    return checkFailRequest(
       'put',
       REQUEST_URL,
       HEADERS,
@@ -57,13 +57,12 @@ describe('Edit Field from Patient Template Tests', () => {
   })
 
   afterAll(async () => {
-    await deleteUser(doctor.id)
-    await deleteUser(secondDoctor.id)
+    await Promise.all([deleteUser(doctor.id), deleteUser(secondDoctor.id)])
   })
 
   // DONE:
   test('should fail with 400 to edit a field without templateID', async () => {
-    checkFailEditRequest(
+    await checkFailEditRequest(
       {
         doctorId: doctor.roleDependentInfo.id,
         oldFieldName: 'Edad',
@@ -81,7 +80,7 @@ describe('Edit Field from Patient Template Tests', () => {
 
   // DONE:
   test('should fail with 400 to edit a field without doctorId', async () => {
-    checkFailEditRequest(
+    await checkFailEditRequest(
       {
         templateId: doctor.roleDependentInfo.id,
         oldFieldName: 'Edad',
@@ -99,7 +98,7 @@ describe('Edit Field from Patient Template Tests', () => {
 
   // DONE:
   test('should fail with 400 to edit a field without oldFieldName', async () => {
-    checkFailEditRequest(
+    await checkFailEditRequest(
       {
         doctorId: doctor.roleDependentInfo.id,
         templateId: templateId,
@@ -117,7 +116,7 @@ describe('Edit Field from Patient Template Tests', () => {
 
   // DONE:
   test('should fail with 403 if doctor is not template owner', async () => {
-    checkFailEditRequest(
+    await checkFailEditRequest(
       {
         doctorId: secondDoctor.roleDependentInfo.id,
         templateId: templateId,
@@ -136,7 +135,7 @@ describe('Edit Field from Patient Template Tests', () => {
 
   // DONE:
   test('should fail with 404 if doctorid is from a not existent/valid user', async () => {
-    checkFailEditRequest(
+    await checkFailEditRequest(
       {
         doctorId: 'notExistentDoctor',
         templateId: templateId,
@@ -155,7 +154,7 @@ describe('Edit Field from Patient Template Tests', () => {
 
   // DONE:
   test('should fail with 404 if templateid is from a not existent/valid template', async () => {
-    checkFailEditRequest(
+    await checkFailEditRequest(
       {
         doctorId: doctor.roleDependentInfo.id,
         templateId: 'notExistentTemplate',
@@ -174,7 +173,7 @@ describe('Edit Field from Patient Template Tests', () => {
 
   // DONE:
   test('should fail with 404 if oldfieldName is from a not existent/valid field', async () => {
-    checkFailEditRequest(
+    await checkFailEditRequest(
       {
         doctorId: doctor.roleDependentInfo.id,
         templateId: templateId,
@@ -193,7 +192,7 @@ describe('Edit Field from Patient Template Tests', () => {
 
   // DONE:
   test('should fail with 406 to rename a field to a field that already has that name', async () => {
-    checkFailEditRequest(
+    await checkFailEditRequest(
       {
         doctorId: doctor.roleDependentInfo.id,
         templateId: templateId,
@@ -212,7 +211,7 @@ describe('Edit Field from Patient Template Tests', () => {
 
   // DONE:
   test("should fail with 400 to rename field to 'Nombres' since its a reserved name", async () => {
-    checkFailEditRequest(
+    await checkFailEditRequest(
       {
         doctorId: doctor.roleDependentInfo.id,
         templateId: templateId,
@@ -231,7 +230,7 @@ describe('Edit Field from Patient Template Tests', () => {
 
   // DONE:
   test("should fail with 400 to rename field to 'Apellidos' since its a reserved name", async () => {
-    checkFailEditRequest(
+    await checkFailEditRequest(
       {
         doctorId: doctor.roleDependentInfo.id,
         templateId: templateId,
@@ -265,13 +264,10 @@ describe('Edit Field from Patient Template Tests', () => {
     }
 
     try {
-      const response = await axios.put(
-        `${BASE_URL}/doctor/PatientTemplate/fields`,
-        {
-          data: fieldToEdit,
-          headers: HEADERS
-        }
-      )
+      const response = await axios.put(REQUEST_URL, {
+        data: fieldToEdit,
+        headers: HEADERS
+      })
       expect(response.status).toBe(200)
       expect(response.data.message).toBe('Field successfully edited')
     } catch (error) {
@@ -298,13 +294,10 @@ describe('Edit Field from Patient Template Tests', () => {
     }
 
     try {
-      const response = await axios.put(
-        `${BASE_URL}/doctor/PatientTemplate/fields`,
-        {
-          data: fieldToEdit,
-          headers: HEADERS
-        }
-      )
+      const response = await axios.put(REQUEST_URL, {
+        data: fieldToEdit,
+        headers: HEADERS
+      })
       expect(response.status).toBe(200)
       expect(response.data.message).toBe('Field successfully edited')
     } catch (error) {

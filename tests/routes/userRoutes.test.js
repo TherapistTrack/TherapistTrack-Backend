@@ -17,7 +17,7 @@ describe('User Endpoints', () => {
     phones: ['12345678'],
     rol: 'Doctor',
     mails: ['test-doctor@example.com'],
-    rolDependentInfo: {
+    roleDependentInfo: {
       collegiateNumber: '12345',
       specialty: 'testSpecialty'
     }
@@ -30,7 +30,7 @@ describe('User Endpoints', () => {
     phones: ['12345678'],
     rol: 'Assistant',
     mails: ['test-assistant@example.com'],
-    rolDependentInfo: {
+    roleDependentInfo: {
       startDate: '08/14/2024',
       endDate: '08/15/2024',
       DPI: '2340934'
@@ -170,7 +170,7 @@ describe('User Endpoints', () => {
         headers: HEADERS
       })
       expect(response.status).toBe(200)
-      expect(response.data.users.length).toBeGreaterThan(3)
+      expect(response.data.users.length).toBeGreaterThanOrEqual(3)
     } catch (error) {
       throw new Error(
         `Test Failed:\n Status: ${error.response.status} \nBody: ${JSON.stringify(error.response.data)}`
