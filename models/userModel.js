@@ -1,5 +1,5 @@
 const mongoose = require('mongoose')
-
+const { checkIsActive } = require('../utils/checkingTool')
 const DoctorSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.ObjectId, required: true },
@@ -66,7 +66,12 @@ const UserSchema = new mongoose.Schema(
           'One or more emails do not match the format of an email. Ex: test@mail.com'
       }
     },
-    rol: { type: String, required: true, enum: ['Doctor', 'Assistant'] },
+    rol: {
+      type: String,
+      required: true,
+      enum: ['Doctor', 'Assistant', 'Admin']
+    },
+    roleDependentInfo: { type: mongoose.Schema.ObjectId, required: false },
     isActive: { type: Boolean, required: true }
   },
   {
@@ -89,6 +94,16 @@ const findUser = async (username) => {
   }
 }
 
+const findUserByRoleID = async (roleID) => {
+  try {
+    const result = await User.findOne({ roleDependentInfo: roleID })
+    return result
+  } catch (error) {
+    console.error('Error executing MongoDB query:', error)
+    throw error
+  }
+}
+
 module.exports = {
   UserSchema,
   DoctorSchema,
@@ -96,5 +111,6 @@ module.exports = {
   User,
   Doctor,
   Assistant,
-  findUser
+  findUser,
+  findUserByRoleID
 }

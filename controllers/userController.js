@@ -1,11 +1,19 @@
-const { User, findUser, Doctor, Assistant } = require('../models/userModel')
+const { User, Doctor, Assistant } = require('../models/userModel')
+const COMMON_MSG = require('../utils/errorMsg')
 const mongoose = require('mongoose')
 
 exports.registerUser = async (req, res) => {
-  const { id, names, lastNames, phones, mails, rol, rolDependentInfo } =
+  const { id, names, lastNames, phones, mails, rol, roleDependentInfo } =
     req.body
 
   try {
+    // Check if the provided ID is a valid ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res
+        .status(400)
+        .send({ status: 'error', message: 'Invalid ID format.' })
+    }
+
     // CREATING USER
     const newUser = new User({
       _id: id,
@@ -16,38 +24,60 @@ exports.registerUser = async (req, res) => {
       mails: mails,
       isActive: true
     })
-
     await newUser.save() // Save without session
 
-    // CREATING ROLES
-    let roleInfo
+    if (rol !== 'Admin') {
+      // CREATING ROLES
+      let roleInfo
 
-    if (rol === 'Doctor') {
-      let { collegiateNumber, specialty } = rolDependentInfo
-      roleInfo = new Doctor({ user: newUser._id, collegiateNumber, specialty })
-      await roleInfo.save()
-    } else if (rol === 'Assistant') {
-      let { startDate, endDate, DPI } = rolDependentInfo
-      startDate = Date.parse(startDate)
+      if (rol === 'Doctor') {
+        let { collegiateNumber, specialty } = rolDependentInfo
+        roleInfo = new Doctor({
+          user: newUser._id,
+          collegiateNumber,
+          specialty
+        })
+        await roleInfo.save()
+      } else if (rol === 'Assistant') {
+        let { startDate, endDate, DPI } = rolDependentInfo
+        startDate = Date.parse(startDate)
 
-      // IF END DATE IS PASSED
-      if (endDate) {
-        endDate = Date.parse(endDate)
-        roleInfo = new Assistant({ user: newUser._id, startDate, endDate, DPI })
+        // IF END DATE IS PASSED
+        if (endDate) {
+          endDate = Date.parse(endDate)
+          roleInfo = new Assistant({
+            user: newUser._id,
+            startDate,
+            endDate,
+            DPI
+          })
+        } else {
+          roleInfo = new Assistant({ user: newUser._id, startDate, DPI })
+        }
+
+        await roleInfo.save()
       } else {
-        roleInfo = new Assistant({ user: newUser._id, startDate, DPI })
+        throw new Error(
+          'Invalid Role. Could only be Doctor and Assistant. Is case sensitive.'
+        )
       }
+      // Store the roleId in User to.
+      newUser.roleDependentInfo = roleInfo._id
+      await newUser.save()
 
-      await roleInfo.save()
-    } else {
-      throw new Error(
-        'Invalid Role. Could only be Doctor and Assistant. Is case sensitive.'
-      )
+      return res.status(201).send({
+        status: 201,
+        message: COMMON_MSG.REQUEST_SUCCESS,
+        userId: id,
+        roleId: roleInfo._id
+      })
     }
 
-    return res
-      .status(201)
-      .send({ status: 'success', message: 'User registered successfully' })
+    return res.status(201).send({
+      status: 201,
+      message: COMMON_MSG.REQUEST_SUCCESS,
+      userId: id
+    })
   } catch (error) {
     if (error.code === 11000) {
       return res
@@ -64,8 +94,16 @@ exports.registerUser = async (req, res) => {
 // TODO:  YOU SHOULD NOT BE ABLE TO INACTIVATE YOURSELF
 exports.deleteUser = async (req, res) => {
   try {
+    const id = req.body.id
+    // Check if the provided ID is a valid ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res
+        .status(400)
+        .send({ status: 'error', message: 'Invalid ID format.' })
+    }
+
     const result = await User.updateOne(
-      { _id: req.body.id },
+      { _id: id },
       { $set: { isActive: false } }
     )
     res
@@ -78,10 +116,16 @@ exports.deleteUser = async (req, res) => {
 
 exports.updateUser = async (req, res) => {
   try {
-    const { id, names, lastNames, phones, mails, rol, rolDependentInfo } =
+    const { id, names, lastNames, phones, mails, rol, roleDependentInfo } =
       req.body
     if (!id || !rol) {
       throw new Error('And User ID and rol must be provided.')
+    }
+    // Check if the provided ID is a valid ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res
+        .status(400)
+        .send({ status: 'error', message: 'Invalid ID format.' })
     }
     await User.updateOne(
       { _id: id },
@@ -95,9 +139,9 @@ exports.updateUser = async (req, res) => {
       }
     )
     if (rol === 'Doctor') {
-      await Doctor.updateOne({ user: id }, { $set: rolDependentInfo })
-    } else if (rol == 'Assistant') {
-      await Assistant.updateOne({ user: id }, { $set: rolDependentInfo })
+      await Doctor.updateOne({ user: id }, { $set: roleDependentInfo })
+    } else if (rol === 'Assistant') {
+      await Assistant.updateOne({ user: id }, { $set: roleDependentInfo })
     }
     res.send({ status: 'success', message: 'User updated successfully' })
   } catch (error) {
@@ -111,11 +155,22 @@ const getUserById = async (id) => {
     throw new Error('User not found')
   }
 
-  let rolInfo
-  if (user.rol === 'Doctor') {
-    rolInfo = await Doctor.find({ user: id }).exec()
-  } else if (rol === 'Assistant') {
-    rolInfo = await Assistant.find({ user: id }).exec()
+  let rolInfo = undefined
+  if (user.rol !== 'Admin') {
+    if (user.rol === 'Doctor') {
+      rolInfo = await Doctor.findOne({ user: id }).lean().exec()
+    } else if (user.rol === 'Assistant') {
+      rolInfo = await Assistant.findOne({ user: id }).lean().exec()
+    } else {
+      throw new Error(
+        'User role not valid, must be Admin, Doctor or Assistant.'
+      )
+    }
+    rolInfo.id = rolInfo._id
+    delete rolInfo._id
+    delete rolInfo.__v
+    delete rolInfo.user
+    // console.log(JSON.stringify(rolInfo, '', '\t'))
   }
 
   const {
@@ -129,6 +184,7 @@ const getUserById = async (id) => {
     createdAt,
     updatedAt
   } = user
+
   return {
     id: _id,
     names,
@@ -139,13 +195,19 @@ const getUserById = async (id) => {
     isActive,
     createdAt,
     updatedAt,
-    rolDependentInfo: rolInfo
+    roleDependentInfo: rolInfo
   }
 }
 
 exports.getMe = async (req, res) => {
   try {
     const id = req.body.id
+    // Check if the provided ID is a valid ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res
+        .status(400)
+        .send({ status: 'error', message: 'Invalid ID format.' })
+    }
     const response = await getUserById(id)
 
     res.status(200).json({ status: 'success', data: response })
@@ -157,6 +219,12 @@ exports.getMe = async (req, res) => {
 exports.getUser = async (req, res) => {
   try {
     const id = req.params.id
+    // Check if the provided ID is a valid ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res
+        .status(400)
+        .send({ status: 'error', message: 'Invalid ID format.' })
+    }
     const response = await getUserById(id)
 
     res.status(200).json({ status: 'success', data: response })
@@ -168,14 +236,15 @@ exports.getUser = async (req, res) => {
 exports.listUser = async (req, res) => {
   try {
     const users = await User.find({ isActive: true })
-      .select('_id names lastNames')
+      .select('_id names lastNames, rol')
       .exec()
 
     // Transform the data to rename _id to id
     const transformedUsers = users.map((user) => ({
       id: user._id, // Rename _id to id
       names: user.names,
-      lastNames: user.lastNames
+      lastNames: user.lastNames,
+      role: user.rol
     }))
 
     res.status(200).json({ status: 'success', users: transformedUsers })

@@ -48,8 +48,26 @@ userRegister:
     responses:
       '201':
         description: Usuario creado exitosamente.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status: 
+                  type: integer
+                message:: 
+                  type: string
+                userId:
+                  type: string
+                roleId:
+                  type: string
+                  description: Is the id in the collection for doctor or assistant
       '400':
         description: Error al crear el usuario.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
 
 userDelete:
   delete:
@@ -70,8 +88,16 @@ userDelete:
     responses:
       '200':
         description: Usuario desactivado exitosamente.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
       '400':
         description: Usuario no encontrado.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
 
 userUpdate:
   put:
@@ -126,8 +152,16 @@ userUpdate:
     responses:
       '200':
         description: Información de usuario actualizada exitosamente.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
       '400':
         description: Usuario no encontrado.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
 
 userList:
   get:
@@ -173,6 +207,8 @@ userGetByID:
               type: object
               properties:
                 status:
+                  type: integer
+                message:
                   type: string
                 data: 
                   type: object
@@ -199,6 +235,9 @@ userGetByID:
                       type: object
                       description: Info especifica del rol (Doctor, Asistente) SOLO enviar campos dependiendo del rol.
                       properties:
+                        id:
+                          type: string
+                          description: doctorId or assistantId of the user
                         collegiateNumber:
                           type: string
                           description: Campo especifico de Doctor
@@ -214,6 +253,12 @@ userGetByID:
                         DPI:
                           type: string
                           description: Campo especifico de asistente
+      '400':
+        description: Usuario no encontrado.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
 
 userMe:
   post:
@@ -240,6 +285,8 @@ userMe:
               type: object
               properties:
                 status: 
+                  type: integer
+                message: 
                   type: string
                 data: 
                   type: object
@@ -266,6 +313,9 @@ userMe:
                       type: object
                       description: Info especifica del rol (Doctor, Asistente) SOLO enviar campos dependiendo del rol.
                       properties:
+                        id:
+                          type: string
+                          description: doctorId or assistantId of the user
                         collegiateNumber:
                           type: string
                           description: Campo especifico de Doctor
@@ -281,3 +331,19 @@ userMe:
                         DPI:
                           type: string
                           description: Campo especifico de asistente
+      '400':
+        description: Usuario no encontrado.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+                          
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        status: 
+          type: integer
+        message: 
+          type: string

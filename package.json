@@ -13,7 +13,8 @@
     "format": "npm run prettier:fix && npm run lint:fix",
     "commit": "cz",
     "prepare": "husky",
-    "dev": "nodemon ./server.js"
+    "dev": "nodemon ./server.js",
+    "docs": "redocly preview-docs ./docs/api-spec.yaml"
   },
   "keywords": [],
   "author": "",
@@ -25,13 +26,14 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
+    "express-oauth2-jwt-bearer": "^1.6.0",
     "form-data": "^4.0.0",
     "husky": "^9.0.11",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.5.0",
     "mongoose": "^8.3.2",
     "multer": "^1.4.5-lts.1",
-    "winston": "^3.14.1"
+    "winston": "^3.14.2"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.3.0",

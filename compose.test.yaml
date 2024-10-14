@@ -41,6 +41,10 @@ services:
       AWS_REGION: '${AWS_REGION}'
       AWS_BUCKET_NAME: '${AWS_BUCKET_NAME}'
       AWS_BUCKET_NAME_TEST: '${AWS_BUCKET_NAME_TEST}'
+      AUTH_ISSUER_BASE_URL: '${AUTH_ISSUER_BASE_URL}'
+      AUTH_AUDIENCE: '${AUTH_AUDIENCE}'
+      AUTH_CLIENT_ID: '${AUTH_CLIENT_ID}'
+      AUTH_CLIENT_SECRET: '${AUTH_CLIENT_SECRET}'
     volumes:
       - backend_logs:/backend/logs
 
