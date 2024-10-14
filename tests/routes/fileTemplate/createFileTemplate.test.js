@@ -75,7 +75,7 @@ describe('Create Patient Template Tests', () => {
     }
 
     try {
-      const response = await axios.post(`${BASE_URL}/doctor/PatientTemplate`, {
+      const response = await axios.post(REQUEST_URL, {
         data: testTemplate,
         headers: HEADERS
       })
@@ -121,7 +121,7 @@ describe('Create Patient Template Tests', () => {
 
   // DONE:
   test('should trigger a 400 when passed a malformed fields list', async () => {
-    checkFailCreateRequest(
+    await checkFailCreateRequest(
       {
         doctorId: doctorId,
         name: `testTemplate_${Date.now()}`,
@@ -134,7 +134,7 @@ describe('Create Patient Template Tests', () => {
 
   // DONE:
   test('should fail with 400  with CHOICE field but not options attribute defined', async () => {
-    checkFailCreateRequest(
+    await checkFailCreateRequest(
       {
         doctorId: doctorId,
         name: `testTemplate_${Date.now()}`,
@@ -154,7 +154,7 @@ describe('Create Patient Template Tests', () => {
 
   // DONE:
   test('should fail with 400 with field "Nombres" since its a reserved name', async () => {
-    checkFailCreateRequest(
+    await checkFailCreateRequest(
       {
         doctorId: doctorId,
         name: `testTemplate_${Date.now()}`,
@@ -174,7 +174,7 @@ describe('Create Patient Template Tests', () => {
 
   // DONE:
   test('should fail with 400 with field "Apellidos" since its a reserved name', async () => {
-    checkFailCreateRequest(
+    await checkFailCreateRequest(
       {
         doctorId: doctorId,
         name: `testTemplate_${Date.now()}`,
@@ -194,7 +194,7 @@ describe('Create Patient Template Tests', () => {
 
   // DONE:
   test('should fail with 404 to create a patient template with a non-existent doctorId', async () => {
-    checkFailCreateRequest(
+    await checkFailCreateRequest(
       {
         doctorId: 'nonExistentDoctorId',
         name: `testTemplate_${Date.now()}`,
@@ -221,7 +221,7 @@ describe('Create Patient Template Tests', () => {
 
   // DONE:
   test('should fail with 406 when creating a patient template with an existing name', async () => {
-    checkFailCreateRequest(
+    await checkFailCreateRequest(
       {
         doctorId: doctorId,
         name: 'testTemplate',
