@@ -33,7 +33,7 @@ describe('Create Patient Template Tests', () => {
   beforeAll(async () => {
     const doctor = await createTestDoctor()
     userId = doctor.id
-    doctorId = doctor.rolDependentInfo.id
+    doctorId = doctor.roleDependentInfo.id
   })
 
   afterAll(async () => {
