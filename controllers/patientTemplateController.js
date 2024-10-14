@@ -11,7 +11,7 @@ exports.createTemplate = async (req, res) => {
     if (!doctorId || !name || !categories || !fields) {
       return res
         .status(400)
-        .json({ status: 'error', message: COMMON_MSG.MISSING_FIELDS })
+        .json({ status: 400, message: COMMON_MSG.MISSING_FIELDS })
     }
 
 
@@ -23,7 +23,7 @@ exports.createTemplate = async (req, res) => {
     ) {
       return res
         .status(400)
-        .json({ status: 'error', message: COMMON_MSG.MISSING_FIELDS })
+        .json({ status: 400, message: COMMON_MSG.MISSING_FIELDS })
     }
 
     const fieldNames = fields.map((field) => field.name)
@@ -33,7 +33,7 @@ exports.createTemplate = async (req, res) => {
     if (duplicateFields.length > 0) {
       return res
         .status(400)
-        .json({ status: 'error', message: COMMON_MSG.DUPLICATE_FIELD_NAMES })
+        .json({ status: 400, message: COMMON_MSG.DUPLICATE_FIELD_NAMES })
     }
 
     const reservedNames = ['Nombres', 'Apellidos']
@@ -41,13 +41,13 @@ exports.createTemplate = async (req, res) => {
       if (reservedNames.includes(field.name)) {
         return res
           .status(400)
-          .json({ status: 'error', message: COMMON_MSG.RESERVED_FIELD_NAMES })
+          .json({ status: 400, message: COMMON_MSG.RESERVED_FIELD_NAMES })
       }
 
       if (field.type === 'CHOICE' && !field.options) {
         return res
           .status(400)
-          .json({ status: 'error', message: COMMON_MSG.MISSING_FIELDS })
+          .json({ status: 400, message: COMMON_MSG.MISSING_FIELDS })
       }
     }
 
@@ -55,14 +55,14 @@ exports.createTemplate = async (req, res) => {
     if (existingTemplate) {
       return res
         .status(406)
-        .json({ status: 'error', message: COMMON_MSG.RECORDS_USING })
+        .json({ status: 400, message: COMMON_MSG.RECORDS_USING })
     }
 
     const isValidObjectId = mongoose.Types.ObjectId.isValid(doctorId)
     if (!isValidObjectId) {
       return res
         .status(404)
-        .json({ status: 'error', message: COMMON_MSG.DOCTOR_NOT_FOUND })
+        .json({ status: 400, message: COMMON_MSG.DOCTOR_NOT_FOUND })
     }
 
     const template = new PatientTemplate({
@@ -73,6 +73,7 @@ exports.createTemplate = async (req, res) => {
     })
     const patientTemplate = await template.save()
     res.status(201).json({
+      status: 200,
       message: COMMON_MSG.REQUEST_SUCCESS,
       data: { patientTemplateId: patientTemplate._id }
     })
@@ -88,22 +89,21 @@ exports.renameTemplate = async (req, res) => {
     if (!doctorId || !templateId || !name) {
       return res
         .status(400)
-        .send({ status: 'error', message: COMMON_MSG.MISSING_FIELDS })
-
+        .send({ status: 400, message: COMMON_MSG.MISSING_FIELDS })
     }
 
     const isValidObjectId = mongoose.Types.ObjectId.isValid(doctorId)
     if (!isValidObjectId) {
       return res
         .status(404)
-        .json({ status: 'error', message: COMMON_MSG.DOCTOR_NOT_FOUND })
+        .json({ status: 404, message: COMMON_MSG.DOCTOR_NOT_FOUND })
     }
 
     const isValidTemplateId = mongoose.Types.ObjectId.isValid(templateId)
     if (!isValidTemplateId) {
       return res
         .status(404)
-        .json({ status: 'error', message: COMMON_MSG.TEMPLATE_NOT_FOUND })
+        .json({ status: 404, message: COMMON_MSG.TEMPLATE_NOT_FOUND })
     }
 
     const patientemplate = await PatientTemplate.findById(templateId)
@@ -111,20 +111,20 @@ exports.renameTemplate = async (req, res) => {
     if (!patientemplate) {
       return res
         .status(404)
-        .json({ status: 'error', message: COMMON_MSG.TEMPLATE_NOT_FOUND })
+        .json({ status: 404, message: COMMON_MSG.TEMPLATE_NOT_FOUND })
     }
 
     if (patientemplate.doctor.toString() !== doctorId) {
       return res
         .status(403)
-        .send({ status: 'error', message: COMMON_MSG.DOCTOR_IS_NOT_OWNER })
+        .send({ status: 403, message: COMMON_MSG.DOCTOR_IS_NOT_OWNER })
     }
 
     const existingTemplate = await PatientTemplate.findOne({ name })
     if (existingTemplate) {
       return res
         .status(406)
-        .json({ status: 'error', message: COMMON_MSG.RECORDS_USING })
+        .json({ status: 406, message: COMMON_MSG.RECORDS_USING })
     }
 
     const updatedTemplate = await PatientTemplate.findByIdAndUpdate(
@@ -134,7 +134,7 @@ exports.renameTemplate = async (req, res) => {
     )
 
     res.status(200).json({
-
+      status: 200,
       message: COMMON_MSG.REQUEST_SUCCESS,
       data: [updatedTemplate.doctor, updatedTemplate._id]
     })
@@ -151,14 +151,14 @@ exports.deleteTemplate = async (req, res) => {
     if (!doctorId || !templateId) {
       return res
         .status(400)
-        .json({ status: 'error', message: COMMON_MSG.MISSING_FIELDS })
+        .json({ status: 400, message: COMMON_MSG.MISSING_FIELDS })
     }
 
     const isValidObjectId2 = mongoose.Types.ObjectId.isValid(templateId)
     if (!isValidObjectId2) {
       return res
         .status(404)
-        .json({ status: 'error', message: COMMON_MSG.TEMPLATE_NOT_FOUND })
+        .json({ status: 404, message: COMMON_MSG.TEMPLATE_NOT_FOUND })
     }
 
     const patientemplate = await PatientTemplate.findById(templateId)
@@ -166,20 +166,20 @@ exports.deleteTemplate = async (req, res) => {
     if (!patientemplate) {
       return res
         .status(404)
-        .json({ status: 'error', message: COMMON_MSG.TEMPLATE_NOT_FOUND })
+        .json({ status: 404, message: COMMON_MSG.TEMPLATE_NOT_FOUND })
     }
 
     const isValidObjectId = mongoose.Types.ObjectId.isValid(doctorId)
     if (!isValidObjectId) {
       return res
         .status(404)
-        .json({ status: 'error', message: COMMON_MSG.DOCTOR_NOT_FOUND })
+        .json({ status: 404, message: COMMON_MSG.DOCTOR_NOT_FOUND })
     }
 
     if (patientemplate.doctor.toString() !== doctorId) {
       return res
         .status(403)
-        .json({ status: 'error', message: COMMON_MSG.DOCTOR_IS_NOT_OWNER })
+        .json({ status: 403, message: COMMON_MSG.DOCTOR_IS_NOT_OWNER })
     }
 
     /* Cuando se tenga Record, se utilizara esta programacion defensiva
@@ -192,6 +192,7 @@ exports.deleteTemplate = async (req, res) => {
     await PatientTemplate.findByIdAndDelete(templateId)
 
     res.status(200).json({
+      status: 200,
       message: COMMON_MSG.REQUEST_SUCCESS
     })
   } catch (error) {
@@ -206,21 +207,21 @@ exports.getTemplate = async (req, res) => {
     if (!doctorId || !templateId) {
       return res
         .status(400)
-        .send({ status: 'error', message: COMMON_MSG.MISSING_FIELDS })
+        .send({ status: 400, message: COMMON_MSG.MISSING_FIELDS })
     }
 
     const isValidObjectId = mongoose.Types.ObjectId.isValid(doctorId)
     if (!isValidObjectId) {
       return res
         .status(404)
-        .json({ status: 'error', message: COMMON_MSG.DOCTOR_NOT_FOUND })
+        .json({ status: 404, message: COMMON_MSG.DOCTOR_NOT_FOUND })
     }
 
     const isValidObjectId2 = mongoose.Types.ObjectId.isValid(templateId)
     if (!isValidObjectId2) {
       return res
         .status(404)
-        .json({ status: 'error', message: COMMON_MSG.TEMPLATE_NOT_FOUND })
+        .json({ status: 404, message: COMMON_MSG.TEMPLATE_NOT_FOUND })
     }
 
     const patientemplate = await PatientTemplate.findById(templateId).lean()
@@ -228,18 +229,19 @@ exports.getTemplate = async (req, res) => {
     if (!patientemplate) {
       return res
         .status(404)
-        .send({ status: 'error', message: COMMON_MSG.TEMPLATE_NOT_FOUND })
+        .send({ status: 404, message: COMMON_MSG.TEMPLATE_NOT_FOUND })
     }
 
     if (patientemplate.doctor.toString() !== doctorId) {
       return res
         .status(403)
-        .send({ status: 'error', message: COMMON_MSG.DOCTOR_IS_NOT_OWNER })
+        .send({ status: 403, message: COMMON_MSG.DOCTOR_IS_NOT_OWNER })
     }
 
     const { _id, doctor, __v, ...filteredTemplate } = patientemplate
 
     res.status(200).json({
+      status: 200,
       message: COMMON_MSG.REQUEST_SUCCESS,
       data: filteredTemplate
     })
@@ -255,14 +257,14 @@ exports.getTemplatesDoctor = async (req, res) => {
     if (!doctorId) {
       return res
         .status(400)
-        .send({ status: 'error', message: COMMON_MSG.MISSING_FIELDS })
+        .send({ status: 400, message: COMMON_MSG.MISSING_FIELDS })
     }
 
     const isValidObjectId = mongoose.Types.ObjectId.isValid(doctorId)
     if (!isValidObjectId) {
       return res
         .status(404)
-        .json({ status: 'error', message: COMMON_MSG.DOCTOR_NOT_FOUND })
+        .json({ status: 404, message: COMMON_MSG.DOCTOR_NOT_FOUND })
     }
 
     const patientemplates = await PatientTemplate.find({
@@ -272,29 +274,28 @@ exports.getTemplatesDoctor = async (req, res) => {
     if (!patientemplates || patientemplates.length === 0) {
       return res
         .status(404)
-        .send({ status: 'error', message: COMMON_MSG.TEMPLATE_NOT_FOUND })
+        .send({ status: 404, message: COMMON_MSG.TEMPLATE_NOT_FOUND })
     }
 
     for (let i = 0; i < patientemplates.length; i++) {
       if (patientemplates[i].doctor.toString() !== doctorId) {
         return res
           .status(403)
-          .send({ status: 'error', message: COMMON_MSG.DOCTOR_IS_NOT_OWNER })
+          .send({ status: 403, message: COMMON_MSG.DOCTOR_IS_NOT_OWNER })
       }
     }
 
     // Mapear los templates eliminando los campos _id y __v
     const templatesWithId = patientemplates.map((template) => {
-      const { _id, __v, ...rest } = template // Extraer _id y __v, dejando el resto
+      const { _id, __v, doctor, ...rest } = template // Extraer _id y __v, dejando el resto
       return { ...rest, templateId: _id } // Retornar el objeto con templateId en lugar de _id
     })
 
-    const total = await PatientTemplate.countDocuments({ doctorId })
-
     res.status(200).json({
+      status: 200,
       message: COMMON_MSG.REQUEST_SUCCESS,
       templates: templatesWithId,
-      total: total
+      total: templatesWithId.length
     })
   } catch (error) {
     res.status(500).json({ error: COMMON_MSG.INTERNAL_SERVER_ERROR })
@@ -310,58 +311,58 @@ exports.createField = async (req, res) => {
     if (!doctorId || !templateId || !field) {
       return res
         .status(400)
-        .send({ status: 'error', message: COMMON_MSG.MISSING_FIELDS })
+        .send({ status: 400, message: COMMON_MSG.MISSING_FIELDS })
     }
 
     if (!mongoose.Types.ObjectId.isValid(doctorId)) {
       return res
         .status(404)
-        .json({ status: 'error', message: COMMON_MSG.DOCTOR_NOT_FOUND })
+        .json({ status: 404, message: COMMON_MSG.DOCTOR_NOT_FOUND })
     }
 
     if (!mongoose.Types.ObjectId.isValid(templateId)) {
       return res
         .status(404)
-        .json({ status: 'error', message: COMMON_MSG.TEMPLATE_NOT_FOUND })
+        .json({ status: 404, message: COMMON_MSG.TEMPLATE_NOT_FOUND })
     }
 
     const doctor = await findUserByRoleID(doctorId)
     if (!doctor) {
       return res
         .status(404)
-        .json({ status: 'error', message: COMMON_MSG.DOCTOR_NOT_FOUND })
+        .json({ status: 404, message: COMMON_MSG.DOCTOR_NOT_FOUND })
     }
 
     if (!doctor.isActive) {
       return res
         .status(403)
-        .json({ status: 'error', message: COMMON_MSG.DOCTOR_INACTIVE })
+        .json({ status: 403, message: COMMON_MSG.DOCTOR_INACTIVE })
     }
 
     const patientemplate = await PatientTemplate.findById(templateId)
     if (!patientemplate) {
       return res
         .status(404)
-        .send({ status: 'error', message: COMMON_MSG.TEMPLATE_NOT_FOUND })
+        .send({ status: 404, message: COMMON_MSG.TEMPLATE_NOT_FOUND })
     }
 
     if (patientemplate.doctor.toString() !== doctorId) {
       return res
         .status(403)
-        .send({ status: 'error', message: COMMON_MSG.DOCTOR_IS_NOT_OWNER })
+        .send({ status: 403, message: COMMON_MSG.DOCTOR_IS_NOT_OWNER })
     }
 
     const reservedNames = ['Nombres', 'Apellidos']
     if (reservedNames.includes(field.name)) {
       return res
         .status(400)
-        .json({ status: 'error', message: COMMON_MSG.RESERVED_FIELD_NAMES })
+        .json({ status: 400, message: COMMON_MSG.RESERVED_FIELD_NAMES })
     }
 
     if (field.type === 'CHOICE' && !field.options) {
       return res
         .status(400)
-        .json({ status: 'error', message: COMMON_MSG.MISSING_FIELDS })
+        .json({ status: 400, message: COMMON_MSG.MISSING_FIELDS })
     }
 
     const fieldExists = patientemplate.fields.some(
@@ -370,7 +371,7 @@ exports.createField = async (req, res) => {
     if (fieldExists) {
       return res
         .status(406)
-        .send({ status: 'error', message: COMMON_MSG.RECORDS_USING })
+        .send({ status: 406, message: COMMON_MSG.RECORDS_USING })
     }
 
     const updatedTemplate = await PatientTemplate.findByIdAndUpdate(
@@ -380,7 +381,7 @@ exports.createField = async (req, res) => {
     )
 
     res.status(200).json({
-      status: 0,
+      status: 200,
       message: COMMON_MSG.REQUEST_SUCCESS,
       data: updatedTemplate
     })
@@ -396,19 +397,19 @@ exports.deleteField = async (req, res) => {
     if (!doctorId || !templateId || !name) {
       return res
         .status(400)
-        .json({ status: 'error', message: COMMON_MSG.MISSING_FIELDS })
+        .json({ status: 400, message: COMMON_MSG.MISSING_FIELDS })
     }
 
     if (!mongoose.Types.ObjectId.isValid(doctorId)) {
       return res
         .status(404)
-        .json({ status: 'error', message: COMMON_MSG.DOCTOR_NOT_FOUND })
+        .json({ status: 404, message: COMMON_MSG.DOCTOR_NOT_FOUND })
     }
 
     if (!mongoose.Types.ObjectId.isValid(templateId)) {
       return res
         .status(404)
-        .json({ status: 'error', message: COMMON_MSG.TEMPLATE_NOT_FOUND })
+        .json({ status: 404, message: COMMON_MSG.TEMPLATE_NOT_FOUND })
     }
 
     const patientemplate = await PatientTemplate.findById(templateId)
@@ -416,13 +417,13 @@ exports.deleteField = async (req, res) => {
     if (!patientemplate) {
       return res
         .status(404)
-        .json({ status: 'error', message: COMMON_MSG.TEMPLATE_NOT_FOUND })
+        .json({ status: 404, message: COMMON_MSG.TEMPLATE_NOT_FOUND })
     }
 
     if (patientemplate.doctor.toString() !== doctorId) {
       return res
         .status(403)
-        .json({ status: 'error', message: COMMON_MSG.DOCTOR_IS_NOT_OWNER })
+        .json({ status: 403, message: COMMON_MSG.DOCTOR_IS_NOT_OWNER })
     }
 
     const fieldExists = patientemplate.fields.some(
@@ -431,7 +432,7 @@ exports.deleteField = async (req, res) => {
     if (!fieldExists) {
       return res
         .status(404)
-        .json({ status: 'error', message: COMMON_MSG.FIELD_NOT_FOUND })
+        .json({ status: 404, message: COMMON_MSG.FIELD_NOT_FOUND })
     }
 
     const updatedTemplate = await PatientTemplate.findByIdAndUpdate(
@@ -441,7 +442,7 @@ exports.deleteField = async (req, res) => {
     )
 
     res.status(200).json({
-      status: 0,
+      status: 200,
       message: COMMON_MSG.REQUEST_SUCCESS,
       data: updatedTemplate
     })
@@ -457,19 +458,19 @@ exports.updateField = async (req, res) => {
     if (!doctorId || !templateId || !oldFieldName || !fieldData) {
       return res
         .status(400)
-        .json({ status: 'error', message: COMMON_MSG.MISSING_FIELDS })
+        .json({ status: 400, message: COMMON_MSG.MISSING_FIELDS })
     }
 
     if (!mongoose.Types.ObjectId.isValid(doctorId)) {
       return res
         .status(404)
-        .json({ status: 'error', message: COMMON_MSG.DOCTOR_NOT_FOUND })
+        .json({ status: 404, message: COMMON_MSG.DOCTOR_NOT_FOUND })
     }
 
     if (!mongoose.Types.ObjectId.isValid(templateId)) {
       return res
         .status(404)
-        .json({ status: 'error', message: COMMON_MSG.TEMPLATE_NOT_FOUND })
+        .json({ status: 404, message: COMMON_MSG.TEMPLATE_NOT_FOUND })
     }
 
     const patientemplate = await PatientTemplate.findById(templateId)
@@ -477,13 +478,13 @@ exports.updateField = async (req, res) => {
     if (!patientemplate) {
       return res
         .status(404)
-        .json({ status: 'error', message: COMMON_MSG.TEMPLATE_NOT_FOUND })
+        .json({ status: 404, message: COMMON_MSG.TEMPLATE_NOT_FOUND })
     }
 
     if (patientemplate.doctor.toString() !== doctorId) {
       return res
         .status(403)
-        .json({ status: 'error', message: COMMON_MSG.DOCTOR_IS_NOT_OWNER })
+        .json({ status: 403, message: COMMON_MSG.DOCTOR_IS_NOT_OWNER })
     }
 
     const fieldIndex = patientemplate.fields.findIndex(
@@ -493,14 +494,14 @@ exports.updateField = async (req, res) => {
     if (fieldIndex === -1) {
       return res
         .status(404)
-        .json({ status: 'error', message: COMMON_MSG.FIELD_NOT_FOUND })
+        .json({ status: 404, message: COMMON_MSG.FIELD_NOT_FOUND })
     }
 
     const reservedNames = ['Nombres', 'Apellidos']
     if (reservedNames.includes(fieldData.name)) {
       return res
         .status(400)
-        .json({ status: 'error', message: COMMON_MSG.RESERVED_FIELD_NAMES })
+        .json({ status: 400, message: COMMON_MSG.RESERVED_FIELD_NAMES })
     }
 
     const nameConflict = patientemplate.fields.some(
@@ -511,7 +512,7 @@ exports.updateField = async (req, res) => {
     if (nameConflict) {
       return res
         .status(406)
-        .json({ status: 'error', message: COMMON_MSG.RECORDS_USING })
+        .json({ status: 406, message: COMMON_MSG.RECORDS_USING })
     }
 
     patientemplate.fields[fieldIndex].name = fieldData.name
@@ -523,7 +524,7 @@ exports.updateField = async (req, res) => {
     const updatedTemplate = await patientemplate.save()
 
     res.status(200).json({
-      status: 0,
+      status: 200,
       message: COMMON_MSG.REQUEST_SUCCESS,
       data: updatedTemplate
     })
