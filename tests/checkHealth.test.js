@@ -13,7 +13,7 @@ describe('Check API health', () => {
     }
   })
 
-  it('Should return 200 code', async () => {
+  test('Should return 200 code', async () => {
     console.log(BASE_URL)
     const response = await axios.get(`${BASE_URL}/health`, { headers })
     console.log(response.data)
