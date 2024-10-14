@@ -285,17 +285,15 @@ exports.getTemplatesDoctor = async (req, res) => {
 
     // Mapear los templates eliminando los campos _id y __v
     const templatesWithId = patientemplates.map((template) => {
-      const { _id, __v, ...rest } = template // Extraer _id y __v, dejando el resto
+      const { _id, __v, doctor, ...rest } = template // Extraer _id y __v, dejando el resto
       return { ...rest, templateId: _id } // Retornar el objeto con templateId en lugar de _id
     })
-
-    const total = await PatientTemplate.countDocuments({ doctorId })
 
     res.status(200).json({
       status: 200,
       message: COMMON_MSG.REQUEST_SUCCESS,
       templates: templatesWithId,
-      total: total
+      total: templatesWithId.length
     })
   } catch (error) {
     res.status(500).json({ error: COMMON_MSG.INTERNAL_SERVER_ERROR })
