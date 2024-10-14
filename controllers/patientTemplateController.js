@@ -14,6 +14,7 @@ exports.createTemplate = async (req, res) => {
         .json({ status: 400, message: COMMON_MSG.MISSING_FIELDS })
     }
 
+
     if (
       !Array.isArray(fields) ||
       fields.length === 0 ||
@@ -138,6 +139,7 @@ exports.renameTemplate = async (req, res) => {
       data: [updatedTemplate.doctor, updatedTemplate._id]
     })
   } catch (error) {
+
     res.status(500).json({ error: COMMON_MSG.INTERNAL_SERVER_ERROR })
   }
 }

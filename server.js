@@ -27,13 +27,13 @@ async function main() {
   app.use('/users', userRoutes)
   app.use('/files', fileRoutes)
   app.use('/doctor', patientTemplateRoutes)
-
   app.get('/health', async (req, res) => {
     res.status(200).send({ message: 'API is up!' })
   })
 
   // Error Handling Middleware
   app.use((err, req, res, next) => {
+    // console.log(err.stack)
     if (err instanceof UnauthorizedError) {
       return res
         .status(401)
