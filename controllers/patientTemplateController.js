@@ -46,12 +46,16 @@ exports.createTemplate = async (req, res) => {
       fields
     })
     const patientTemplate = await template.save()
+
     res.status(201).json({
       status: 200,
       message: COMMON_MSG.REQUEST_SUCCESS,
       data: { patientTemplateId: patientTemplate._id }
     })
   } catch (error) {
+    // Rollback: Eliminar la plantilla creada si ocurre un error
+    await PatientTemplate.deleteOne({ name: req.body.name })
+
     if (!res.headersSent) {
       res.status(500).json({ error: COMMON_MSG.INTERNAL_SERVER_ERROR })
     }
@@ -276,7 +280,11 @@ exports.createField = async (req, res) => {
       data: updatedTemplate
     })
   } catch (error) {
-    console.log(error.message)
+    // Rollback: Eliminar el campo recién agregado si hay un error
+    await PatientTemplate.findByIdAndUpdate(templateId, {
+      $pull: { fields: { name: field.name } }
+    })
+
     if (!res.headersSent) {
       res.status(500).json({ error: COMMON_MSG.INTERNAL_SERVER_ERROR })
     }
@@ -330,6 +338,11 @@ exports.deleteField = async (req, res) => {
       data: updatedTemplate
     })
   } catch (error) {
+    // Rollback: Volver a agregar el campo si hay un error
+    await PatientTemplate.findByIdAndUpdate(templateId, {
+      $push: { fields: fieldToRemove }
+    })
+
     res.status(500).json({ error: error.message })
   }
 }
@@ -401,6 +414,10 @@ exports.updateField = async (req, res) => {
       data: updatedTemplate
     })
   } catch (error) {
+    // Rollback: Revertir el campo a su estado original si hay un error
+    patientemplate.fields[fieldIndex] = originalField
+    await patientemplate.save()
+
     res.status(500).json({ error: error.message })
   }
 }
