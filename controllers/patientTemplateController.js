@@ -237,12 +237,6 @@ exports.createField = async (req, res) => {
     if (!validMongoId(res, templateId, COMMON_MSG.TEMPLATE_NOT_FOUND)) return
 
     const doctor = await findUserByRoleID(doctorId)
-    if (!doctor) {
-      return res
-        .status(404)
-        .json({ status: 404, message: COMMON_MSG.DOCTOR_NOT_FOUND })
-    }
-
     if (!doctor.isActive) {
       return res
         .status(403)
