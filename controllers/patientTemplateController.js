@@ -68,27 +68,20 @@ exports.renameTemplate = async (req, res) => {
 
     if (!validMongoId(res, templateId, COMMON_MSG.TEMPLATE_NOT_FOUND)) return
 
-    if (
-      !(await checkExistenceId(
+    // Ejecutar las tres validaciones en paralelo
+    const [templateExists, doctorIsOwner, nameExists] = await Promise.all([
+      checkExistenceId(
         res,
         PatientTemplate,
         templateId,
         COMMON_MSG.TEMPLATE_NOT_FOUND
-      ))
-    )
-      return
+      ),
+      checkDoctor(res, PatientTemplate, doctorId, templateId),
+      checkExistenceName(res, PatientTemplate, name, COMMON_MSG.RECORDS_USING)
+    ])
 
-    if (!(await checkDoctor(res, PatientTemplate, doctorId, templateId))) return
-
-    if (
-      !(await checkExistenceName(
-        res,
-        PatientTemplate,
-        name,
-        COMMON_MSG.RECORDS_USING
-      ))
-    )
-      return
+    // Verificar si alguna validación ha fallado
+    if (!templateExists || !doctorIsOwner || !nameExists) return
 
     const updatedTemplate = await PatientTemplate.findByIdAndUpdate(
       templateId,
@@ -114,19 +107,21 @@ exports.deleteTemplate = async (req, res) => {
 
     if (!validMongoId(res, templateId, COMMON_MSG.TEMPLATE_NOT_FOUND)) return
 
-    if (
-      !(await checkExistenceId(
+    if (!validMongoId(res, doctorId, COMMON_MSG.DOCTOR_NOT_FOUND)) return
+
+    // Ejecutar las dos validaciones en paralelo
+    const [templateExists, doctorIsOwner] = await Promise.all([
+      checkExistenceId(
         res,
         PatientTemplate,
         templateId,
         COMMON_MSG.TEMPLATE_NOT_FOUND
-      ))
-    )
-      return
+      ),
+      checkDoctor(res, PatientTemplate, doctorId, templateId)
+    ])
 
-    if (!validMongoId(res, doctorId, COMMON_MSG.DOCTOR_NOT_FOUND)) return
-
-    if (!(await checkDoctor(res, PatientTemplate, doctorId, templateId))) return
+    // Verificar si alguna validación ha fallado
+    if (!templateExists || !doctorIsOwner) return
 
     /* Cuando se tenga Record, se utilizara esta programacion defensiva
         const patientUsingTemplate = await Record.findOne({ 'template': templateId })
@@ -158,17 +153,19 @@ exports.getTemplate = async (req, res) => {
 
     const patientemplate = await PatientTemplate.findById(templateId).lean()
 
-    if (
-      !(await checkExistenceId(
+    // Ejecutar las dos validaciones en paralelo
+    const [templateExists, doctorIsOwner] = await Promise.all([
+      checkExistenceId(
         res,
         PatientTemplate,
         templateId,
         COMMON_MSG.TEMPLATE_NOT_FOUND
-      ))
-    )
-      return
+      ),
+      checkDoctor(res, PatientTemplate, doctorId, templateId)
+    ])
 
-    if (!(await checkDoctor(res, PatientTemplate, doctorId, templateId))) return
+    // Verificar si alguna validación ha fallado
+    if (!templateExists || !doctorIsOwner) return
 
     const { _id, doctor, __v, ...filteredTemplate } = patientemplate
 
@@ -248,17 +245,19 @@ exports.createField = async (req, res) => {
         .json({ status: 403, message: COMMON_MSG.DOCTOR_INACTIVE })
     }
 
-    if (
-      !(await checkExistenceId(
+    // Ejecutar las dos validaciones en paralelo
+    const [templateExists, doctorIsOwner] = await Promise.all([
+      checkExistenceId(
         res,
         PatientTemplate,
         templateId,
         COMMON_MSG.TEMPLATE_NOT_FOUND
-      ))
-    )
-      return
+      ),
+      checkDoctor(res, PatientTemplate, doctorId, templateId)
+    ])
 
-    if (!(await checkDoctor(res, PatientTemplate, doctorId, templateId))) return
+    // Verificar si alguna validación ha fallado
+    if (!templateExists || !doctorIsOwner) return
 
     if (!validField(res, field)) return
 
@@ -294,17 +293,19 @@ exports.deleteField = async (req, res) => {
 
     if (!validMongoId(res, templateId, COMMON_MSG.TEMPLATE_NOT_FOUND)) return
 
-    if (
-      !(await checkExistenceId(
+    // Ejecutar las dos validaciones en paralelo
+    const [templateExists, doctorIsOwner] = await Promise.all([
+      checkExistenceId(
         res,
         PatientTemplate,
         templateId,
         COMMON_MSG.TEMPLATE_NOT_FOUND
-      ))
-    )
-      return
+      ),
+      checkDoctor(res, PatientTemplate, doctorId, templateId)
+    ])
 
-    if (!(await checkDoctor(res, PatientTemplate, doctorId, templateId))) return
+    // Verificar si alguna validación ha fallado
+    if (!templateExists || !doctorIsOwner) return
 
     const patientemplate = await PatientTemplate.findById(templateId)
 
@@ -345,17 +346,19 @@ exports.updateField = async (req, res) => {
 
     const patientemplate = await PatientTemplate.findById(templateId)
 
-    if (
-      !(await checkExistenceId(
+    // Ejecutar las dos validaciones en paralelo
+    const [templateExists, doctorIsOwner] = await Promise.all([
+      checkExistenceId(
         res,
         PatientTemplate,
         templateId,
         COMMON_MSG.TEMPLATE_NOT_FOUND
-      ))
-    )
-      return
+      ),
+      checkDoctor(res, PatientTemplate, doctorId, templateId)
+    ])
 
-    if (!(await checkDoctor(res, PatientTemplate, doctorId, templateId))) return
+    // Verificar si alguna validación ha fallado
+    if (!templateExists || !doctorIsOwner) return
 
     const fieldIndex = patientemplate.fields.findIndex(
       (existingField) => existingField.name === oldFieldName
