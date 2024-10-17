@@ -11,15 +11,12 @@ const emptyFields = (res, ...fields) => {
   return true
 }
 
-const validArrays = (res, fields, categories) => {
-  if (
-    !Array.isArray(fields) ||
-    fields.length === 0 ||
-    !Array.isArray(categories) ||
-    categories.length === 0
-  ) {
-    res.status(400).json({ status: 400, message: COMMON_MSG.MISSING_FIELDS })
-    return false
+const validArrays = (res, ...fields) => {
+  for (let field of fields) {
+    if (!Array.isArray(field) || field.length === 0) {
+      res.status(400).json({ status: 400, message: COMMON_MSG.MISSING_FIELDS })
+      return false
+    }
   }
   return true
 }
