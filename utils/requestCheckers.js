@@ -1,4 +1,5 @@
 const COMMON_MSG = require('./errorMsg')
+const { findUserByRoleID } = require('../models/userModel')
 
 const checkExistenceName = async (res, Controller, name, message) => {
   const existingObject = await Controller.findOne({ name })
@@ -43,9 +44,19 @@ const checkExistingField = async (res, Controller, templateId, field) => {
   return true
 }
 
+const doctorActive = async (res, doctorId) => {
+  const doctor = await findUserByRoleID(doctorId)
+  if (!doctor.isActive) {
+    res.status(403).json({ status: 403, message: COMMON_MSG.DOCTOR_INACTIVE })
+    return false
+  }
+  return true
+}
+
 module.exports = {
   checkExistenceName,
   checkExistenceId,
   checkDoctor,
-  checkExistingField
+  checkExistingField,
+  doctorActive
 }

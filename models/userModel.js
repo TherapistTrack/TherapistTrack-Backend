@@ -1,5 +1,4 @@
 const mongoose = require('mongoose')
-const { checkIsActive } = require('../utils/checkingTool')
 const DoctorSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.ObjectId, required: true },

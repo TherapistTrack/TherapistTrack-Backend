@@ -1,5 +1,4 @@
 const PatientTemplate = require('../models/patientTemplateModel')
-const { findUserByRoleID } = require('../models/userModel')
 //const Record = require('../models/Record')
 const COMMON_MSG = require('../utils/errorMsg')
 const {
@@ -13,7 +12,8 @@ const {
   checkExistenceName,
   checkExistenceId,
   checkDoctor,
-  checkExistingField
+  checkExistingField,
+  doctorActive
 } = require('../utils/requestCheckers')
 const mongoose = require('mongoose')
 
@@ -236,12 +236,7 @@ exports.createField = async (req, res) => {
 
     if (!validMongoId(res, templateId, COMMON_MSG.TEMPLATE_NOT_FOUND)) return
 
-    const doctor = await findUserByRoleID(doctorId)
-    if (!doctor.isActive) {
-      return res
-        .status(403)
-        .json({ status: 403, message: COMMON_MSG.DOCTOR_INACTIVE })
-    }
+    if (!doctorActive(res, doctorId)) return
 
     // Ejecutar las dos validaciones en paralelo
     const [templateExists, doctorIsOwner] = await Promise.all([
