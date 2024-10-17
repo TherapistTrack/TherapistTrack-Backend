@@ -212,7 +212,7 @@ describe('Edit Field from Patient Template Tests', () => {
   // TODO: test edit property that is already atached to real records.
   //
   // DONE:
-  test('should edit with 200 the name of an existing field in a patient template', async () => {
+  test('should edit with 200 the name of an existing field in a fil template', async () => {
     const fieldToEdit = {
       doctorId: doctor.roleDependentInfo.id,
       templateId: templateId,

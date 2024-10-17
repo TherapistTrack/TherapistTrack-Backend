@@ -41,11 +41,10 @@ describe('Create File Template Tests', () => {
   })
 
   // DONE:
-  test('should create a new patient template correctly with all required fields', async () => {
+  test('should create a new file template correctly with all required fields', async () => {
     const testTemplate = {
       doctorId: doctorId,
       name: `testTemplate`,
-      categories: ['General', 'Urgente'],
       fields: [
         {
           name: 'Edad',
@@ -92,11 +91,10 @@ describe('Create File Template Tests', () => {
   })
 
   // DONE:
-  test('should fail with 400 to create a patient template without the doctorId', async () => {
+  test('should fail with 400 to create a file template without the doctorId', async () => {
     await checkFailCreateRequest(
       {
         name: `testTemplate_${Date.now()}`,
-        categories: ['General', 'Urgente'],
         fields: [
           {
             name: 'Edad',
@@ -124,7 +122,6 @@ describe('Create File Template Tests', () => {
       {
         doctorId: doctorId,
         name: `testTemplate_${Date.now()}`,
-        categories: ['General', 'Urgente'],
         fields: 'This should be an array, not a string'
       },
       400,
@@ -159,7 +156,7 @@ describe('Create File Template Tests', () => {
   })
 
   // DONE:
-  test('should fail with 404 to create a patient template with a non-existent doctorId', async () => {
+  test('should fail with 404 to create a file template with a non-existent doctorId', async () => {
     await checkFailCreateRequest(
       {
         doctorId: 'nonExistentDoctorId',
@@ -186,7 +183,7 @@ describe('Create File Template Tests', () => {
   })
 
   // DONE:
-  test('should fail with 406 when creating a patient template with an existing name', async () => {
+  test('should fail with 406 when creating a file template with an existing name', async () => {
     await checkFailCreateRequest(
       {
         doctorId: doctorId,
@@ -206,7 +203,7 @@ describe('Create File Template Tests', () => {
   })
 
   // DONE:
-  test('should fail with 400 when creating template with two fields that have the same name', async () => {
+  test('should fail with 400 when creating file with two fields that have the same name', async () => {
     await checkFailCreateRequest(
       {
         doctorId: doctorId,
@@ -232,7 +229,7 @@ describe('Create File Template Tests', () => {
   })
 
   //DONE:
-  test('should fail with 400 to create a patient template with two or more duplicate fields', async () => {
+  test('should fail with 400 to create a file template with two or more duplicate fields', async () => {
     await checkFailCreateRequest(
       {
         doctorId: doctorId,
@@ -259,7 +256,7 @@ describe('Create File Template Tests', () => {
 
   /* Para endPonintRecords
   // Test para validar tipos de datos incorrectos en los campos
-  test('should fail to create a patient template with incorrect data types', async () => {
+  test('should fail to create a  template with incorrect data types', async () => {
     const testTemplate = {
       doctorId: doctorId,
       name: `testTemplate_${Date.now()}`,

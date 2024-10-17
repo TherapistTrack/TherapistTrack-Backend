@@ -114,7 +114,7 @@ describe('List File Templates Tests', () => {
       expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS)
     } catch (error) {
       console.error(
-        'Error fetching patient template list:',
+        'Error fetching file template list:',
         error.response ? error.response.data : error.message
       )
       throw error
