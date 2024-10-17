@@ -7,10 +7,10 @@ const {
 } = require('../../testHelpers')
 const COMMON_MSG = require('../../../utils/errorMsg')
 
-describe('Create Patient Template Tests', () => {
+describe('Create File Template Tests', () => {
   let userId, doctorId
 
-  const REQUEST_URL = `${BASE_URL}/doctor/PatientTemplate`
+  const REQUEST_URL = `${BASE_URL}/doctor/FileTemplate`
 
   const HEADERS = {
     'Content-Type': 'application/json',
@@ -45,44 +45,42 @@ describe('Create Patient Template Tests', () => {
     const testTemplate = {
       doctorId: doctorId,
       name: `testTemplate`,
+      categories: ['General', 'Urgente'],
       fields: [
         {
           name: 'Edad',
           type: 'NUMBER',
-          required: true,
-          description: 'Edad del paciente'
+          description: 'Edad del paciente',
+          required: true
         },
         {
           name: 'Hijos',
           type: 'TEXT',
-          required: true,
-          decription: 'Hijos del paciente'
+          description: 'Hijos del paciente',
+          required: true
         },
         {
           name: 'Estado Civil',
           type: 'CHOICE',
           options: ['Soltero', 'Casado'],
-          required: true,
-          description: 'Estado civil del paciente'
+          description: 'Estado civil del paciente',
+          required: true
         },
         {
           name: 'Fecha de Nacimiento',
           type: 'DATE',
-          required: false,
-          decription: 'Fecha de Nacimiento del paciente'
+          description: 'Fecha de Nacimiento del paciente',
+          required: false
         }
       ]
     }
 
     try {
-      const response = await axios.post(REQUEST_URL, {
-        data: testTemplate,
+      const response = await axios.post(REQUEST_URL, testTemplate, {
         headers: HEADERS
       })
-      expect(response.status).toBe(200) // Comprobamos que se creó correctamente
-      expect(response.data.message).toBe(
-        'Patient template created successfully'
-      )
+      expect(response.status).toBe(201) // Comprobamos que se creó correctamente
+      expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS)
       templateId = response.data.data.patientTemplateId
     } catch (error) {
       console.error(
@@ -98,6 +96,7 @@ describe('Create Patient Template Tests', () => {
     await checkFailCreateRequest(
       {
         name: `testTemplate_${Date.now()}`,
+        categories: ['General', 'Urgente'],
         fields: [
           {
             name: 'Edad',
@@ -125,6 +124,7 @@ describe('Create Patient Template Tests', () => {
       {
         doctorId: doctorId,
         name: `testTemplate_${Date.now()}`,
+        categories: ['General', 'Urgente'],
         fields: 'This should be an array, not a string'
       },
       400,
@@ -133,12 +133,18 @@ describe('Create Patient Template Tests', () => {
   })
 
   // DONE:
-  test('should fail with 400  with CHOICE field but not options attribute defined', async () => {
+  test('should fail with 400 with CHOICE field but not options attribute defined', async () => {
     await checkFailCreateRequest(
       {
         doctorId: doctorId,
         name: `testTemplate_${Date.now()}`,
         fields: [
+          {
+            name: 'Edad',
+            type: 'NUMBER',
+            required: true,
+            description: 'Edad del paciente'
+          },
           {
             name: 'Estado Civil',
             type: 'CHOICE',
@@ -149,46 +155,6 @@ describe('Create Patient Template Tests', () => {
       },
       400,
       COMMON_MSG.MISSING_FIELDS
-    )
-  })
-
-  // DONE:
-  test('should fail with 400 with field "Nombres" since its a reserved name', async () => {
-    await checkFailCreateRequest(
-      {
-        doctorId: doctorId,
-        name: `testTemplate_${Date.now()}`,
-        fields: [
-          {
-            name: 'Nombres',
-            type: 'TEXT',
-            required: true,
-            description: 'Apellidos del paciente'
-          } // "Apellidos" es un campo reservado
-        ]
-      },
-      400,
-      COMMON_MSG.RESERVED_FIELD_NAMES
-    )
-  })
-
-  // DONE:
-  test('should fail with 400 with field "Apellidos" since its a reserved name', async () => {
-    await checkFailCreateRequest(
-      {
-        doctorId: doctorId,
-        name: `testTemplate_${Date.now()}`,
-        fields: [
-          {
-            name: 'Apellidos',
-            type: 'TEXT',
-            required: true,
-            description: 'Apellidos del paciente'
-          } // "Apellidos" es un campo reservado
-        ]
-      },
-      400,
-      COMMON_MSG.RESERVED_FIELD_NAMES
     )
   })
 
@@ -236,6 +202,58 @@ describe('Create Patient Template Tests', () => {
       },
       406,
       COMMON_MSG.RECORDS_USING
+    )
+  })
+
+  // DONE:
+  test('should fail with 400 when creating template with two fields that have the same name', async () => {
+    await checkFailCreateRequest(
+      {
+        doctorId: doctorId,
+        name: 'testTemplate',
+        fields: [
+          {
+            name: 'Edad',
+            type: 'NUMBER',
+            required: true,
+            description: 'Edad del paciente'
+          },
+          {
+            name: 'Edad',
+            type: 'FLOAT',
+            required: true,
+            description: 'Edad del paciente'
+          }
+        ]
+      },
+      400,
+      COMMON_MSG.DUPLICATE_FIELD_NAMES
+    )
+  })
+
+  //DONE:
+  test('should fail with 400 to create a patient template with two or more duplicate fields', async () => {
+    await checkFailCreateRequest(
+      {
+        doctorId: doctorId,
+        name: `testTemplate_${Date.now()}`,
+        fields: [
+          {
+            name: 'Edad',
+            type: 'NUMBER',
+            required: true,
+            description: 'Edad del paciente'
+          },
+          {
+            name: 'Edad',
+            type: 'NUMBER',
+            required: true,
+            description: 'Edad del paciente'
+          }
+        ]
+      },
+      400,
+      COMMON_MSG.DUPLICATE_FIELD_NAMES
     )
   })
 
