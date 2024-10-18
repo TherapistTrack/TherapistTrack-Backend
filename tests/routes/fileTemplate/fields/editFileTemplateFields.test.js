@@ -11,7 +11,7 @@ const COMMON_MSG = require('../../../../utils/errorMsg')
 describe('Edit Field from Patient Template Tests', () => {
   let doctor, secondDoctor, templateId
 
-  const REQUEST_URL = `${BASE_URL}/doctor/PatientTemplate/fields`
+  const REQUEST_URL = `${BASE_URL}/doctor/FileTemplate/fields`
 
   const HEADERS = {
     'Content-Type': 'application/json',

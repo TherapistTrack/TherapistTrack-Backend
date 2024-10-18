@@ -7,11 +7,11 @@ const {
   checkFailRequest
 } = require('../../testHelpers')
 
-describe('Get Patient Template by ID Tests', () => {
+describe('Get File Template by ID Tests', () => {
   let doctor, secondDoctor
   let templateId
 
-  const REQUEST_URL = `${BASE_URL}/doctor/PatientTemplate?templateId=${templateId}`
+  const REQUEST_URL = `${BASE_URL}/doctor/FileTemplate?templateId=${templateId}`
 
   const HEADERS = {
     'Content-Type': 'application/json',

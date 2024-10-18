@@ -7,10 +7,10 @@ const {
 } = require('../../testHelpers')
 const COMMON_MSG = require('../../../utils/errorMsg')
 
-describe('Create Patient Template Tests', () => {
+describe('Create File Template Tests', () => {
   let userId, doctorId
 
-  const REQUEST_URL = `${BASE_URL}/doctor/PatientTemplate`
+  const REQUEST_URL = `${BASE_URL}/doctor/FileTemplate`
 
   const HEADERS = {
     'Content-Type': 'application/json',

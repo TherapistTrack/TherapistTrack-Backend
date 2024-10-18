@@ -7,10 +7,10 @@ const {
   checkFailRequest
 } = require('../../testHelpers')
 
-describe('Delete Patiente Template Tests', () => {
+describe('Delete File Template Tests', () => {
   let doctor, secondDoctor, templateId
 
-  const REQUEST_URL = `${BASE_URL}/doctor/PatientTemplate`
+  const REQUEST_URL = `${BASE_URL}/doctor/FileTemplate`
 
   const HEADERS = {
     'Content-Type': 'application/json',
