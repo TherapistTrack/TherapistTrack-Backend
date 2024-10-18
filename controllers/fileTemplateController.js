@@ -31,7 +31,7 @@ exports.createTemplate = async (req, res) => {
         res,
         FileTemplate,
         name,
-        COMMON_MSG.FILE_USING
+        COMMON_MSG.RECORDS_USING
       ))
     )
       return
@@ -41,7 +41,6 @@ exports.createTemplate = async (req, res) => {
     const template = new FileTemplate({
       doctor: doctorId,
       name,
-      categories,
       fields
     })
     const fileTemplate = await template.save()
@@ -56,7 +55,7 @@ exports.createTemplate = async (req, res) => {
     await FileTemplate.deleteOne({ name: req.body.name })
 
     if (!res.headersSent) {
-      res.status(500).json({ error: COMMON_MSG.INTERNAL_SERVER_ERROR })
+      res.status(500).json({ error: error.message })
     }
   }
 }

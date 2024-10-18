@@ -3,13 +3,17 @@ const mongoose = require('mongoose')
 const fieldSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
-    type: {
-      type: String,
-      required: true,
-      enum: ['SHORT_TEXT', 'TEXT', 'DATE', 'NUMBER', 'FLOAT', 'CHOICE']
+    type: { type: String, required: true },
+    options: {
+      type: [String],
+      validate: {
+        validator: function (v) {
+          return this.type !== 'CHOICE' || (v && v.length > 0)
+        },
+        message: 'Options are required if type is CHOICE.'
+      }
     },
-    options: [String],
-    description: { type: String },
+    description: { type: String, required: true },
     required: { type: Boolean, default: true }
   },
   { _id: false }
