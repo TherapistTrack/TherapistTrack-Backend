@@ -42,6 +42,7 @@ describe('Create File Template Tests', () => {
 
   // DONE:
   test('should create a new file template correctly with all required fields', async () => {
+    console.log('doctorId:', doctorId)
     const testTemplate = {
       doctorId: doctorId,
       name: `testTemplate`,
@@ -80,7 +81,7 @@ describe('Create File Template Tests', () => {
       })
       expect(response.status).toBe(201) // Comprobamos que se creó correctamente
       expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS)
-      templateId = response.data.data.patientTemplateId
+      templateId = response.data.data.fileTemplateId
     } catch (error) {
       console.error(
         'Error creating template:',
