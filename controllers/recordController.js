@@ -30,11 +30,9 @@ exports.createRecord = async (req, res) => {
         field.type === 'CHOICE' &&
         !field.options.includes(field.value)
       ) {
-        return res
-          .status(400)
-          .json({
-            error: `Choice "${field.value}" is not a valid option for field ${field.name}`
-          })
+        return res.status(400).json({
+          error: `Choice "${field.value}" is not a valid option for field ${field.name}`
+        })
       }
     }
 
@@ -338,3 +336,5 @@ exports.getRecordById = async (req, res) => {
     res.status(500).json({ error: 'Error getting the record' })
   }
 }
+
+exports.searchAndFilterRecords = async (req, res) => {}
