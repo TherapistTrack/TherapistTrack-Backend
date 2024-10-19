@@ -7,7 +7,7 @@ const {
 } = require('../../../testHelpers')
 const COMMON_MSG = require('../../../../utils/errorMsg')
 
-describe('Delete Field from Patient Template Tests', () => {
+describe('Delete Field from File Template Tests', () => {
   let doctor, secondDoctor, templateId
 
   const REQUEST_URL = `${BASE_URL}/doctor/FileTemplate/fields`

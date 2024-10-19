@@ -8,7 +8,7 @@ const {
 } = require('../../../testHelpers')
 const COMMON_MSG = require('../../../../utils/errorMsg')
 
-describe('Create File Template Tests', () => {
+describe('Create File Template Field Tests', () => {
   let doctor, secondDoctor, templateId
 
   const REQUEST_URL = `${BASE_URL}/doctor/FileTemplate/fields`
