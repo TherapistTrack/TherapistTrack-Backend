@@ -11,6 +11,7 @@ const COMMON_MSG = {
   DOCTOR_NOT_FOUND: 'Doctor not found.',
   TEMPLATE_NOT_FOUND: 'Template not found.',
   FIELD_NOT_FOUND: 'Field not found.',
+  RECORD_NOT_FOUND: 'Record not found.',
   MISSING_FIELDS_IN_TEMPLATE:
     'Missing required fields defined by the template.',
   // 405: Invalid field types
