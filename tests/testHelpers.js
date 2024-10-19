@@ -1,5 +1,6 @@
 const axios = require('axios')
 const { BASE_URL, getAuthToken } = require('./jest.setup')
+const yup = require('yup')
 
 /**
  * Makes a request using the specified axios method, and checks if it fails with the expected status and message.
@@ -32,7 +33,7 @@ async function checkFailRequest(
       data: body
     })
     if (response.status >= 200 && response.status < 300) {
-      fail(
+      throw new Error(
         `Expected a failure, but got response with status: ${response.status}`
       )
     }
@@ -41,7 +42,7 @@ async function checkFailRequest(
       expect(error.response.status).toBe(expectedCode)
       expect(error.response.data.message).toBe(expectedMsg)
     } else {
-      fail(`Unexpected Error: ${error}`)
+      throw error
     }
   }
 }
@@ -199,11 +200,152 @@ async function createTestFileTemplate(doctorId, templateName, fields) {
   }
 }
 
+/**
+ * Creates a record for a patient based on a template.
+ *
+ * @param {string} doctorId - Doctor ID to create the record for.
+ * @param {string} templateId - The template ID that the record is based on.
+ * @param {object} patientData - Patient data including names, lastnames, and fields.
+ * @returns {Promise<string>} a Promise to the recordId created.
+ * @throws Will throw an error if the request fails.
+ */
+async function createTestRecord(doctorId, templateId, patientData) {
+  const HEADERS = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${getAuthToken()}`,
+    Origin: 'http://localhost'
+  }
+
+  const recordData = {
+    doctorId: doctorId,
+    templateId: templateId,
+    patient: patientData
+  }
+
+  try {
+    const response = await axios.post(`${BASE_URL}/records/`, recordData, {
+      headers: HEADERS
+    })
+    return response.data.data.recordId
+  } catch (error) {
+    console.error(
+      'Error creating record:',
+      error.response ? error.response.data : error.message
+    )
+    throw error
+  }
+}
+
+/**
+ * Validates the structure of a Create Record response.
+ * Ensures it follows the correct schema according to the documentation.
+ *
+ * @param {object} responseData - The response data to validate.
+ * @throws Will throw an error if the validation fails.
+ */
+async function validateCreateRecordResponse(responseData) {
+  const recordSchema = yup.object().shape({
+    doctorId: yup.string().required(),
+    templateId: yup.string().required(),
+    patient: yup
+      .object()
+      .shape({
+        names: yup.string().required(),
+        lastnames: yup.string().required(),
+        fields: yup
+          .array()
+          .of(
+            yup.object().shape({
+              name: yup.string().required(),
+              options: yup.array().of(yup.string()).required(),
+              value: yup.string().required()
+            })
+          )
+          .required()
+      })
+      .required()
+  })
+
+  try {
+    // Validar si la estructura sigue el esquema
+    await recordSchema.validate(responseData, {
+      strict: true,
+      abortEarly: false
+    })
+    console.log('Record response structure is valid.')
+  } catch (error) {
+    console.error('Invalid response structure:', error.errors)
+    throw error
+  }
+}
+
+/**
+ * Validates the structure of a Get Record response.
+ * Ensures it follows the correct schema according to the documentation.
+ *
+ * @param {object} responseData - The response data to validate.
+ * @throws Will throw an error if the validation fails.
+ */
+async function validateGetRecordResponse(responseData) {
+  const recordSchema = yup.object().shape({
+    status: yup.number().required().oneOf([0]),
+    message: yup.string().required().oneOf(['Operation success!']),
+    recordId: yup.string().required(),
+    templateId: yup.string().required(),
+    categories: yup.array().of(yup.array().of(yup.string())).required(),
+    createdAt: yup.string().required(),
+    patient: yup
+      .object()
+      .shape({
+        names: yup.string().required(),
+        lastnames: yup.string().required(),
+        fields: yup
+          .array()
+          .of(
+            yup.object().shape({
+              name: yup.string().required(),
+              type: yup
+                .string()
+                .required()
+                .oneOf([
+                  'TEXT',
+                  'SHORT_TEXT',
+                  'NUMBER',
+                  'FLOAT',
+                  'CHOICE',
+                  'DATE'
+                ]),
+              options: yup.array().of(yup.string()).optional(),
+              value: yup.string().required(),
+              required: yup.boolean().required()
+            })
+          )
+          .required()
+      })
+      .required()
+  })
+
+  try {
+    // Validar si la estructura sigue el esquema
+    await recordSchema.validate(responseData, {
+      strict: true,
+      abortEarly: false
+    })
+    console.log('Record response structure is valid.')
+  } catch (error) {
+    console.error('Invalid response structure:', error.errors)
+    throw error
+  }
+}
+
 module.exports = {
   checkFailRequest,
   generateObjectId,
   createTestDoctor,
   deleteUser,
   createTestPatientTemplate,
-  createTestFileTemplate
+  createTestFileTemplate,
+  createTestRecord,
+  validateCreateRecordResponse,
+  validateGetRecordResponse
 }

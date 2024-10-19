@@ -18,7 +18,7 @@ describe('File Controller Tests', () => {
     }
   })
 
-  it('should create a new file for a patient', async () => {
+  test('should create a new file for a patient', async () => {
     const form = new FormData()
 
     const filePath = path.join(__dirname, 'testFile.pdf')
@@ -63,7 +63,7 @@ describe('File Controller Tests', () => {
     }
   })
 
-  it('should return an error for creating a file with missing required fields', async () => {
+  test('should return an error for creating a file with missing required fields', async () => {
     const fileData = {
       category: 'test',
       pages: 3,
@@ -87,7 +87,7 @@ describe('File Controller Tests', () => {
     }
   })
 
-  it('should update an existing file', async () => {
+  test('should update an existing file', async () => {
     const updatedFileData = {
       id: testfileID,
       category: 'yes or no',
@@ -112,7 +112,7 @@ describe('File Controller Tests', () => {
     }
   })
 
-  it('should return an error for updating a file with an invalid ID format', async () => {
+  test('should return an error for updating a file with an invalid ID format', async () => {
     const updatedFileData = {
       id: 'invalid-id-format',
       category: 'updated category',
@@ -128,7 +128,7 @@ describe('File Controller Tests', () => {
     }
   })
 
-  it('should return an error for updating a non-existent file', async () => {
+  test('should return an error for updating a non-existent file', async () => {
     const updatedFileData = {
       id: '66b453a2601a8e9fb46d8885',
       category: 'updated category',
@@ -144,7 +144,7 @@ describe('File Controller Tests', () => {
     }
   })
 
-  it('should list files with default parameters', async () => {
+  test('should list files with default parameters', async () => {
     try {
       const response = await axios.get(`${baseUrl}/listFiles`, {
         headers,
@@ -163,7 +163,7 @@ describe('File Controller Tests', () => {
     }
   })
 
-  it('should get a file by id', async () => {
+  test('should get a file by id', async () => {
     try {
       const response = await axios.post(
         `${baseUrl}/file`,
@@ -185,7 +185,7 @@ describe('File Controller Tests', () => {
     }
   })
 
-  it('should return an error for getting a file with a non-existent ID', async () => {
+  test('should return an error for getting a file with a non-existent ID', async () => {
     try {
       await axios.post(
         `${baseUrl}/file`,
@@ -199,7 +199,7 @@ describe('File Controller Tests', () => {
     }
   })
 
-  it('should delete an existing file', async () => {
+  test('should delete an existing file', async () => {
     try {
       const response = await axios.delete(`${baseUrl}/`, {
         headers,
@@ -218,7 +218,7 @@ describe('File Controller Tests', () => {
     }
   })
 
-  it('should return an error for deleting a file with an invalid ID format', async () => {
+  test('should return an error for deleting a file with an invalid ID format', async () => {
     try {
       await axios.delete(`${baseUrl}/`, {
         headers,
@@ -231,7 +231,7 @@ describe('File Controller Tests', () => {
     }
   })
 
-  it('should return an error for deleting a non-existent file', async () => {
+  test('should return an error for deleting a non-existent file', async () => {
     try {
       await axios.delete(`${baseUrl}/`, {
         headers,

@@ -7,10 +7,10 @@ const {
   checkFailRequest
 } = require('../../testHelpers')
 
-describe('List Patiente Templates Tests', () => {
+describe('List File Templates Tests', () => {
   let doctor
 
-  const REQUEST_URL = `${BASE_URL}/doctor/PatientTemplate/list`
+  const REQUEST_URL = `${BASE_URL}/doctor/FileTemplate/list`
 
   const HEADERS = {
     'Content-Type': 'application/json',
@@ -19,7 +19,7 @@ describe('List Patiente Templates Tests', () => {
   }
 
   async function checkFailListRequest(queryParams, expectedCode, expectedMsg) {
-    await checkFailRequest(
+    return checkFailRequest(
       'get',
       REQUEST_URL,
       HEADERS,
@@ -95,7 +95,7 @@ describe('List Patiente Templates Tests', () => {
   })
 
   afterAll(async () => {
-    await deleteUser(doctorId)
+    await deleteUser(doctor.id)
   })
 
   // DONE:

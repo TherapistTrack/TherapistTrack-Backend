@@ -29,11 +29,11 @@ doctorPatientTemplate:
               categories:
                 type: array
                 description: Lista de posibles categorias.
+                example: 
+                  - "consultas"
+                  - "tests"
                 items:
                   type: string
-                  example: 
-                    - "consultas"
-                    - "tests"
               fields:
                 type: array
                 items:
@@ -199,6 +199,17 @@ doctorPatientTemplate:
                   type: integer
                 message:
                   type: string
+      '406':
+        description: Nombre de plantilla ya en uso, escoger uno diferente.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: integer
+                message:
+                  type: string
       '500':
         description: 'Error interno del servidor'
         content:
@@ -348,6 +359,14 @@ doctorPatientTemplate:
                   type: string
                   description: Name of the template.
                   example: 'Plantilla2024'
+                categories:
+                  type: array
+                  description: Lista de posibles categorias.
+                  example: 
+                    - "consultas"
+                    - "tests"
+                  items:
+                    type: string
                 fields:
                   type: array
                   items:
@@ -457,6 +476,14 @@ doctorPatientTemplateList:
                         type: string
                         description: Name of the template.
                         example: 'Plantilla2024'
+                      categories:
+                        type: array
+                        description: Lista de posibles categorias.
+                        example: 
+                          - "consultas"
+                          - "tests"
+                        items:
+                          type: string
                       fields:
                         type: array
                         items:
@@ -857,3 +884,29 @@ doctorPatientTemplateFields:
                   type: integer
                 message:
                   type: string
+
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        status: 
+          type: integer
+        message: 
+          type: string
+    FieldsSchema:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        options:
+          type: array
+          items:
+            type: string
+        required:
+          type: boolean
+        description:
+          type: string
+          description: Por ahora solo envia una string vacio.

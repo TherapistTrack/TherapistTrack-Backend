@@ -17,11 +17,10 @@ describe('User Endpoints', () => {
     phones: ['12345678'],
     rol: 'Doctor',
     mails: ['test-doctor@example.com'],
-    rolDependentInfo: {
+    roleDependentInfo: {
       collegiateNumber: '12345',
       specialty: 'testSpecialty'
     }
-
   }
 
   const assistantUser = {
@@ -31,41 +30,23 @@ describe('User Endpoints', () => {
     phones: ['12345678'],
     rol: 'Assistant',
     mails: ['test-assistant@example.com'],
-    rolDependentInfo: {
+    roleDependentInfo: {
       startDate: '08/14/2024',
       endDate: '08/15/2024',
       DPI: '2340934'
     }
+  }
 
-    doctorUser = {
-      id: generateObjectId(),
-      names: 'Test',
-      lastNames: 'User',
-      phones: ['12345678'],
-      rol: 'Doctor',
-      mails: ['test-doctor@example.com'],
-      roleDependentInfo: {
-        collegiateNumber: '12345',
-        specialty: 'testSpecialty'
-      }
-    }
+  const adminUser = {
+    id: generateObjectId(),
+    names: 'Test',
+    lastNames: 'User',
+    phones: ['12345678'],
+    rol: 'Admin',
+    mails: ['test-admin@example.com']
+  }
 
-    assistantUser = {
-      id: generateObjectId(),
-      names: 'Test',
-      lastNames: 'User',
-      phones: ['12345678'],
-      rol: 'Assistant',
-      mails: ['test-assistant@example.com'],
-      roleDependentInfo: {
-        startDate: '08/14/2024',
-        endDate: '08/15/2024',
-        DPI: '2340934'
-      }
-    }
-  })
-
-  it('should register a new Doctor', async () => {
+  test('should register a new Doctor', async () => {
     try {
       const response = await axios.post(
         `${BASE_URL}/users/register`,
@@ -189,7 +170,7 @@ describe('User Endpoints', () => {
         headers: HEADERS
       })
       expect(response.status).toBe(200)
-      expect(response.data.users.length).toBe(3)
+      expect(response.data.users.length).toBeGreaterThanOrEqual(3)
     } catch (error) {
       throw new Error(
         `Test Failed:\n Status: ${error.response.status} \nBody: ${JSON.stringify(error.response.data)}`

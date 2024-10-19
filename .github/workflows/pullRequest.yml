@@ -47,6 +47,15 @@ jobs:
       - name: Start containers
         run: docker compose -f "compose.test.yaml" up -d --build
 
+      - name: Install node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.3.0
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
       - name: Wait for the containers to be ready
         run: |
           attempt_counter=0
@@ -62,15 +71,6 @@ jobs:
             echo "Waiting for server... (Attempt: $attempt_counter)"
             sleep 5
           done
-
-      - name: Install node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22.3.0
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm install
 
       - name: Run tests
         run: npm run test

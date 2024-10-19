@@ -7,11 +7,11 @@ const {
   checkFailRequest
 } = require('../../testHelpers')
 
-describe('Get Patient Template by ID Tests', () => {
+describe('Get File Template by ID Tests', () => {
   let doctor, secondDoctor
   let templateId
 
-  const REQUEST_URL = `${BASE_URL}/doctor/PatientTemplate?templateId=${templateId}`
+  const REQUEST_URL = `${BASE_URL}/doctor/FileTemplate?templateId=${templateId}`
 
   const HEADERS = {
     'Content-Type': 'application/json',
@@ -20,7 +20,7 @@ describe('Get Patient Template by ID Tests', () => {
   }
 
   async function checkFailGetRequest(queryParams, expectedCode, expectedMsg) {
-    await checkFailRequest(
+    return checkFailRequest(
       'get',
       REQUEST_URL,
       HEADERS,
@@ -58,8 +58,7 @@ describe('Get Patient Template by ID Tests', () => {
   })
 
   afterAll(async () => {
-    await deleteUser(doctorId)
-    await deleteUser(secondDoctor)
+    await Promise.all([deleteUser(doctor.id), deleteUser(secondDoctor.id)])
   })
 
   //
@@ -73,10 +72,7 @@ describe('Get Patient Template by ID Tests', () => {
         headers: HEADERS
       })
       expect(response.status).toBe(200)
-      expect(response.data).toHaveProperty(
-        'doctor',
-        doctor.roleDependentInfo.id
-      )
+      expect(response.data).toHaveProperty('', doctor.roleDependentInfo.id)
       expect(response.data).toHaveProperty('lastUpdated')
       expect(response.data).toHaveProperty('name', 'Plantilla-2024')
       expect(response.data.fields).toEqual(

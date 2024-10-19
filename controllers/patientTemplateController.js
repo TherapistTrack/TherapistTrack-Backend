@@ -14,7 +14,6 @@ exports.createTemplate = async (req, res) => {
         .json({ status: 400, message: COMMON_MSG.MISSING_FIELDS })
     }
 
-
     if (
       !Array.isArray(fields) ||
       fields.length === 0 ||
@@ -55,14 +54,14 @@ exports.createTemplate = async (req, res) => {
     if (existingTemplate) {
       return res
         .status(406)
-        .json({ status: 400, message: COMMON_MSG.RECORDS_USING })
+        .json({ status: 406, message: COMMON_MSG.RECORDS_USING })
     }
 
     const isValidObjectId = mongoose.Types.ObjectId.isValid(doctorId)
     if (!isValidObjectId) {
       return res
         .status(404)
-        .json({ status: 400, message: COMMON_MSG.DOCTOR_NOT_FOUND })
+        .json({ status: 404, message: COMMON_MSG.DOCTOR_NOT_FOUND })
     }
 
     const template = new PatientTemplate({
@@ -139,7 +138,6 @@ exports.renameTemplate = async (req, res) => {
       data: [updatedTemplate.doctor, updatedTemplate._id]
     })
   } catch (error) {
-
     res.status(500).json({ error: COMMON_MSG.INTERNAL_SERVER_ERROR })
   }
 }

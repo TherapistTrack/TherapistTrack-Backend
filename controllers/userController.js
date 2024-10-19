@@ -31,7 +31,7 @@ exports.registerUser = async (req, res) => {
       let roleInfo
 
       if (rol === 'Doctor') {
-        let { collegiateNumber, specialty } = rolDependentInfo
+        let { collegiateNumber, specialty } = roleDependentInfo
         roleInfo = new Doctor({
           user: newUser._id,
           collegiateNumber,
@@ -39,7 +39,7 @@ exports.registerUser = async (req, res) => {
         })
         await roleInfo.save()
       } else if (rol === 'Assistant') {
-        let { startDate, endDate, DPI } = rolDependentInfo
+        let { startDate, endDate, DPI } = roleDependentInfo
         startDate = Date.parse(startDate)
 
         // IF END DATE IS PASSED

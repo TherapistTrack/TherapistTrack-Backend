@@ -7,10 +7,10 @@ const {
   checkFailRequest
 } = require('../../testHelpers')
 
-describe('Delete Patiente Template Tests', () => {
+describe('Delete File Template Tests', () => {
   let doctor, secondDoctor, templateId
 
-  const REQUEST_URL = `${BASE_URL}/doctor/PatientTemplate`
+  const REQUEST_URL = `${BASE_URL}/doctor/FileTemplate`
 
   const HEADERS = {
     'Content-Type': 'application/json',
@@ -19,7 +19,7 @@ describe('Delete Patiente Template Tests', () => {
   }
 
   async function checkFailDeleteRequest(body, expectedCode, expectedMsg) {
-    checkFailRequest(
+    return checkFailRequest(
       'delete',
       REQUEST_URL,
       HEADERS,
@@ -47,8 +47,7 @@ describe('Delete Patiente Template Tests', () => {
   })
 
   afterAll(async () => {
-    deleteUser(doctor.id)
-    deleteUser(secondDoctor.id)
+    await Promise.all([deleteUser(doctor.id), deleteUser(secondDoctor.id)])
   })
 
   // DONE:
