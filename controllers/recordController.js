@@ -1,10 +1,11 @@
 const Record = require('../models/recordModel')
 const PatientTemplate = require('../models/patientTemplateModel')
+//const File = require('../models/fileModel')
 const COMMON_MSG = require('../utils/errorMsg')
 const {
   emptyFields,
   validArrays,
-  validField
+  validMongoId
 } = require('../utils/fieldCheckers')
 const { checkExistenceId, checkDoctor } = require('../utils/requestCheckers')
 const { options } = require('../routes/recordRoutes')
@@ -70,21 +71,15 @@ exports.editRecord = async (req, res) => {
 
     if (!validArrays(res, patient.fields)) return
 
+    if (!validMongoId(res, recordId, COMMON_MSG.INVALID_RECORD_ID)) return
+    if (!validMongoId(res, doctorId, COMMON_MSG.INVALID_DOCTOR_ID)) return
+
     if (
       !(await checkExistenceId(
         res,
         Record,
         recordId,
         COMMON_MSG.TEMPLATE_NOT_FOUND
-      ))
-    )
-      return
-    if (
-      !(await checkExistenceId(
-        res,
-        Record,
-        doctorId,
-        COMMON_MSG.DOCTOR_NOT_FOUND
       ))
     )
       return
@@ -144,7 +139,7 @@ exports.editRecord = async (req, res) => {
     )
     res.status(200).json({ status: 200, message: COMMON_MSG.RECORD_UPDATED })
   } catch (error) {
-    res.status(500).json({ error: COMMON_MSG.SERVER_ERROR })
+    res.status(500).json({ status: 500, error: COMMON_MSG.SERVER_ERROR })
   }
 }
 
@@ -152,29 +147,28 @@ exports.editRecord = async (req, res) => {
 exports.deleteRecord = async (req, res) => {
   const { doctorId, recordId } = req.body
 
-  /*
-    const isValidObjectId = mongoose.Types.ObjectId.isValid(recordId)
-    if (!isValidObjectId) {
-       return res.status(400).send({ status: 'error', message: 'Invalid record ID' });
-    }
-    */
-
   try {
-    const record = await Record.findById(recordId)
+    if (!emptyFields(res, doctorId, recordId)) return
 
-    if (!record) {
-      return res.status(404).json({ error: 'Record not found' })
-    }
+    if (!validMongoId(res, recordId, COMMON_MSG.INVALID_RECORD_ID)) return
+    if (!validMongoId(res, doctorId, COMMON_MSG.INVALID_DOCTOR_ID)) return
 
-    if (record.doctor.toString() !== doctorId) {
-      return res.status(403).json({ error: 'Unauthorized' })
-    }
+    if (!(await checkDoctor(res, Record, doctorId, recordId))) return
+
+    /* when endpoints for file management are created
+    const files = await File.find({ record: recordId })
+
+    if (files.length > 0) {
+      return res
+        .status(409)
+        .json({ status: 409, message: COMMON_MSG.RECORD_HAS_FILES })
+    }*/
 
     await Record.findByIdAndDelete(recordId)
 
-    res.status(200).json({ message: 'Record deleted successfully' })
+    res.status(200).json({ status: 200, message: COMMON_MSG.RECORD_DELETED })
   } catch (error) {
-    res.status(500).json({ error: 'Error deleting the record' })
+    res.status(500).json({ status: 500, error: COMMON_MSG.SERVER_ERROR })
   }
 }
 
