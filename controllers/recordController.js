@@ -1,4 +1,12 @@
 const Record = require('../models/recordModel')
+const PatientTemplate = require('../models/patientTemplateModel')
+const COMMON_MSG = require('../utils/errorMsg')
+const {
+  emptyFields,
+  validArrays,
+  validField
+} = require('../utils/fieldCheckers')
+const { checkExistenceId, checkDoctor } = require('../utils/requestCheckers')
 const { options } = require('../routes/recordRoutes')
 
 // Create a new record
@@ -55,32 +63,78 @@ exports.createRecord = async (req, res) => {
 
 // Edit a record
 exports.editRecord = async (req, res) => {
-  const { doctorId, recordId, patient } = req.body
-
-  /*
-    const isValidObjectId = mongoose.Types.ObjectId.isValid(recordId)
-    if (!isValidObjectId) {
-       return res.status(400).send({ status: 'error', message: 'Invalid record ID' });
-    }
-    */
+  const { recordId, doctorId, patient } = req.body
 
   try {
-    const record = await Record.findById(recordId)
+    if (!emptyFields(res, doctorId, recordId, patient)) return
 
-    if (record.doctor.toString() !== doctorId) {
-      return res.status(403).json({ error: 'Unauthorized' })
-    }
+    if (!validArrays(res, patient.fields)) return
 
     if (
-      patient.fields.type === 'DATE' &&
-      isNaN(Date.parse(patient.fields.value))
-    ) {
-      return res.status(400).json({ error: 'Invalid date format' })
-    } else if (
-      patient.fields.type === 'NUMBER' ||
-      (patient.fields.type === 'FLOAT' && isNaN(Number(patient.fields.value)))
-    ) {
-      return res.status(400).json({ error: 'Invalid number format' })
+      !(await checkExistenceId(
+        res,
+        Record,
+        recordId,
+        COMMON_MSG.TEMPLATE_NOT_FOUND
+      ))
+    )
+      return
+    if (
+      !(await checkExistenceId(
+        res,
+        Record,
+        doctorId,
+        COMMON_MSG.DOCTOR_NOT_FOUND
+      ))
+    )
+      return
+
+    if (!(await checkDoctor(res, Record, doctorId, recordId))) return
+
+    const record = await Record.findById(record)
+    const template = await PatientTemplate.findById(record.template)
+    const templateFields = template.fields
+    for (field of patient.fields) {
+      for (templateField of templateFields) {
+        if (field.name === templateField.name) {
+          if (
+            (templateField.type === 'TEXT' ||
+              templateField.type === 'SHORT_TEXT') &&
+            isNaN(String(field.value))
+          ) {
+            return res
+              .status(405)
+              .json({ error: `Invalid value for field ${field.name}` })
+          }
+          if (
+            (templateField.type === 'NUMBER' ||
+              templateField.type === 'FLOAT') &&
+            isNaN(Number(field.value))
+          ) {
+            return res
+              .status(405)
+              .json({ error: `Invalid value for field ${field.name}` })
+          }
+          if (templateField.type === 'CHOICE' && !field.options) {
+            return res
+              .status(405)
+              .json({ error: `Invalid value for field ${field.name}` })
+          }
+          if (
+            templateField.type === 'CHOICE' &&
+            !templateField.options.includes(field.value)
+          ) {
+            return res
+              .status(405)
+              .json({ error: `Invalid value for field ${field.name}` })
+          }
+          if (templateField.type === 'DATE' && isNaN(Date.parse(field.value))) {
+            return res
+              .status(405)
+              .json({ error: `Invalid value for field ${field.name}` })
+          }
+        }
+      }
     }
 
     const updatedRecord = await Record.findByIdAndUpdate(
@@ -88,14 +142,9 @@ exports.editRecord = async (req, res) => {
       { patient },
       { new: true }
     )
-
-    if (!updatedRecord) {
-      return res.status(404).json({ error: 'Record not found' })
-    }
-
-    res.status(200).json({ message: 'Record updated successfully' })
+    res.status(200).json({ status: 200, message: COMMON_MSG.RECORD_UPDATED })
   } catch (error) {
-    res.status(500).json({ error: 'Error updating the record' })
+    res.status(500).json({ error: COMMON_MSG.SERVER_ERROR })
   }
 }
 
