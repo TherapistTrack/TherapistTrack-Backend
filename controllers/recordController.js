@@ -1,68 +1,64 @@
 const Record = require('../models/recordModel')
+const PatientTemplate = require('../models/patientTemplateModel')
 const { options } = require('../routes/recordRoutes')
+const COMMON_MSG = require('../utils/errorMsg')
+const {
+  emptyFields,
+  validArrays,
+  validFields,
+  validMongoId,
+  validField
+} = require('../utils/fieldCheckers')
+const {
+  checkExistenceName,
+  checkExistenceId,
+  checkDoctor,
+  checkExistingField,
+  doctorActive
+} = require('../utils/requestCheckers')
 
-// Create a new record
 exports.createRecord = async (req, res) => {
-  const { doctor, template, patient } = req.body
-
-  /*
-    const isValidObjectId = mongoose.Types.ObjectId.isValid(doctor)
-    const isValidtemplateId = mongoose.Types.ObjectId.isValid(template)
-    if (!isValidObjectId || !isValidtemplateId) {
-       return res.status(400).send({ status: 'error', message: 'Invalid record or template ID' });
-    }
-    */
+  const { doctorId, templateId, patient } = req.body
 
   try {
-    for (const field of patient.fields) {
-      if (field.type === 'DATE' && isNaN(Date.parse(field.value))) {
-        return res
-          .status(400)
-          .json({ error: `Invalid date format for field ${field.name}` })
-      } else if (
-        (field.type === 'NUMBER' || field.type === 'FLOAT') &&
-        isNaN(Number(field.value))
-      ) {
-        return res
-          .status(400)
-          .json({ error: `Invalid number format for field ${field.name}` })
-      } else if (
-        field.type === 'CHOICE' &&
-        !field.options.includes(field.value)
-      ) {
-        return res.status(400).json({
-          error: `Choice "${field.value}" is not a valid option for field ${field.name}`
-        })
-      }
-    }
+    if (
+      !emptyFields(
+        res,
+        doctorId,
+        templateId,
+        patient,
+        patient.names,
+        patient.lastNames
+      )
+    )
+      return
 
-    const newRecord = new Record({
-      doctor,
-      template,
+    if (!validMongoId(res, doctorId, COMMON_MSG.DOCTOR_NOT_FOUND)) return
+
+    if (!validMongoId(res, templateId, COMMON_MSG.TEMPLATE_NOT_FOUND)) return
+
+    if (!doctorActive(res, doctorId)) return
+
+    const record = new Record({
+      doctor: doctorId,
+      template: templateId,
       patient
     })
 
-    const savedRecord = await newRecord.save()
+    const recordSaved = await record.save()
 
-    res.status(201).json({
-      recordId: savedRecord._id,
-      message: 'Record created successfully'
+    return res.status(200).json({
+      status: 200,
+      message: COMMON_MSG.REQUEST_SUCCESS,
+      recordId: recordSaved._id
     })
   } catch (error) {
-    res.status(500).json({ error: error.message })
+    res.status(500).json({ status: 500, message: error.message })
   }
 }
-
 // Edit a record
 exports.editRecord = async (req, res) => {
   const { doctorId, recordId, patient } = req.body
-
-  /*
-    const isValidObjectId = mongoose.Types.ObjectId.isValid(recordId)
-    if (!isValidObjectId) {
-       return res.status(400).send({ status: 'error', message: 'Invalid record ID' });
-    }
-    */
 
   try {
     const record = await Record.findById(recordId)
@@ -314,24 +310,38 @@ exports.listRecords = async (req, res) => {
 exports.getRecordById = async (req, res) => {
   const { doctorId, recordId } = req.query
 
-  /*
-    const isValidObjectId = mongoose.Types.ObjectId.isValid(recordId)
-    if (!isValidObjectId) {
-       return res.status(400).send({ status: 'error', message: 'Invalid record ID' });
-    }
-    */
-
   try {
+    if (!emptyFields(res, doctorId, recordId)) return
+
+    if (!validMongoId(res, doctorId, COMMON_MSG.DOCTOR_NOT_FOUND)) return
+
+    if (!validMongoId(res, recordId, COMMON_MSG.RECORD_NOT_FOUND)) return
+
     const record = await Record.findById(recordId)
 
     if (!record) {
-      return res.status(404).json({ error: 'Record not found' })
-    }
-    if (record.doctor.toString() !== doctorId) {
-      return res.status(403).json({ error: 'Unauthorized' })
+      return res
+        .status(404)
+        .json({ status: 404, message: COMMON_MSG.RECORD_NOT_FOUND })
     }
 
-    res.status(200).json({ record })
+    const patientTemplate = await PatientTemplate.findById(record.template)
+    const { _id, template, createdAt, patient } = record
+
+    const filteredFields = patient.fields.map(({ _id, ...rest }) => rest)
+
+    res.status(200).json({
+      status: 200,
+      message: COMMON_MSG.REQUEST_SUCCESS,
+      recordId: _id,
+      templateId: template,
+      categories: patientTemplate.categories,
+      createdAt,
+      patient: {
+        ...patient,
+        fields: filteredFields
+      }
+    })
   } catch (error) {
     res.status(500).json({ error: 'Error getting the record' })
   }
