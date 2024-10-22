@@ -1,4 +1,5 @@
 const Record = require('../models/recordModel')
+const PatientTemplate = require('../models/patientTemplateModel')
 const { options } = require('../routes/recordRoutes')
 const COMMON_MSG = require('../utils/errorMsg')
 const {
@@ -56,7 +57,6 @@ exports.createRecord = async (req, res) => {
   }
 }
 
-// Edit a record
 exports.editRecord = async (req, res) => {
   const { recordId, doctorId, patient } = req.body
 
@@ -80,11 +80,22 @@ exports.editRecord = async (req, res) => {
 
     if (!(await checkDoctor(res, Record, doctorId, recordId))) return
 
-    const record = await Record.findById(record)
+    const record = await Record.findById(recordId)
     const template = await PatientTemplate.findById(record.template)
     const templateFields = template.fields
-    for (field of patient.fields) {
-      for (templateField of templateFields) {
+
+    let updatedPatient = { ...record.patient }
+
+    for (let field of patient.fields) {
+      for (let existingField of updatedPatient.fields) {
+        if (field.name === existingField.name) {
+          existingField.value = field.value
+        }
+      }
+    }
+
+    for (let field of updatedPatient.fields) {
+      for (let templateField of templateFields) {
         if (field.name === templateField.name) {
           if (
             (templateField.type === 'TEXT' ||
@@ -126,18 +137,17 @@ exports.editRecord = async (req, res) => {
       }
     }
 
-    const updatedRecord = await Record.findByIdAndUpdate(
+    await Record.findByIdAndUpdate(
       recordId,
-      { patient },
+      { patient: updatedPatient },
       { new: true }
     )
     res.status(200).json({ status: 200, message: COMMON_MSG.RECORD_UPDATED })
   } catch (error) {
-    res.status(500).json({ status: 500, error: COMMON_MSG.SERVER_ERROR })
+    res.status(500).json({ status: 500, error: error.message })
   }
 }
 
-// Delete a record
 exports.deleteRecord = async (req, res) => {
   const { doctorId, recordId } = req.body
 
@@ -166,7 +176,6 @@ exports.deleteRecord = async (req, res) => {
   }
 }
 
-// List records
 exports.listRecords = async (req, res) => {
   const { doctorId, limit, offset, sorts, filters } = req.body
 
@@ -347,7 +356,6 @@ exports.listRecords = async (req, res) => {
   }
 }
 
-// Get a record by its ID
 exports.getRecordById = async (req, res) => {
   const { doctorId, recordId } = req.query
 
