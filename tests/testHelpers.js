@@ -237,56 +237,18 @@ async function createTestRecord(doctorId, templateId, patientData) {
 }
 
 /**
- * Validates the structure of a Create Record response.
- * Ensures it follows the correct schema according to the documentation.
+ * Validates the structure of the given response data using the specified schema.
  *
- * @param {object} responseData - The response data to validate.
- * @throws Will throw an error if the validation fails.
- */
-async function validateCreateRecordResponse(responseData) {
-  const recordSchema = yup.object().shape({
-    doctorId: yup.string().required(),
-    templateId: yup.string().required(),
-    patient: yup
-      .object()
-      .shape({
-        names: yup.string().required(),
-        lastnames: yup.string().required(),
-        fields: yup
-          .array()
-          .of(
-            yup.object().shape({
-              name: yup.string().required(),
-              options: yup.array().of(yup.string()).required(),
-              value: yup.string().required()
-            })
-          )
-          .required()
-      })
-      .required()
-  })
-
-  try {
-    // Validar si la estructura sigue el esquema
-    await recordSchema.validate(responseData, {
-      strict: true,
-      abortEarly: false
-    })
-    console.log('Record response structure is valid.')
-  } catch (error) {
-    console.error('Invalid response structure:', error.errors)
-    throw error
-  }
-}
-
-/**
- * Validates the structure of a Get Record response.
- * Ensures it follows the correct schema according to the documentation.
+ * This function ensures that the response data conforms to the provided schema
+ * using Yup validation. It throws an error if the validation fails, indicating
+ * any discrepancies in the structure of the data.
  *
- * @param {object} responseData - The response data to validate.
- * @throws Will throw an error if the validation fails.
+ * @param {object} responseData - The data object to be validated.
+ * @param {object} schema - A Yup schema object that defines the expected structure
+ * and constraints for the response data.
+ * @returns {Promise<void>} - Resolves if the validation is successful, otherwise throws an error.
+ * @throws Will throw an error if the response data does not match the provided schema.
  */
-
 async function validateResponse(responseData, schema) {
   try {
     // Validar si la estructura sigue el esquema
@@ -309,7 +271,5 @@ module.exports = {
   createTestPatientTemplate,
   createTestFileTemplate,
   createTestRecord,
-  validateCreateRecordResponse,
-  validateGetRecordResponse,
   validateResponse
 }
