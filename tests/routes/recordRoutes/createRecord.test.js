@@ -3,10 +3,12 @@ const { BASE_URL, getAuthToken } = require('../../jest.setup')
 const {
   createTestDoctor,
   deleteUser,
+  createTestPatientTemplate,
   checkFailRequest,
   validateResponse
 } = require('../../testHelpers')
 const COMMON_MSG = require('../../../utils/errorMsg')
+const yup = require('yup')
 
 describe('Manage Records Tests', () => {
   let userId, doctorId, templateId
@@ -35,6 +37,51 @@ describe('Manage Records Tests', () => {
     const doctor = await createTestDoctor()
     userId = doctor.id
     doctorId = doctor.roleDependentInfo.id
+
+    templateId = await createTestPatientTemplate(
+      doctorId,
+      'Plantilla de Identificación',
+      ['General', 'Consultas'],
+      [
+        {
+          name: 'Estado Civil',
+          type: 'CHOICE',
+          options: ['Soltero', 'Casado'],
+          required: true,
+          description: 'Estado civil del paciente'
+        },
+        {
+          name: 'Edad',
+          type: 'NUMBER',
+          required: true,
+          description: 'Edad del paciente'
+        },
+        {
+          name: 'Peso en kg',
+          type: 'FLOAT',
+          required: true,
+          description: 'Peso del paciente'
+        },
+        {
+          name: 'Notas adicionales',
+          type: 'TEXT',
+          required: false,
+          description: 'Notas adicionales del paciente'
+        },
+        {
+          name: 'Observaciones breves',
+          type: 'SHORT_TEXT',
+          required: true,
+          description: 'Observaciones rápidas'
+        },
+        {
+          name: 'Fecha de nacimiento',
+          type: 'DATE',
+          required: true,
+          description: 'Fecha de nacimiento del paciente'
+        }
+      ]
+    )
   })
 
   const recordSchema = yup.object().shape({
@@ -83,15 +130,41 @@ describe('Manage Records Tests', () => {
   test('should succeed with 200 creating a record', async () => {
     const recordBody = {
       doctorId: doctorId,
-      templateId: 'templateId123',
+      templateId: templateId,
       patient: {
         names: 'Juan',
         lastnames: 'Pérez García',
         fields: [
           {
             name: 'Estado Civil',
+            type: 'CHOICE',
             options: ['Soltero', 'Casado'],
             value: 'Soltero'
+          },
+          {
+            name: 'Edad',
+            type: 'NUMBER',
+            value: 30
+          },
+          {
+            name: 'Peso en kg',
+            type: 'FLOAT',
+            value: 70.5
+          },
+          {
+            name: 'Notas adicionales',
+            type: 'TEXT',
+            value: 'Paciente en buenas condiciones'
+          },
+          {
+            name: 'Observaciones breves',
+            type: 'SHORT_TEXT',
+            value: 'Revisión rápida'
+          },
+          {
+            name: 'Fecha de nacimiento',
+            type: 'DATE',
+            value: '1992-01-15'
           }
         ]
       }
@@ -124,8 +197,34 @@ describe('Manage Records Tests', () => {
           fields: [
             {
               name: 'Estado Civil',
+              type: 'CHOICE',
               options: ['Soltero', 'Casado'],
               value: 'Soltero'
+            },
+            {
+              name: 'Edad',
+              type: 'NUMBER',
+              value: 30
+            },
+            {
+              name: 'Peso en kg',
+              type: 'FLOAT',
+              value: 70.5
+            },
+            {
+              name: 'Notas adicionales',
+              type: 'TEXT',
+              value: 'Paciente en buenas condiciones'
+            },
+            {
+              name: 'Observaciones breves',
+              type: 'SHORT_TEXT',
+              value: 'Revisión rápida'
+            },
+            {
+              name: 'Fecha de nacimiento',
+              type: 'DATE',
+              value: '1992-01-15'
             }
           ]
         }
@@ -146,8 +245,34 @@ describe('Manage Records Tests', () => {
           fields: [
             {
               name: 'Estado Civil',
+              type: 'CHOICE',
               options: ['Soltero', 'Casado'],
               value: 'Soltero'
+            },
+            {
+              name: 'Edad',
+              type: 'NUMBER',
+              value: 30
+            },
+            {
+              name: 'Peso en kg',
+              type: 'FLOAT',
+              value: 70.5
+            },
+            {
+              name: 'Notas adicionales',
+              type: 'TEXT',
+              value: 'Paciente en buenas condiciones'
+            },
+            {
+              name: 'Observaciones breves',
+              type: 'SHORT_TEXT',
+              value: 'Revisión rápida'
+            },
+            {
+              name: 'Fecha de nacimiento',
+              type: 'DATE',
+              value: '1992-01-15'
             }
           ]
         }
@@ -180,8 +305,34 @@ describe('Manage Records Tests', () => {
           fields: [
             {
               name: 'Estado Civil',
+              type: 'CHOICE',
               options: ['Soltero', 'Casado'],
               value: 'Soltero'
+            },
+            {
+              name: 'Edad',
+              type: 'NUMBER',
+              value: 30
+            },
+            {
+              name: 'Peso en kg',
+              type: 'FLOAT',
+              value: 70.5
+            },
+            {
+              name: 'Notas adicionales',
+              type: 'TEXT',
+              value: 'Paciente en buenas condiciones'
+            },
+            {
+              name: 'Observaciones breves',
+              type: 'SHORT_TEXT',
+              value: 'Revisión rápida'
+            },
+            {
+              name: 'Fecha de nacimiento',
+              type: 'DATE',
+              value: '1992-01-15'
             }
           ]
         }
@@ -202,8 +353,34 @@ describe('Manage Records Tests', () => {
           fields: [
             {
               name: 'Estado Civil',
+              type: 'CHOICE',
               options: ['Soltero', 'Casado'],
               value: 'Soltero'
+            },
+            {
+              name: 'Edad',
+              type: 'NUMBER',
+              value: 30
+            },
+            {
+              name: 'Peso en kg',
+              type: 'FLOAT',
+              value: 70.5
+            },
+            {
+              name: 'Notas adicionales',
+              type: 'TEXT',
+              value: 'Paciente en buenas condiciones'
+            },
+            {
+              name: 'Observaciones breves',
+              type: 'SHORT_TEXT',
+              value: 'Revisión rápida'
+            },
+            {
+              name: 'Fecha de nacimiento',
+              type: 'DATE',
+              value: '1992-01-15'
             }
           ]
         }
@@ -241,8 +418,34 @@ describe('Manage Records Tests', () => {
           fields: [
             {
               name: 'Estado Civil',
+              type: 'CHOICE',
               options: ['Soltero', 'Casado'],
               value: 'Soltero'
+            },
+            {
+              name: 'Edad',
+              type: 'NUMBER',
+              value: 30
+            },
+            {
+              name: 'Peso en kg',
+              type: 'FLOAT',
+              value: 70.5
+            },
+            {
+              name: 'Notas adicionales',
+              type: 'TEXT',
+              value: 'Paciente en buenas condiciones'
+            },
+            {
+              name: 'Observaciones breves',
+              type: 'SHORT_TEXT',
+              value: 'Revisión rápida'
+            },
+            {
+              name: 'Fecha de nacimiento',
+              type: 'DATE',
+              value: '1992-01-15'
             }
           ]
         }
@@ -264,8 +467,34 @@ describe('Manage Records Tests', () => {
           fields: [
             {
               name: 'Estado Civil',
+              type: 'CHOICE',
               options: ['Soltero', 'Casado'],
               value: 'Soltero'
+            },
+            {
+              name: 'Edad',
+              type: 'NUMBER',
+              value: 30
+            },
+            {
+              name: 'Peso en kg',
+              type: 'FLOAT',
+              value: 70.5
+            },
+            {
+              name: 'Notas adicionales',
+              type: 'TEXT',
+              value: 'Paciente en buenas condiciones'
+            },
+            {
+              name: 'Observaciones breves',
+              type: 'SHORT_TEXT',
+              value: 'Revisión rápida'
+            },
+            {
+              name: 'Fecha de nacimiento',
+              type: 'DATE',
+              value: '1992-01-15'
             }
           ]
         }
@@ -287,7 +516,14 @@ describe('Manage Records Tests', () => {
           fields: [
             {
               name: 'Estado Civil',
+              type: 'CHOICE',
+              options: ['Soltero', 'Casado'],
               value: 'Soltero'
+            },
+            {
+              name: 'Edad',
+              type: 'NUMBER',
+              value: 30
             }
           ]
         }
@@ -312,8 +548,33 @@ describe('Manage Records Tests', () => {
           fields: [
             {
               name: 'Estado Civil',
+              type: 'CHOICE',
+              value: 'Soltero'
+            },
+            {
+              name: 'Edad',
+              type: 'NUMBER',
+              value: 30
+            },
+            {
+              name: 'Peso en kg',
+              type: 'FLOAT',
+              value: 65.5
+            },
+            {
+              name: 'Notas adicionales',
               type: 'TEXT',
               value: 123
+            },
+            {
+              name: 'Observaciones breves',
+              type: 'SHORT_TEXT',
+              value: 'Paciente en buen estado'
+            },
+            {
+              name: 'Fecha de nacimiento',
+              type: 'DATE',
+              value: '2024-09-01'
             }
           ]
         }
@@ -335,8 +596,33 @@ describe('Manage Records Tests', () => {
           fields: [
             {
               name: 'Estado Civil',
+              type: 'CHOICE',
+              value: 'Soltero'
+            },
+            {
+              name: 'Edad',
+              type: 'NUMBER',
+              value: 30
+            },
+            {
+              name: 'Peso en kg',
+              type: 'FLOAT',
+              value: 65.5
+            },
+            {
+              name: 'Notas adicionales',
               type: 'TEXT',
               value: true
+            },
+            {
+              name: 'Observaciones breves',
+              type: 'SHORT_TEXT',
+              value: 'Paciente en buen estado'
+            },
+            {
+              name: 'Fecha de nacimiento',
+              type: 'DATE',
+              value: '2024-09-01'
             }
           ]
         }
@@ -358,8 +644,33 @@ describe('Manage Records Tests', () => {
           fields: [
             {
               name: 'Estado Civil',
+              type: 'CHOICE',
+              value: 'Soltero'
+            },
+            {
+              name: 'Edad',
+              type: 'NUMBER',
+              value: 30
+            },
+            {
+              name: 'Peso en kg',
+              type: 'FLOAT',
+              value: 65.5
+            },
+            {
+              name: 'Notas adicionales',
               type: 'TEXT',
-              value: ['Soltero', 'Casado']
+              value: ['Texto1', 'Texto2']
+            },
+            {
+              name: 'Observaciones breves',
+              type: 'SHORT_TEXT',
+              value: 'Paciente en buen estado'
+            },
+            {
+              name: 'Fecha de nacimiento',
+              type: 'DATE',
+              value: '2024-09-01'
             }
           ]
         }
@@ -384,8 +695,33 @@ describe('Manage Records Tests', () => {
           fields: [
             {
               name: 'Estado Civil',
+              type: 'CHOICE',
+              value: 'Soltero'
+            },
+            {
+              name: 'Edad',
+              type: 'NUMBER',
+              value: 30
+            },
+            {
+              name: 'Peso en kg',
+              type: 'FLOAT',
+              value: 65.5
+            },
+            {
+              name: 'Notas adicionales',
+              type: 'TEXT',
+              value: 'Información adicional'
+            },
+            {
+              name: 'Observaciones breves',
               type: 'SHORT_TEXT',
               value: 123
+            },
+            {
+              name: 'Fecha de nacimiento',
+              type: 'DATE',
+              value: '2024-09-01'
             }
           ]
         }
@@ -407,8 +743,33 @@ describe('Manage Records Tests', () => {
           fields: [
             {
               name: 'Estado Civil',
+              type: 'CHOICE',
+              value: 'Soltero'
+            },
+            {
+              name: 'Edad',
+              type: 'NUMBER',
+              value: 30
+            },
+            {
+              name: 'Peso en kg',
+              type: 'FLOAT',
+              value: 65.5
+            },
+            {
+              name: 'Notas adicionales',
+              type: 'TEXT',
+              value: 'Información adicional'
+            },
+            {
+              name: 'Observaciones breves',
               type: 'SHORT_TEXT',
               value: true
+            },
+            {
+              name: 'Fecha de nacimiento',
+              type: 'DATE',
+              value: '2024-09-01'
             }
           ]
         }
@@ -430,8 +791,33 @@ describe('Manage Records Tests', () => {
           fields: [
             {
               name: 'Estado Civil',
+              type: 'CHOICE',
+              value: 'Soltero'
+            },
+            {
+              name: 'Edad',
+              type: 'NUMBER',
+              value: 30
+            },
+            {
+              name: 'Peso en kg',
+              type: 'FLOAT',
+              value: 65.5
+            },
+            {
+              name: 'Notas adicionales',
+              type: 'TEXT',
+              value: 'Información adicional'
+            },
+            {
+              name: 'Observaciones breves',
               type: 'SHORT_TEXT',
-              value: ['Soltero', 'Casado']
+              value: ['Texto1', 'Texto2']
+            },
+            {
+              name: 'Fecha de nacimiento',
+              type: 'DATE',
+              value: '2024-09-01'
             }
           ]
         }
@@ -455,9 +841,34 @@ describe('Manage Records Tests', () => {
           lastnames: 'Pérez García',
           fields: [
             {
+              name: 'Estado Civil',
+              type: 'CHOICE',
+              value: 'Soltero'
+            },
+            {
               name: 'Edad',
               type: 'NUMBER',
               value: 'treinta'
+            },
+            {
+              name: 'Peso en kg',
+              type: 'FLOAT',
+              value: 65.5
+            },
+            {
+              name: 'Notas adicionales',
+              type: 'TEXT',
+              value: 'Información adicional'
+            },
+            {
+              name: 'Observaciones breves',
+              type: 'SHORT_TEXT',
+              value: 'Observaciones breves'
+            },
+            {
+              name: 'Fecha de nacimiento',
+              type: 'DATE',
+              value: '2024-09-01'
             }
           ]
         }
@@ -478,9 +889,34 @@ describe('Manage Records Tests', () => {
           lastnames: 'Pérez García',
           fields: [
             {
+              name: 'Estado Civil',
+              type: 'CHOICE',
+              value: 'Soltero'
+            },
+            {
               name: 'Edad',
               type: 'NUMBER',
               value: true
+            },
+            {
+              name: 'Peso en kg',
+              type: 'FLOAT',
+              value: 65.5
+            },
+            {
+              name: 'Notas adicionales',
+              type: 'TEXT',
+              value: 'Información adicional'
+            },
+            {
+              name: 'Observaciones breves',
+              type: 'SHORT_TEXT',
+              value: 'Observaciones breves'
+            },
+            {
+              name: 'Fecha de nacimiento',
+              type: 'DATE',
+              value: '2024-09-01'
             }
           ]
         }
@@ -501,9 +937,34 @@ describe('Manage Records Tests', () => {
           lastnames: 'Pérez García',
           fields: [
             {
+              name: 'Estado Civil',
+              type: 'CHOICE',
+              value: 'Soltero'
+            },
+            {
               name: 'Edad',
               type: 'NUMBER',
               value: [1, 2, 3]
+            },
+            {
+              name: 'Peso en kg',
+              type: 'FLOAT',
+              value: 65.5
+            },
+            {
+              name: 'Notas adicionales',
+              type: 'TEXT',
+              value: 'Información adicional'
+            },
+            {
+              name: 'Observaciones breves',
+              type: 'SHORT_TEXT',
+              value: 'Observaciones breves'
+            },
+            {
+              name: 'Fecha de nacimiento',
+              type: 'DATE',
+              value: '2024-09-01'
             }
           ]
         }
@@ -525,9 +986,34 @@ describe('Manage Records Tests', () => {
           lastnames: 'Pérez García',
           fields: [
             {
+              name: 'Estado Civil',
+              type: 'CHOICE',
+              value: 'Soltero'
+            },
+            {
               name: 'Edad',
               type: 'NUMBER',
               value: 30.5
+            },
+            {
+              name: 'Peso en kg',
+              type: 'FLOAT',
+              value: 65.5
+            },
+            {
+              name: 'Notas adicionales',
+              type: 'TEXT',
+              value: 'Información adicional'
+            },
+            {
+              name: 'Observaciones breves',
+              type: 'SHORT_TEXT',
+              value: 'Observaciones breves'
+            },
+            {
+              name: 'Fecha de nacimiento',
+              type: 'DATE',
+              value: '2024-09-01'
             }
           ]
         }
@@ -551,9 +1037,34 @@ describe('Manage Records Tests', () => {
           lastnames: 'Pérez García',
           fields: [
             {
-              name: 'Peso',
+              name: 'Estado Civil',
+              type: 'CHOICE',
+              value: 'Soltero'
+            },
+            {
+              name: 'Edad',
+              type: 'NUMBER',
+              value: 30
+            },
+            {
+              name: 'Peso en kg',
               type: 'FLOAT',
               value: 'sesenta'
+            },
+            {
+              name: 'Notas adicionales',
+              type: 'TEXT',
+              value: 'Información adicional'
+            },
+            {
+              name: 'Observaciones breves',
+              type: 'SHORT_TEXT',
+              value: 'Observaciones breves'
+            },
+            {
+              name: 'Fecha de nacimiento',
+              type: 'DATE',
+              value: '2024-09-01'
             }
           ]
         }
@@ -574,9 +1085,34 @@ describe('Manage Records Tests', () => {
           lastnames: 'Pérez García',
           fields: [
             {
-              name: 'Peso',
+              name: 'Estado Civil',
+              type: 'CHOICE',
+              value: 'Soltero'
+            },
+            {
+              name: 'Edad',
+              type: 'NUMBER',
+              value: 30
+            },
+            {
+              name: 'Peso en kg',
               type: 'FLOAT',
               value: true
+            },
+            {
+              name: 'Notas adicionales',
+              type: 'TEXT',
+              value: 'Información adicional'
+            },
+            {
+              name: 'Observaciones breves',
+              type: 'SHORT_TEXT',
+              value: 'Observaciones breves'
+            },
+            {
+              name: 'Fecha de nacimiento',
+              type: 'DATE',
+              value: '2024-09-01'
             }
           ]
         }
@@ -597,9 +1133,34 @@ describe('Manage Records Tests', () => {
           lastnames: 'Pérez García',
           fields: [
             {
-              name: 'Peso',
+              name: 'Estado Civil',
+              type: 'CHOICE',
+              value: 'Soltero'
+            },
+            {
+              name: 'Edad',
+              type: 'NUMBER',
+              value: 30
+            },
+            {
+              name: 'Peso en kg',
               type: 'FLOAT',
               value: [60.5, 65.2]
+            },
+            {
+              name: 'Notas adicionales',
+              type: 'TEXT',
+              value: 'Información adicional'
+            },
+            {
+              name: 'Observaciones breves',
+              type: 'SHORT_TEXT',
+              value: 'Observaciones breves'
+            },
+            {
+              name: 'Fecha de nacimiento',
+              type: 'DATE',
+              value: '2024-09-01'
             }
           ]
         }
@@ -626,6 +1187,31 @@ describe('Manage Records Tests', () => {
               name: 'Estado Civil',
               type: 'CHOICE',
               value: 123
+            },
+            {
+              name: 'Edad',
+              type: 'NUMBER',
+              value: 30
+            },
+            {
+              name: 'Peso en kg',
+              type: 'FLOAT',
+              value: 70.5
+            },
+            {
+              name: 'Notas adicionales',
+              type: 'TEXT',
+              value: 'Notas de prueba'
+            },
+            {
+              name: 'Observaciones breves',
+              type: 'SHORT_TEXT',
+              value: 'Observaciones'
+            },
+            {
+              name: 'Fecha de nacimiento',
+              type: 'DATE',
+              value: '2024-09-01'
             }
           ]
         }
@@ -649,6 +1235,31 @@ describe('Manage Records Tests', () => {
               name: 'Estado Civil',
               type: 'CHOICE',
               value: true
+            },
+            {
+              name: 'Edad',
+              type: 'NUMBER',
+              value: 30
+            },
+            {
+              name: 'Peso en kg',
+              type: 'FLOAT',
+              value: 70.5
+            },
+            {
+              name: 'Notas adicionales',
+              type: 'TEXT',
+              value: 'Notas de prueba'
+            },
+            {
+              name: 'Observaciones breves',
+              type: 'SHORT_TEXT',
+              value: 'Observaciones'
+            },
+            {
+              name: 'Fecha de nacimiento',
+              type: 'DATE',
+              value: '2024-09-01'
             }
           ]
         }
@@ -673,6 +1284,31 @@ describe('Manage Records Tests', () => {
               type: 'CHOICE',
               options: ['Soltero', 'Casado'],
               value: 'Divorciado'
+            },
+            {
+              name: 'Edad',
+              type: 'NUMBER',
+              value: 30
+            },
+            {
+              name: 'Peso en kg',
+              type: 'FLOAT',
+              value: 70.5
+            },
+            {
+              name: 'Notas adicionales',
+              type: 'TEXT',
+              value: 'Notas de prueba'
+            },
+            {
+              name: 'Observaciones breves',
+              type: 'SHORT_TEXT',
+              value: 'Observaciones'
+            },
+            {
+              name: 'Fecha de nacimiento',
+              type: 'DATE',
+              value: '2024-09-01'
             }
           ]
         }
@@ -681,6 +1317,7 @@ describe('Manage Records Tests', () => {
       COMMON_MSG.INVALID_FIELD_VALUE_CHOICE
     )
   })
+
   // TODO:
   test('should fail with 405 when passing ARRAY value for CHOICE field', async () => {
     await checkFailCreateRequest(
@@ -695,6 +1332,31 @@ describe('Manage Records Tests', () => {
               name: 'Estado Civil',
               type: 'CHOICE',
               value: ['Soltero', 'Casado']
+            },
+            {
+              name: 'Edad',
+              type: 'NUMBER',
+              value: 30
+            },
+            {
+              name: 'Peso en kg',
+              type: 'FLOAT',
+              value: 70.5
+            },
+            {
+              name: 'Notas adicionales',
+              type: 'TEXT',
+              value: 'Notas de prueba'
+            },
+            {
+              name: 'Observaciones breves',
+              type: 'SHORT_TEXT',
+              value: 'Observaciones'
+            },
+            {
+              name: 'Fecha de nacimiento',
+              type: 'DATE',
+              value: '2024-09-01'
             }
           ]
         }
@@ -718,9 +1380,34 @@ describe('Manage Records Tests', () => {
           lastnames: 'Pérez García',
           fields: [
             {
-              name: 'Fecha de Nacimiento',
+              name: 'Nacimiento',
               type: 'DATE',
               value: 'not-a-date'
+            },
+            {
+              name: 'Estado Civil',
+              type: 'CHOICE',
+              value: 'Soltero'
+            },
+            {
+              name: 'Edad',
+              type: 'NUMBER',
+              value: 30
+            },
+            {
+              name: 'Peso en kg',
+              type: 'FLOAT',
+              value: 70.5
+            },
+            {
+              name: 'Notas adicionales',
+              type: 'TEXT',
+              value: 'Notas de prueba'
+            },
+            {
+              name: 'Observaciones breves',
+              type: 'SHORT_TEXT',
+              value: 'Observaciones'
             }
           ]
         }
@@ -741,9 +1428,34 @@ describe('Manage Records Tests', () => {
           lastnames: 'Pérez García',
           fields: [
             {
-              name: 'Fecha de Nacimiento',
+              name: 'Nacimiento',
               type: 'DATE',
               value: true
+            },
+            {
+              name: 'Estado Civil',
+              type: 'CHOICE',
+              value: 'Soltero'
+            },
+            {
+              name: 'Edad',
+              type: 'NUMBER',
+              value: 30
+            },
+            {
+              name: 'Peso en kg',
+              type: 'FLOAT',
+              value: 70.5
+            },
+            {
+              name: 'Notas adicionales',
+              type: 'TEXT',
+              value: 'Notas de prueba'
+            },
+            {
+              name: 'Observaciones breves',
+              type: 'SHORT_TEXT',
+              value: 'Observaciones'
             }
           ]
         }
@@ -764,9 +1476,34 @@ describe('Manage Records Tests', () => {
           lastnames: 'Pérez García',
           fields: [
             {
-              name: 'Fecha de Nacimiento',
+              name: 'Nacimiento',
               type: 'DATE',
               value: 1234567890
+            },
+            {
+              name: 'Estado Civil',
+              type: 'CHOICE',
+              value: 'Soltero'
+            },
+            {
+              name: 'Edad',
+              type: 'NUMBER',
+              value: 30
+            },
+            {
+              name: 'Peso en kg',
+              type: 'FLOAT',
+              value: 70.5
+            },
+            {
+              name: 'Notas adicionales',
+              type: 'TEXT',
+              value: 'Notas de prueba'
+            },
+            {
+              name: 'Observaciones breves',
+              type: 'SHORT_TEXT',
+              value: 'Observaciones'
             }
           ]
         }
@@ -787,9 +1524,34 @@ describe('Manage Records Tests', () => {
           lastnames: 'Pérez García',
           fields: [
             {
-              name: 'Fecha de Nacimiento',
+              name: 'Nacimiento',
               type: 'DATE',
               value: ['2023-01-01']
+            },
+            {
+              name: 'Estado Civil',
+              type: 'CHOICE',
+              value: 'Soltero'
+            },
+            {
+              name: 'Edad',
+              type: 'NUMBER',
+              value: 30
+            },
+            {
+              name: 'Peso en kg',
+              type: 'FLOAT',
+              value: 70.5
+            },
+            {
+              name: 'Notas adicionales',
+              type: 'TEXT',
+              value: 'Notas de prueba'
+            },
+            {
+              name: 'Observaciones breves',
+              type: 'SHORT_TEXT',
+              value: 'Observaciones'
             }
           ]
         }

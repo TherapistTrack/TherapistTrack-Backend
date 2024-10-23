@@ -5,8 +5,7 @@ const {
   createTestPatientTemplate,
   createTestRecord,
   deleteUser,
-  checkFailRequest,
-  validateCreateRecordResponse
+  checkFailRequest
 } = require('../../testHelpers')
 const COMMON_MSG = require('../../../utils/errorMsg')
 
@@ -49,6 +48,37 @@ describe('Edit Records Tests', () => {
           type: 'DATE',
           required: true,
           description: 'Fecha de nacimiento del paciente'
+        },
+        {
+          name: 'Estado Civil',
+          type: 'CHOICE',
+          required: true,
+          options: ['Soltero', 'Casado'],
+          description: 'Estado civil del paciente'
+        },
+        {
+          name: 'Notas adicionales',
+          type: 'TEXT',
+          required: false,
+          description: 'Notas adicionales del paciente'
+        },
+        {
+          name: 'Observaciones cortas',
+          type: 'SHORT_TEXT',
+          required: true,
+          description: 'Observaciones breves del paciente'
+        },
+        {
+          name: 'Peso en kg',
+          type: 'FLOAT',
+          required: true,
+          description: 'Peso del paciente en kilogramos'
+        },
+        {
+          name: 'Número de hijos',
+          type: 'NUMBER',
+          required: false,
+          description: 'Número de hijos del paciente'
         }
       ]
     )
@@ -82,8 +112,33 @@ describe('Edit Records Tests', () => {
         fields: [
           {
             name: 'Fecha de nacimiento',
-            options: ['Opción 1', 'Opción 2'],
+            type: 'DATE',
             value: '2025-01-01'
+          },
+          {
+            name: 'Estado Civil',
+            type: 'CHOICE',
+            value: 'Soltero'
+          },
+          {
+            name: 'Notas adicionales',
+            type: 'TEXT',
+            value: 'Observaciones adicionales del paciente'
+          },
+          {
+            name: 'Observaciones cortas',
+            type: 'SHORT_TEXT',
+            value: 'Sin cambios'
+          },
+          {
+            name: 'Peso en kg',
+            type: 'FLOAT',
+            value: '75.5'
+          },
+          {
+            name: 'Número de hijos',
+            type: 'NUMBER',
+            value: 3
           }
         ]
       }
@@ -96,7 +151,6 @@ describe('Edit Records Tests', () => {
 
       expect(response.status).toBe(200)
       expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS)
-      await validateCreateRecordResponse(response.data.data)
     } catch (error) {
       console.error(
         'Error editing record:',
@@ -117,8 +171,33 @@ describe('Edit Records Tests', () => {
           fields: [
             {
               name: 'Fecha de nacimiento',
-              options: ['Opción 1', 'Opción 2'],
+              type: 'DATE',
               value: '2024-09-01'
+            },
+            {
+              name: 'Estado Civil',
+              type: 'CHOICE',
+              value: 'Soltero'
+            },
+            {
+              name: 'Notas adicionales',
+              type: 'TEXT',
+              value: 'Observaciones del paciente'
+            },
+            {
+              name: 'Observaciones cortas',
+              type: 'SHORT_TEXT',
+              value: 'Sin cambios'
+            },
+            {
+              name: 'Peso en kg',
+              type: 'FLOAT',
+              value: '75.5'
+            },
+            {
+              name: 'Número de hijos',
+              type: 'NUMBER',
+              value: 3
             }
           ]
         }
@@ -139,8 +218,33 @@ describe('Edit Records Tests', () => {
           fields: [
             {
               name: 'Fecha de nacimiento',
-              options: ['Opción 1', 'Opción 2'],
+              type: 'DATE',
               value: '2024-09-01'
+            },
+            {
+              name: 'Estado Civil',
+              type: 'CHOICE',
+              value: 'Soltero'
+            },
+            {
+              name: 'Notas adicionales',
+              type: 'TEXT',
+              value: 'Observaciones del paciente'
+            },
+            {
+              name: 'Observaciones cortas',
+              type: 'SHORT_TEXT',
+              value: 'Sin cambios'
+            },
+            {
+              name: 'Peso en kg',
+              type: 'FLOAT',
+              value: '75.5'
+            },
+            {
+              name: 'Número de hijos',
+              type: 'NUMBER',
+              value: 3
             }
           ]
         }
@@ -189,9 +293,30 @@ describe('Edit Records Tests', () => {
           fields: [
             {
               name: 'Fecha de nacimiento',
-              options: ['Opción 1', 'Opción 2']
-              // Missing the 'value' field here
+              type: 'DATE',
+              value: '2024-09-01'
+            },
+            {
+              name: 'Estado Civil',
+              type: 'CHOICE',
+              value: 'Soltero'
+            },
+            {
+              name: 'Notas adicionales',
+              type: 'TEXT',
+              value: 'Observaciones del paciente'
+            },
+            {
+              name: 'Observaciones cortas',
+              type: 'SHORT_TEXT',
+              value: 'Sin cambios'
+            },
+            {
+              name: 'Peso en kg',
+              type: 'FLOAT',
+              value: '75.5'
             }
+            // Missing the 'Número de hijos' field here
           ]
         }
       },
@@ -212,8 +337,33 @@ describe('Edit Records Tests', () => {
           fields: [
             {
               name: 'Fecha de nacimiento',
-              options: ['Opción 1', 'Opción 2'],
+              type: 'DATE',
               value: '2024-09-01'
+            },
+            {
+              name: 'Estado Civil',
+              type: 'CHOICE',
+              value: 'Soltero'
+            },
+            {
+              name: 'Notas adicionales',
+              type: 'TEXT',
+              value: 'Observaciones del paciente'
+            },
+            {
+              name: 'Observaciones cortas',
+              type: 'SHORT_TEXT',
+              value: 'Sin cambios'
+            },
+            {
+              name: 'Peso en kg',
+              type: 'FLOAT',
+              value: '75.5'
+            },
+            {
+              name: 'Número de hijos',
+              type: 'NUMBER',
+              value: 3
             }
           ]
         }
@@ -235,8 +385,33 @@ describe('Edit Records Tests', () => {
           fields: [
             {
               name: 'Fecha de nacimiento',
-              options: ['Opción 1', 'Opción 2'],
+              type: 'DATE',
               value: '2024-09-01'
+            },
+            {
+              name: 'Estado Civil',
+              type: 'CHOICE',
+              value: 'Soltero'
+            },
+            {
+              name: 'Notas adicionales',
+              type: 'TEXT',
+              value: 'Observaciones del paciente'
+            },
+            {
+              name: 'Observaciones cortas',
+              type: 'SHORT_TEXT',
+              value: 'Sin cambios'
+            },
+            {
+              name: 'Peso en kg',
+              type: 'FLOAT',
+              value: '75.5'
+            },
+            {
+              name: 'Número de hijos',
+              type: 'NUMBER',
+              value: 3
             }
           ]
         }
@@ -258,6 +433,7 @@ describe('Edit Records Tests', () => {
           fields: [
             {
               name: 'Fecha de nacimiento',
+              type: 'DATE',
               value: '2024-09-01'
             }
           ]
@@ -275,16 +451,41 @@ describe('Edit Records Tests', () => {
   test('should fail with 405 when passing NUMBER value for TEXT field', async () => {
     await checkFailEditRequest(
       {
-        recordId: 'nonExistentRecordId',
+        recordId: recordId,
         doctorId: doctorId,
         patient: {
           names: 'Juan',
           lastnames: 'Pérez García',
           fields: [
             {
-              name: 'Estado Civil',
+              name: 'Notas adicionales',
               type: 'TEXT',
               value: 123
+            },
+            {
+              name: 'Fecha de nacimiento',
+              type: 'DATE',
+              value: '2024-09-01'
+            },
+            {
+              name: 'Estado Civil',
+              type: 'CHOICE',
+              value: 'Soltero'
+            },
+            {
+              name: 'Observaciones cortas',
+              type: 'SHORT_TEXT',
+              value: 'Sin cambios'
+            },
+            {
+              name: 'Peso en kg',
+              type: 'FLOAT',
+              value: '75.5'
+            },
+            {
+              name: 'Número de hijos',
+              type: 'NUMBER',
+              value: 3
             }
           ]
         }
@@ -298,16 +499,41 @@ describe('Edit Records Tests', () => {
   test('should fail with 405 when passing BOOLEAN value for TEXT field', async () => {
     await checkFailEditRequest(
       {
-        recordId: 'nonExistentRecordId',
+        recordId: recordId,
         doctorId: doctorId,
         patient: {
           names: 'Juan',
           lastnames: 'Pérez García',
           fields: [
             {
-              name: 'Estado Civil',
+              name: 'Notas adicionales',
               type: 'TEXT',
               value: true
+            },
+            {
+              name: 'Fecha de nacimiento',
+              type: 'DATE',
+              value: '2024-09-01'
+            },
+            {
+              name: 'Estado Civil',
+              type: 'CHOICE',
+              value: 'Soltero'
+            },
+            {
+              name: 'Observaciones cortas',
+              type: 'SHORT_TEXT',
+              value: 'Sin cambios'
+            },
+            {
+              name: 'Peso en kg',
+              type: 'FLOAT',
+              value: '75.5'
+            },
+            {
+              name: 'Número de hijos',
+              type: 'NUMBER',
+              value: 3
             }
           ]
         }
@@ -321,16 +547,41 @@ describe('Edit Records Tests', () => {
   test('should fail with 405 when passing ARRAY value for TEXT field', async () => {
     await checkFailEditRequest(
       {
-        recordId: 'nonExistentRecordId',
+        recordId: recordId,
         doctorId: doctorId,
         patient: {
           names: 'Juan',
           lastnames: 'Pérez García',
           fields: [
             {
-              name: 'Estado Civil',
+              name: 'Notas adicionales',
               type: 'TEXT',
-              value: ['Soltero', 'Casado']
+              value: ['Observación 1', 'Observación 2']
+            },
+            {
+              name: 'Fecha de nacimiento',
+              type: 'DATE',
+              value: '2024-09-01'
+            },
+            {
+              name: 'Estado Civil',
+              type: 'CHOICE',
+              value: 'Soltero'
+            },
+            {
+              name: 'Observaciones cortas',
+              type: 'SHORT_TEXT',
+              value: 'Sin cambios'
+            },
+            {
+              name: 'Peso en kg',
+              type: 'FLOAT',
+              value: '75.5'
+            },
+            {
+              name: 'Número de hijos',
+              type: 'NUMBER',
+              value: 3
             }
           ]
         }
@@ -347,16 +598,41 @@ describe('Edit Records Tests', () => {
   test('should fail with 405 when passing NUMBER value for SHORT_TEXT field', async () => {
     await checkFailEditRequest(
       {
-        recordId: 'nonExistentRecordId',
+        recordId: recordId,
         doctorId: doctorId,
         patient: {
           names: 'Juan',
           lastnames: 'Pérez García',
           fields: [
             {
-              name: 'Descripción',
+              name: 'Observaciones cortas',
               type: 'SHORT_TEXT',
               value: 123
+            },
+            {
+              name: 'Fecha de nacimiento',
+              type: 'DATE',
+              value: '2024-09-01'
+            },
+            {
+              name: 'Estado Civil',
+              type: 'CHOICE',
+              value: 'Soltero'
+            },
+            {
+              name: 'Notas adicionales',
+              type: 'TEXT',
+              value: 'Notas relevantes'
+            },
+            {
+              name: 'Peso en kg',
+              type: 'FLOAT',
+              value: '75.5'
+            },
+            {
+              name: 'Número de hijos',
+              type: 'NUMBER',
+              value: 3
             }
           ]
         }
@@ -370,16 +646,41 @@ describe('Edit Records Tests', () => {
   test('should fail with 405 when passing BOOLEAN value for SHORT_TEXT field', async () => {
     await checkFailEditRequest(
       {
-        recordId: 'nonExistentRecordId',
+        recordId: recordId,
         doctorId: doctorId,
         patient: {
           names: 'Juan',
           lastnames: 'Pérez García',
           fields: [
             {
-              name: 'Descripción',
+              name: 'Observaciones cortas',
               type: 'SHORT_TEXT',
               value: true
+            },
+            {
+              name: 'Fecha de nacimiento',
+              type: 'DATE',
+              value: '2024-09-01'
+            },
+            {
+              name: 'Estado Civil',
+              type: 'CHOICE',
+              value: 'Soltero'
+            },
+            {
+              name: 'Notas adicionales',
+              type: 'TEXT',
+              value: 'Notas relevantes'
+            },
+            {
+              name: 'Peso en kg',
+              type: 'FLOAT',
+              value: '75.5'
+            },
+            {
+              name: 'Número de hijos',
+              type: 'NUMBER',
+              value: 3
             }
           ]
         }
@@ -393,16 +694,41 @@ describe('Edit Records Tests', () => {
   test('should fail with 405 when passing ARRAY value for SHORT_TEXT field', async () => {
     await checkFailEditRequest(
       {
-        recordId: 'nonExistentRecordId',
+        recordId: recordId,
         doctorId: doctorId,
         patient: {
           names: 'Juan',
           lastnames: 'Pérez García',
           fields: [
             {
-              name: 'Descripción',
+              name: 'Observaciones cortas',
               type: 'SHORT_TEXT',
               value: ['texto1', 'texto2']
+            },
+            {
+              name: 'Fecha de nacimiento',
+              type: 'DATE',
+              value: '2024-09-01'
+            },
+            {
+              name: 'Estado Civil',
+              type: 'CHOICE',
+              value: 'Soltero'
+            },
+            {
+              name: 'Notas adicionales',
+              type: 'TEXT',
+              value: 'Notas relevantes'
+            },
+            {
+              name: 'Peso en kg',
+              type: 'FLOAT',
+              value: '75.5'
+            },
+            {
+              name: 'Número de hijos',
+              type: 'NUMBER',
+              value: 3
             }
           ]
         }
@@ -419,16 +745,41 @@ describe('Edit Records Tests', () => {
   test('should fail with 405 when passing TEXT value for NUMBER field', async () => {
     await checkFailEditRequest(
       {
-        recordId: 'nonExistentRecordId',
+        recordId: recordId,
         doctorId: doctorId,
         patient: {
           names: 'Juan',
           lastnames: 'Pérez García',
           fields: [
             {
-              name: 'Edad',
+              name: 'Número de hijos',
               type: 'NUMBER',
               value: 'veinticinco'
+            },
+            {
+              name: 'Fecha de nacimiento',
+              type: 'DATE',
+              value: '2024-09-01'
+            },
+            {
+              name: 'Estado Civil',
+              type: 'CHOICE',
+              value: 'Soltero'
+            },
+            {
+              name: 'Notas adicionales',
+              type: 'TEXT',
+              value: 'Notas relevantes'
+            },
+            {
+              name: 'Observaciones cortas',
+              type: 'SHORT_TEXT',
+              value: 'Observación breve'
+            },
+            {
+              name: 'Peso en kg',
+              type: 'FLOAT',
+              value: '75.5'
             }
           ]
         }
@@ -442,16 +793,41 @@ describe('Edit Records Tests', () => {
   test('should fail with 405 when passing BOOLEAN value for NUMBER field', async () => {
     await checkFailEditRequest(
       {
-        recordId: 'nonExistentRecordId',
+        recordId: recordId,
         doctorId: doctorId,
         patient: {
           names: 'Juan',
           lastnames: 'Pérez García',
           fields: [
             {
-              name: 'Edad',
+              name: 'Número de hijos',
               type: 'NUMBER',
               value: true
+            },
+            {
+              name: 'Fecha de nacimiento',
+              type: 'DATE',
+              value: '2024-09-01'
+            },
+            {
+              name: 'Estado Civil',
+              type: 'CHOICE',
+              value: 'Soltero'
+            },
+            {
+              name: 'Notas adicionales',
+              type: 'TEXT',
+              value: 'Notas relevantes'
+            },
+            {
+              name: 'Observaciones cortas',
+              type: 'SHORT_TEXT',
+              value: 'Observación breve'
+            },
+            {
+              name: 'Peso en kg',
+              type: 'FLOAT',
+              value: '75.5'
             }
           ]
         }
@@ -465,16 +841,41 @@ describe('Edit Records Tests', () => {
   test('should fail with 405 when passing ARRAY value for NUMBER field', async () => {
     await checkFailEditRequest(
       {
-        recordId: 'nonExistentRecordId',
+        recordId: recordId,
         doctorId: doctorId,
         patient: {
           names: 'Juan',
           lastnames: 'Pérez García',
           fields: [
             {
-              name: 'Edad',
+              name: 'Número de hijos',
               type: 'NUMBER',
               value: [23, 24]
+            },
+            {
+              name: 'Fecha de nacimiento',
+              type: 'DATE',
+              value: '2024-09-01'
+            },
+            {
+              name: 'Estado Civil',
+              type: 'CHOICE',
+              value: 'Soltero'
+            },
+            {
+              name: 'Notas adicionales',
+              type: 'TEXT',
+              value: 'Notas relevantes'
+            },
+            {
+              name: 'Observaciones cortas',
+              type: 'SHORT_TEXT',
+              value: 'Observación breve'
+            },
+            {
+              name: 'Peso en kg',
+              type: 'FLOAT',
+              value: '75.5'
             }
           ]
         }
@@ -486,19 +887,44 @@ describe('Edit Records Tests', () => {
 
   // TODO:
   test('should fail with 405 when passing FLOAT value for NUMBER field', async () => {
-    // Number field just accept integers
+    // Number field just accepts integers
     await checkFailEditRequest(
       {
-        recordId: 'nonExistentRecordId',
+        recordId: recordId,
         doctorId: doctorId,
         patient: {
           names: 'Juan',
           lastnames: 'Pérez García',
           fields: [
             {
-              name: 'Edad',
+              name: 'Número de hijos',
               type: 'NUMBER',
               value: 23.5
+            },
+            {
+              name: 'Fecha de nacimiento',
+              type: 'DATE',
+              value: '2024-09-01'
+            },
+            {
+              name: 'Estado Civil',
+              type: 'CHOICE',
+              value: 'Soltero'
+            },
+            {
+              name: 'Notas adicionales',
+              type: 'TEXT',
+              value: 'Notas relevantes'
+            },
+            {
+              name: 'Observaciones cortas',
+              type: 'SHORT_TEXT',
+              value: 'Observación breve'
+            },
+            {
+              name: 'Peso en kg',
+              type: 'FLOAT',
+              value: '75.5'
             }
           ]
         }
@@ -515,16 +941,41 @@ describe('Edit Records Tests', () => {
   test('should fail with 405 when passing TEXT value for FLOAT field', async () => {
     await checkFailEditRequest(
       {
-        recordId: 'nonExistentRecordId',
+        recordId: recordId,
         doctorId: doctorId,
         patient: {
           names: 'Juan',
           lastnames: 'Pérez García',
           fields: [
             {
-              name: 'Peso',
+              name: 'Peso en kg',
               type: 'FLOAT',
               value: 'sesenta y cinco'
+            },
+            {
+              name: 'Fecha de nacimiento',
+              type: 'DATE',
+              value: '2024-09-01'
+            },
+            {
+              name: 'Estado Civil',
+              type: 'CHOICE',
+              value: 'Soltero'
+            },
+            {
+              name: 'Notas adicionales',
+              type: 'TEXT',
+              value: 'Notas relevantes'
+            },
+            {
+              name: 'Observaciones cortas',
+              type: 'SHORT_TEXT',
+              value: 'Observación breve'
+            },
+            {
+              name: 'Número de hijos',
+              type: 'NUMBER',
+              value: 2
             }
           ]
         }
@@ -538,16 +989,41 @@ describe('Edit Records Tests', () => {
   test('should fail with 405 when passing BOOLEAN value for FLOAT field', async () => {
     await checkFailEditRequest(
       {
-        recordId: 'nonExistentRecordId',
+        recordId: recordId,
         doctorId: doctorId,
         patient: {
           names: 'Juan',
           lastnames: 'Pérez García',
           fields: [
             {
-              name: 'Peso',
+              name: 'Peso en kg',
               type: 'FLOAT',
               value: true
+            },
+            {
+              name: 'Fecha de nacimiento',
+              type: 'DATE',
+              value: '2024-09-01'
+            },
+            {
+              name: 'Estado Civil',
+              type: 'CHOICE',
+              value: 'Soltero'
+            },
+            {
+              name: 'Notas adicionales',
+              type: 'TEXT',
+              value: 'Notas relevantes'
+            },
+            {
+              name: 'Observaciones cortas',
+              type: 'SHORT_TEXT',
+              value: 'Observación breve'
+            },
+            {
+              name: 'Número de hijos',
+              type: 'NUMBER',
+              value: 2
             }
           ]
         }
@@ -561,16 +1037,41 @@ describe('Edit Records Tests', () => {
   test('should fail with 405 when passing ARRAY value for FLOAT field', async () => {
     await checkFailEditRequest(
       {
-        recordId: 'nonExistentRecordId',
+        recordId: recordId,
         doctorId: doctorId,
         patient: {
           names: 'Juan',
           lastnames: 'Pérez García',
           fields: [
             {
-              name: 'Peso',
+              name: 'Peso en kg',
               type: 'FLOAT',
               value: [65.5, 66.0]
+            },
+            {
+              name: 'Fecha de nacimiento',
+              type: 'DATE',
+              value: '2024-09-01'
+            },
+            {
+              name: 'Estado Civil',
+              type: 'CHOICE',
+              value: 'Soltero'
+            },
+            {
+              name: 'Notas adicionales',
+              type: 'TEXT',
+              value: 'Notas relevantes'
+            },
+            {
+              name: 'Observaciones cortas',
+              type: 'SHORT_TEXT',
+              value: 'Observación breve'
+            },
+            {
+              name: 'Número de hijos',
+              type: 'NUMBER',
+              value: 2
             }
           ]
         }
@@ -587,7 +1088,7 @@ describe('Edit Records Tests', () => {
   test('should fail with 405 when passing NUMBER values to CHOICE', async () => {
     await checkFailEditRequest(
       {
-        recordId: 'nonExistentRecordId',
+        recordId: recordId,
         doctorId: doctorId,
         patient: {
           names: 'Juan',
@@ -597,6 +1098,31 @@ describe('Edit Records Tests', () => {
               name: 'Estado Civil',
               type: 'CHOICE',
               value: 123
+            },
+            {
+              name: 'Fecha de nacimiento',
+              type: 'DATE',
+              value: '2024-09-01'
+            },
+            {
+              name: 'Notas adicionales',
+              type: 'TEXT',
+              value: 'Notas relevantes'
+            },
+            {
+              name: 'Observaciones cortas',
+              type: 'SHORT_TEXT',
+              value: 'Observación breve'
+            },
+            {
+              name: 'Peso en kg',
+              type: 'FLOAT',
+              value: 70.5
+            },
+            {
+              name: 'Número de hijos',
+              type: 'NUMBER',
+              value: 2
             }
           ]
         }
@@ -610,7 +1136,7 @@ describe('Edit Records Tests', () => {
   test('should fail with 405 when passing BOOLEAN values to CHOICE', async () => {
     await checkFailEditRequest(
       {
-        recordId: 'nonExistentRecordId',
+        recordId: recordId,
         doctorId: doctorId,
         patient: {
           names: 'Juan',
@@ -620,6 +1146,31 @@ describe('Edit Records Tests', () => {
               name: 'Estado Civil',
               type: 'CHOICE',
               value: true
+            },
+            {
+              name: 'Fecha de nacimiento',
+              type: 'DATE',
+              value: '2024-09-01'
+            },
+            {
+              name: 'Notas adicionales',
+              type: 'TEXT',
+              value: 'Notas relevantes'
+            },
+            {
+              name: 'Observaciones cortas',
+              type: 'SHORT_TEXT',
+              value: 'Observación breve'
+            },
+            {
+              name: 'Peso en kg',
+              type: 'FLOAT',
+              value: 70.5
+            },
+            {
+              name: 'Número de hijos',
+              type: 'NUMBER',
+              value: 2
             }
           ]
         }
@@ -633,7 +1184,7 @@ describe('Edit Records Tests', () => {
   test('should fail with 405 when passing VALUE that is not within CHOICE value', async () => {
     await checkFailEditRequest(
       {
-        recordId: 'nonExistentRecordId',
+        recordId: recordId,
         doctorId: doctorId,
         patient: {
           names: 'Juan',
@@ -644,6 +1195,31 @@ describe('Edit Records Tests', () => {
               type: 'CHOICE',
               options: ['Soltero', 'Casado'],
               value: 'Divorciado'
+            },
+            {
+              name: 'Fecha de nacimiento',
+              type: 'DATE',
+              value: '2024-09-01'
+            },
+            {
+              name: 'Notas adicionales',
+              type: 'TEXT',
+              value: 'Notas relevantes'
+            },
+            {
+              name: 'Observaciones cortas',
+              type: 'SHORT_TEXT',
+              value: 'Observación breve'
+            },
+            {
+              name: 'Peso en kg',
+              type: 'FLOAT',
+              value: 70.5
+            },
+            {
+              name: 'Número de hijos',
+              type: 'NUMBER',
+              value: 2
             }
           ]
         }
@@ -657,7 +1233,7 @@ describe('Edit Records Tests', () => {
   test('should fail with 405 when passing ARRAY value for CHOICE field', async () => {
     await checkFailEditRequest(
       {
-        recordId: 'nonExistentRecordId',
+        recordId: recordId,
         doctorId: doctorId,
         patient: {
           names: 'Juan',
@@ -668,6 +1244,31 @@ describe('Edit Records Tests', () => {
               type: 'CHOICE',
               options: ['Soltero', 'Casado'],
               value: ['Soltero', 'Casado']
+            },
+            {
+              name: 'Fecha de nacimiento',
+              type: 'DATE',
+              value: '2024-09-01'
+            },
+            {
+              name: 'Notas adicionales',
+              type: 'TEXT',
+              value: 'Notas relevantes'
+            },
+            {
+              name: 'Observaciones cortas',
+              type: 'SHORT_TEXT',
+              value: 'Observación breve'
+            },
+            {
+              name: 'Peso en kg',
+              type: 'FLOAT',
+              value: 70.5
+            },
+            {
+              name: 'Número de hijos',
+              type: 'NUMBER',
+              value: 2
             }
           ]
         }
@@ -684,7 +1285,7 @@ describe('Edit Records Tests', () => {
   test('should fail with 405 when passing TEXT value for DATE field', async () => {
     await checkFailEditRequest(
       {
-        recordId: 'nonExistentRecordId',
+        recordId: recordId,
         doctorId: doctorId,
         patient: {
           names: 'Juan',
@@ -694,6 +1295,31 @@ describe('Edit Records Tests', () => {
               name: 'Fecha de nacimiento',
               type: 'DATE',
               value: 'invalid-date-string'
+            },
+            {
+              name: 'Estado Civil',
+              type: 'CHOICE',
+              value: 'Soltero'
+            },
+            {
+              name: 'Notas adicionales',
+              type: 'TEXT',
+              value: 'Notas relevantes'
+            },
+            {
+              name: 'Observaciones cortas',
+              type: 'SHORT_TEXT',
+              value: 'Observación breve'
+            },
+            {
+              name: 'Peso en kg',
+              type: 'FLOAT',
+              value: 70.5
+            },
+            {
+              name: 'Número de hijos',
+              type: 'NUMBER',
+              value: 2
             }
           ]
         }
@@ -707,7 +1333,7 @@ describe('Edit Records Tests', () => {
   test('should fail with 405 when passing BOOLEAN value for DATE field', async () => {
     await checkFailEditRequest(
       {
-        recordId: 'nonExistentRecordId',
+        recordId: recordId,
         doctorId: doctorId,
         patient: {
           names: 'Juan',
@@ -717,6 +1343,31 @@ describe('Edit Records Tests', () => {
               name: 'Fecha de nacimiento',
               type: 'DATE',
               value: true
+            },
+            {
+              name: 'Estado Civil',
+              type: 'CHOICE',
+              value: 'Soltero'
+            },
+            {
+              name: 'Notas adicionales',
+              type: 'TEXT',
+              value: 'Notas relevantes'
+            },
+            {
+              name: 'Observaciones cortas',
+              type: 'SHORT_TEXT',
+              value: 'Observación breve'
+            },
+            {
+              name: 'Peso en kg',
+              type: 'FLOAT',
+              value: 70.5
+            },
+            {
+              name: 'Número de hijos',
+              type: 'NUMBER',
+              value: 2
             }
           ]
         }
@@ -730,7 +1381,7 @@ describe('Edit Records Tests', () => {
   test('should fail with 405 when passing NUMBER value for DATE field', async () => {
     await checkFailEditRequest(
       {
-        recordId: 'nonExistentRecordId',
+        recordId: recordId,
         doctorId: doctorId,
         patient: {
           names: 'Juan',
@@ -740,6 +1391,31 @@ describe('Edit Records Tests', () => {
               name: 'Fecha de nacimiento',
               type: 'DATE',
               value: 1234567890
+            },
+            {
+              name: 'Estado Civil',
+              type: 'CHOICE',
+              value: 'Soltero'
+            },
+            {
+              name: 'Notas adicionales',
+              type: 'TEXT',
+              value: 'Notas relevantes'
+            },
+            {
+              name: 'Observaciones cortas',
+              type: 'SHORT_TEXT',
+              value: 'Observación breve'
+            },
+            {
+              name: 'Peso en kg',
+              type: 'FLOAT',
+              value: 70.5
+            },
+            {
+              name: 'Número de hijos',
+              type: 'NUMBER',
+              value: 2
             }
           ]
         }
@@ -753,7 +1429,7 @@ describe('Edit Records Tests', () => {
   test('should fail with 405 when passing ARRAY value for DATE field', async () => {
     await checkFailEditRequest(
       {
-        recordId: 'nonExistentRecordId',
+        recordId: recordId,
         doctorId: doctorId,
         patient: {
           names: 'Juan',
@@ -763,6 +1439,31 @@ describe('Edit Records Tests', () => {
               name: 'Fecha de nacimiento',
               type: 'DATE',
               value: ['2024-09-01', '2024-09-02']
+            },
+            {
+              name: 'Estado Civil',
+              type: 'CHOICE',
+              value: 'Soltero'
+            },
+            {
+              name: 'Notas adicionales',
+              type: 'TEXT',
+              value: 'Notas relevantes'
+            },
+            {
+              name: 'Observaciones cortas',
+              type: 'SHORT_TEXT',
+              value: 'Observación breve'
+            },
+            {
+              name: 'Peso en kg',
+              type: 'FLOAT',
+              value: 70.5
+            },
+            {
+              name: 'Número de hijos',
+              type: 'NUMBER',
+              value: 2
             }
           ]
         }

@@ -2,6 +2,7 @@ const axios = require('axios')
 const { BASE_URL, getAuthToken } = require('../../jest.setup')
 const {
   createTestDoctor,
+  createTestPatientTemplate,
   createTestRecord,
   deleteUser,
   checkFailRequest
@@ -9,7 +10,7 @@ const {
 const COMMON_MSG = require('../../../utils/errorMsg')
 
 describe('Delete Records Tests', () => {
-  let userId, doctorId, recordId
+  let userId, doctorId, recordId, templateId
 
   const REQUEST_URL = `${BASE_URL}/records/`
 
@@ -36,6 +37,21 @@ describe('Delete Records Tests', () => {
     userId = doctor.id
     doctorId = doctor.roleDependentInfo.id
 
+    templateId = await createTestPatientTemplate(
+      doctorId,
+      'Plantilla de Identificación',
+      ['General', 'Consultas'],
+      [
+        {
+          name: 'Estado Civil',
+          type: 'CHOICE',
+          options: ['Soltero', 'Casado'],
+          required: true,
+          description: 'Estado civil del paciente'
+        }
+      ]
+    )
+
     const patientData = {
       names: 'Juan',
       lastnames: 'Pérez García',
@@ -46,7 +62,7 @@ describe('Delete Records Tests', () => {
         }
       ]
     }
-    recordId = await createTestRecord(doctorId, 'templateId123', patientData)
+    recordId = await createTestRecord(doctorId, templateId, patientData)
   })
 
   afterAll(async () => {

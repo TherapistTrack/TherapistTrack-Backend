@@ -2,15 +2,17 @@ const axios = require('axios')
 const { BASE_URL, getAuthToken } = require('../../jest.setup')
 const {
   createTestDoctor,
+  createTestPatientTemplate,
   deleteUser,
   createTestRecord,
   checkFailRequest,
   validateResponse
 } = require('../../testHelpers')
 const COMMON_MSG = require('../../../utils/errorMsg')
+const yup = require('yup')
 
 describe('Get Record by ID', () => {
-  let userId, doctorId, recordId
+  let userId, doctorId, recordId, templateId
 
   const REQUEST_URL = `${BASE_URL}/records/`
 
@@ -37,7 +39,21 @@ describe('Get Record by ID', () => {
     userId = doctor.id
     doctorId = doctor.roleDependentInfo.id
 
-    recordId = await createTestRecord(doctorId, 'templateId123', {
+    templateId = await createTestPatientTemplate(
+      doctorId,
+      'Plantilla de Identificación',
+      ['General', 'Consultas'],
+      [
+        {
+          name: 'Fecha de nacimiento',
+          type: 'DATE',
+          required: true,
+          description: 'Fecha de nacimiento del paciente'
+        }
+      ]
+    )
+
+    recordId = await createTestRecord(doctorId, templateId, {
       names: 'Juan',
       lastnames: 'Pérez García',
       fields: [
@@ -136,7 +152,7 @@ describe('Get Record by ID', () => {
       'get',
       REQUEST_URL,
       HEADERS,
-      { doctorId }, // Faltando recordId
+      { doctorId },
       null,
       400,
       COMMON_MSG.MISSING_FIELDS
