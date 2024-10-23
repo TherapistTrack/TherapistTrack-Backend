@@ -286,48 +286,11 @@ async function validateCreateRecordResponse(responseData) {
  * @param {object} responseData - The response data to validate.
  * @throws Will throw an error if the validation fails.
  */
-async function validateGetRecordResponse(responseData) {
-  const recordSchema = yup.object().shape({
-    status: yup.number().required().oneOf([0]),
-    message: yup.string().required().oneOf(['Operation success!']),
-    recordId: yup.string().required(),
-    templateId: yup.string().required(),
-    categories: yup.array().of(yup.array().of(yup.string())).required(),
-    createdAt: yup.string().required(),
-    patient: yup
-      .object()
-      .shape({
-        names: yup.string().required(),
-        lastnames: yup.string().required(),
-        fields: yup
-          .array()
-          .of(
-            yup.object().shape({
-              name: yup.string().required(),
-              type: yup
-                .string()
-                .required()
-                .oneOf([
-                  'TEXT',
-                  'SHORT_TEXT',
-                  'NUMBER',
-                  'FLOAT',
-                  'CHOICE',
-                  'DATE'
-                ]),
-              options: yup.array().of(yup.string()).optional(),
-              value: yup.string().required(),
-              required: yup.boolean().required()
-            })
-          )
-          .required()
-      })
-      .required()
-  })
 
+async function validateResponse(responseData, schema) {
   try {
     // Validar si la estructura sigue el esquema
-    await recordSchema.validate(responseData, {
+    await schema.validate(responseData, {
       strict: true,
       abortEarly: false
     })
@@ -347,5 +310,6 @@ module.exports = {
   createTestFileTemplate,
   createTestRecord,
   validateCreateRecordResponse,
-  validateGetRecordResponse
+  validateGetRecordResponse,
+  validateResponse
 }

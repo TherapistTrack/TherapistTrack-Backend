@@ -4,7 +4,7 @@ const {
   createTestDoctor,
   deleteUser,
   checkFailRequest,
-  validateCreateRecordResponse
+  validateResponse
 } = require('../../testHelpers')
 const COMMON_MSG = require('../../../utils/errorMsg')
 
@@ -37,6 +37,44 @@ describe('Manage Records Tests', () => {
     doctorId = doctor.roleDependentInfo.id
   })
 
+  const recordSchema = yup.object().shape({
+    status: yup.number().required().oneOf([0]),
+    message: yup.string().required().oneOf(['Operation success!']),
+    recordId: yup.string().required(),
+    templateId: yup.string().required(),
+    categories: yup.array().of(yup.array().of(yup.string())).required(),
+    createdAt: yup.string().required(),
+    patient: yup
+      .object()
+      .shape({
+        names: yup.string().required(),
+        lastnames: yup.string().required(),
+        fields: yup
+          .array()
+          .of(
+            yup.object().shape({
+              name: yup.string().required(),
+              type: yup
+                .string()
+                .required()
+                .oneOf([
+                  'TEXT',
+                  'SHORT_TEXT',
+                  'NUMBER',
+                  'FLOAT',
+                  'CHOICE',
+                  'DATE'
+                ]),
+              options: yup.array().of(yup.string()).optional(),
+              value: yup.string().required(),
+              required: yup.boolean().required()
+            })
+          )
+          .required()
+      })
+      .required()
+  })
+
   afterAll(async () => {
     await deleteUser(userId)
   })
@@ -65,7 +103,7 @@ describe('Manage Records Tests', () => {
       })
       expect(response.status).toBe(200)
       expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS)
-      await validateCreateRecordResponse(response.data.data)
+      await validateResponse(response.data.data, recordSchema)
     } catch (error) {
       console.error(
         'Error creating record:',
