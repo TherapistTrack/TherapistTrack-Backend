@@ -263,6 +263,84 @@ async function validateResponse(responseData, schema) {
   }
 }
 
+/**
+ * Makes a clone of a Record object but by changing one field value.
+ * @param {object} record: Record object to modify
+ * @param {*} arrayPath: path of nested fields to get to the target field. Ex: "animal.food.vegetables"
+ *                           will target and object like { animal : { food: { vegetables : [] } }}
+ * @param {*} modification: Function to modify each of the values in the array field.
+ * @returns the clone record with the field changed.
+ */
+function modifyObjectArray(record, arrayPath, modification) {
+  const newObject = JSON.parse(JSON.stringify(record))
+
+  // Navigate the object to the array specified by the arrayPath
+  const pathParts = arrayPath.split('.')
+  let target = newObject
+
+  // Traverse all parts of the path except the last one
+  for (let i = 0; i < pathParts.length - 1; i++) {
+    target = target[pathParts[i]]
+  }
+  const finalKey = pathParts[pathParts.length - 1]
+  target[finalKey] = target[finalKey].map((field) => {
+    return modification(field)
+  })
+
+  return newObject
+}
+
+/**
+ * Makes a clone of a Record object but by changing one field value.
+ * @param {object} record: Record object to modify
+ * @param {*} attributePath: path of nested fields to get to the target field. Ex: "animal.food.vegetables"
+ *                           will target and object like { animal : { food: { vegetables : "value" } }}
+ * @param {*} newValue: Value to replace on the specified field
+ * @returns the clone record with the field changed.
+ */
+function modifyObjectAttribute(record, attributePath, newValue) {
+  const newObject = JSON.parse(JSON.stringify(record))
+
+  // Navigate the object to the array specified by the arrayPath
+  const pathParts = attributePath.split('.')
+  let targetAttribute = newObject
+
+  // Traverse all parts of the path except the last one
+  for (let i = 0; i < pathParts.length - 1; i++) {
+    targetAttribute = targetAttribute[pathParts[i]]
+  }
+
+  const finalKey = pathParts[pathParts.length - 1]
+  targetAttribute[finalKey] = newValue
+
+  return newObject
+}
+
+/**
+ * Makes a clone of a Record object but deletes a specified attribute.
+ * @param {object} record: Record object to modify
+ * @param {string} attributePath: Path to the attribute to delete (e.g., 'patient.info.age')
+ * @returns the cloned record with the attribute deleted.
+ */
+function deleteObjectAttribute(record, attributePath) {
+  const newRecord = JSON.parse(JSON.stringify(record)) // Deep copy the object
+
+  // Split the path into parts
+  const pathParts = attributePath.split('.')
+  let targetAttribute = newRecord
+
+  // Traverse all parts of the path except the last one
+  for (let i = 0; i < pathParts.length - 1; i++) {
+    targetAttribute = targetAttribute[pathParts[i]]
+  }
+
+  // Delete the attribute at the end of the path
+  const finalKey = pathParts[pathParts.length - 1]
+  delete targetAttribute[finalKey]
+
+  return newRecord // Return the modified clone
+}
+
 module.exports = {
   checkFailRequest,
   generateObjectId,
@@ -271,5 +349,8 @@ module.exports = {
   createTestPatientTemplate,
   createTestFileTemplate,
   createTestRecord,
-  validateResponse
+  validateResponse,
+  modifyObjectArray,
+  modifyObjectAttribute,
+  deleteObjectAttribute
 }
