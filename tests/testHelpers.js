@@ -1,5 +1,6 @@
 const axios = require('axios')
 const { BASE_URL, getAuthToken } = require('./jest.setup')
+const yup = require('yup')
 
 /**
  * Makes a request using the specified axios method, and checks if it fails with the expected status and message.
@@ -199,11 +200,157 @@ async function createTestFileTemplate(doctorId, templateName, fields) {
   }
 }
 
+/**
+ * Creates a record for a patient based on a template.
+ *
+ * @param {string} doctorId - Doctor ID to create the record for.
+ * @param {string} templateId - The template ID that the record is based on.
+ * @param {object} patientData - Patient data including names, lastnames, and fields.
+ * @returns {Promise<string>} a Promise to the recordId created.
+ * @throws Will throw an error if the request fails.
+ */
+async function createTestRecord(doctorId, templateId, patientData) {
+  const HEADERS = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${getAuthToken()}`,
+    Origin: 'http://localhost'
+  }
+
+  const recordData = {
+    doctorId: doctorId,
+    templateId: templateId,
+    patient: patientData
+  }
+
+  try {
+    const response = await axios.post(`${BASE_URL}/records/`, recordData, {
+      headers: HEADERS
+    })
+    return response.data.data.recordId
+  } catch (error) {
+    console.error(
+      'Error creating record:',
+      error.response ? error.response.data : error.message
+    )
+    throw error
+  }
+}
+
+/**
+ * Validates the structure of the given response data using the specified schema.
+ *
+ * This function ensures that the response data conforms to the provided schema
+ * using Yup validation. It throws an error if the validation fails, indicating
+ * any discrepancies in the structure of the data.
+ *
+ * @param {object} responseData - The data object to be validated.
+ * @param {object} schema - A Yup schema object that defines the expected structure
+ * and constraints for the response data.
+ * @returns {Promise<void>} - Resolves if the validation is successful, otherwise throws an error.
+ * @throws Will throw an error if the response data does not match the provided schema.
+ */
+async function validateResponse(responseData, schema) {
+  try {
+    // Validar si la estructura sigue el esquema
+    await schema.validate(responseData, {
+      strict: true,
+      abortEarly: false
+    })
+    console.log('Record response structure is valid.')
+  } catch (error) {
+    console.error('Invalid response structure:', error.errors)
+    throw error
+  }
+}
+
+/**
+ * Makes a clone of a Record object but by changing one field value.
+ * @param {object} record: Record object to modify
+ * @param {*} arrayPath: path of nested fields to get to the target field. Ex: "animal.food.vegetables"
+ *                           will target and object like { animal : { food: { vegetables : [] } }}
+ * @param {*} modification: Function to modify each of the values in the array field.
+ * @returns the clone record with the field changed.
+ */
+function modifyObjectArray(record, arrayPath, modification) {
+  const newObject = JSON.parse(JSON.stringify(record))
+
+  // Navigate the object to the array specified by the arrayPath
+  const pathParts = arrayPath.split('.')
+  let target = newObject
+
+  // Traverse all parts of the path except the last one
+  for (let i = 0; i < pathParts.length - 1; i++) {
+    target = target[pathParts[i]]
+  }
+  const finalKey = pathParts[pathParts.length - 1]
+  target[finalKey] = target[finalKey].map((field) => {
+    return modification(field)
+  })
+
+  return newObject
+}
+
+/**
+ * Makes a clone of a Record object but by changing one field value.
+ * @param {object} record: Record object to modify
+ * @param {*} attributePath: path of nested fields to get to the target field. Ex: "animal.food.vegetables"
+ *                           will target and object like { animal : { food: { vegetables : "value" } }}
+ * @param {*} newValue: Value to replace on the specified field
+ * @returns the clone record with the field changed.
+ */
+function modifyObjectAttribute(record, attributePath, newValue) {
+  const newObject = JSON.parse(JSON.stringify(record))
+
+  // Navigate the object to the array specified by the arrayPath
+  const pathParts = attributePath.split('.')
+  let targetAttribute = newObject
+
+  // Traverse all parts of the path except the last one
+  for (let i = 0; i < pathParts.length - 1; i++) {
+    targetAttribute = targetAttribute[pathParts[i]]
+  }
+
+  const finalKey = pathParts[pathParts.length - 1]
+  targetAttribute[finalKey] = newValue
+
+  return newObject
+}
+
+/**
+ * Makes a clone of a Record object but deletes a specified attribute.
+ * @param {object} record: Record object to modify
+ * @param {string} attributePath: Path to the attribute to delete (e.g., 'patient.info.age')
+ * @returns the cloned record with the attribute deleted.
+ */
+function deleteObjectAttribute(record, attributePath) {
+  const newRecord = JSON.parse(JSON.stringify(record)) // Deep copy the object
+
+  // Split the path into parts
+  const pathParts = attributePath.split('.')
+  let targetAttribute = newRecord
+
+  // Traverse all parts of the path except the last one
+  for (let i = 0; i < pathParts.length - 1; i++) {
+    targetAttribute = targetAttribute[pathParts[i]]
+  }
+
+  // Delete the attribute at the end of the path
+  const finalKey = pathParts[pathParts.length - 1]
+  delete targetAttribute[finalKey]
+
+  return newRecord // Return the modified clone
+}
+
 module.exports = {
   checkFailRequest,
   generateObjectId,
   createTestDoctor,
   deleteUser,
   createTestPatientTemplate,
-  createTestFileTemplate
+  createTestFileTemplate,
+  createTestRecord,
+  validateResponse,
+  modifyObjectArray,
+  modifyObjectAttribute,
+  deleteObjectAttribute
 }
