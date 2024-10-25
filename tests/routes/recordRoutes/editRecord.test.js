@@ -14,7 +14,7 @@ const {
 const COMMON_MSG = require('../../../utils/errorMsg')
 
 describe('Edit Records Tests', () => {
-  let userId, doctorId, templateId, recordId
+  let userId, doctorId, secondDoctor, templateId, recordId
 
   const REQUEST_URL = `${BASE_URL}/records/`
 
@@ -89,6 +89,7 @@ describe('Edit Records Tests', () => {
 
   beforeAll(async () => {
     const doctor = await createTestDoctor()
+    secondDoctor = await createTestDoctor()
     userId = doctor.id
     doctorId = doctor.roleDependentInfo.id
 
@@ -146,7 +147,7 @@ describe('Edit Records Tests', () => {
   })
 
   afterAll(async () => {
-    await deleteUser(userId)
+    await Promise.all([deleteUser(userId), deleteUser(secondDoctor.id)])
   })
 
   // DONE:
@@ -219,6 +220,15 @@ describe('Edit Records Tests', () => {
   test('should fail with 400 if patient is not passed', async () => {
     const record = deleteRecordAttribute('patient')
     await checkFailEditRequest(record, 400, COMMON_MSG.MISSING_FIELDS)
+  })
+
+  // DONE:
+  test('should fail with 403 if doctor is not the owner', async () => {
+    const record = modifyRecordAttribute(
+      'doctorId',
+      secondDoctor.roleDependentInfo.id
+    )
+    await checkFailEditRequest(record, 403, COMMON_MSG.DOCTOR_IS_NOT_OWNER)
   })
 
   // DONE:
