@@ -5,12 +5,13 @@ const {
   createTestPatientTemplate,
   createTestRecord,
   deleteUser,
-  checkFailRequest
+  checkFailRequest,
+  generateObjectId
 } = require('../../testHelpers')
 const COMMON_MSG = require('../../../utils/errorMsg')
 
 describe('Delete Records Tests', () => {
-  let userId, doctorId, recordId, templateId
+  let userId, doctorId, secondDoctor, recordId, templateId
 
   const REQUEST_URL = `${BASE_URL}/records/`
 
@@ -34,6 +35,7 @@ describe('Delete Records Tests', () => {
 
   beforeAll(async () => {
     const doctor = await createTestDoctor()
+    secondDoctor = await createTestDoctor()
     userId = doctor.id
     doctorId = doctor.roleDependentInfo.id
 
@@ -66,10 +68,10 @@ describe('Delete Records Tests', () => {
   })
 
   afterAll(async () => {
-    await deleteUser(userId)
+    await Promise.all([deleteUser(userId), deleteUser(secondDoctor.id)])
   })
 
-  // TODO:
+  // DONE:
   test('should succeed with 200 deleting a record', async () => {
     const deleteBody = {
       recordId: recordId,
@@ -92,9 +94,9 @@ describe('Delete Records Tests', () => {
     }
   })
 
-  // TODO:
+  // DONE:
   test('should fail with 400 if recordId is not passed', async () => {
-    await checkFailCreateRequest(
+    await checkFailDeleteRequest(
       {
         doctorId: doctorId
       },
@@ -103,9 +105,9 @@ describe('Delete Records Tests', () => {
     )
   })
 
-  // TODO:
+  // DONE:
   test('should fail with 400 if doctorId is not passed', async () => {
-    await checkFailCreateRequest(
+    await checkFailDeleteRequest(
       {
         recordId: recordId
       },
@@ -114,35 +116,35 @@ describe('Delete Records Tests', () => {
     )
   })
 
-  // TODO:
+  // DONE:
   test('should fail with 403 if doctor is not owner of record', async () => {
-    await checkFailCreateRequest(
+    await checkFailDeleteRequest(
       {
         recordId: recordId,
-        doctorId: 'anotherDoctorId'
+        doctorId: secondDoctor.roleDependentInfo.id
       },
       403,
       COMMON_MSG.DOCTOR_IS_NOT_OWNER
     )
   })
 
-  // TODO:
+  // DONE:
   test('should fail with 404 if doctorId is from a non-existent/active user', async () => {
-    await checkFailCreateRequest(
+    await checkFailDeleteRequest(
       {
         recordId: recordId,
-        doctorId: 'nonExistentDoctorId'
+        doctorId: generateObjectId()
       },
       404,
       COMMON_MSG.DOCTOR_NOT_FOUND
     )
   })
 
-  // TODO:
+  // DONE:
   test('should fail with 404 if recordId is from a non-existent record', async () => {
-    await checkFailCreateRequest(
+    await checkFailDeleteRequest(
       {
-        recordId: 'nonExistentRecordId',
+        recordId: generateObjectId(),
         doctorId: doctorId
       },
       404,
@@ -150,10 +152,10 @@ describe('Delete Records Tests', () => {
     )
   })
 
-  // TODO:
+  // DONE:
   test('should fail with 409 if recordId has files stored within', async () => {
     // can only be implemented when endpoints for file managemente are created.
-    await checkFailCreateRequest(
+    await checkFailDeleteRequest(
       {
         recordId: recordId,
         doctorId: doctorId
