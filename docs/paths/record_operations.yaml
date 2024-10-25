@@ -41,14 +41,6 @@ baseRecordRoute:
                           type: string
                           description: Nombre del campo.
                           example: "Estado Civil"
-                        options:
-                          type: array
-                          description: Opciones para los campos de tipo 'CHOICE', si corresponde.
-                          items:
-                            type: string
-                          example:
-                            - "Opción 1"
-                            - "Opción 2"
                         value:
                           description: Valor del campo, tiene coincidir con el TIPO indicado por la plantilla
                           example: "Opción 1"
@@ -140,18 +132,10 @@ baseRecordRoute:
                           type: string
                           description: Nombre del campo.
                           example: "Fecha de nacimiento"
-                        options:
-                          type: array
-                          description: Opciones para los campos de tipo 'CHOICE', si corresponde (editable).
-                          items:
-                            type: string
-                          example:
-                            - "Opción 1"
-                            - "Opción 2"
                         value:
                           type: string
                           description: Valor seleccionado o ingresado para este campo (editable).
-                          example: "2024-09-01"
+                          example: "2024-10-13T14:30:00Z"
             required:
               - recordId
               - doctorId
