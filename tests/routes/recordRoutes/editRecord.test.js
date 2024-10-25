@@ -5,7 +5,11 @@ const {
   createTestPatientTemplate,
   createTestRecord,
   deleteUser,
-  checkFailRequest
+  checkFailRequest,
+  modifyObjectAttribute,
+  modifyObjectArray,
+  deleteObjectAttribute,
+  generateObjectId
 } = require('../../testHelpers')
 const COMMON_MSG = require('../../../utils/errorMsg')
 
@@ -18,6 +22,57 @@ describe('Edit Records Tests', () => {
     'Content-Type': 'application/json',
     Authorization: `Bearer ${getAuthToken()}`,
     Origin: 'http://localhost'
+  }
+
+  const BASE_RECORD = {
+    doctorId: '', // will be filled on the beforeAll method
+    recordId: '',
+    patient: {
+      names: 'Juan',
+      lastnames: 'Pérez García',
+      fields: [
+        {
+          name: 'Estado Civil',
+          options: ['Soltero', 'Casado'],
+          value: 'Soltero'
+        },
+        {
+          name: 'Edad',
+          value: 30
+        },
+        {
+          name: 'Peso en kg',
+          value: 70.5
+        },
+        {
+          name: 'Notas adicionales',
+          value: 'Paciente en buenas condiciones'
+        },
+        {
+          name: 'Observaciones breves',
+          value: 'Revisión rápida'
+        },
+        {
+          name: 'Fecha de nacimiento',
+          value: '2024-11-13T14:30:00Z'
+        }
+      ]
+    }
+  }
+
+  function modifyRecordAttribute(attributePath, newValue) {
+    return modifyObjectAttribute(BASE_RECORD, attributePath, newValue)
+  }
+
+  function modifyRecordField(fieldName, newValue) {
+    return modifyObjectArray(BASE_RECORD, `patient.fields`, (field) => {
+      if (field.name === fieldName) field.value = newValue
+      return field
+    })
+  }
+
+  function deleteRecordAttribute(attributePath) {
+    return deleteObjectAttribute(BASE_RECORD, attributePath)
   }
 
   async function checkFailEditRequest(body, expectedCode, expectedMsg) {
@@ -40,21 +95,27 @@ describe('Edit Records Tests', () => {
     // Create a patient template for the doctor.
     templateId = await createTestPatientTemplate(
       doctorId,
-      `testTemplate_${Date.now()}`,
-      ['General'],
+      'Plantilla de Identificación',
+      ['General', 'Consultas'],
       [
-        {
-          name: 'Fecha de nacimiento',
-          type: 'DATE',
-          required: true,
-          description: 'Fecha de nacimiento del paciente'
-        },
         {
           name: 'Estado Civil',
           type: 'CHOICE',
-          required: true,
           options: ['Soltero', 'Casado'],
+          required: true,
           description: 'Estado civil del paciente'
+        },
+        {
+          name: 'Edad',
+          type: 'NUMBER',
+          required: true,
+          description: 'Edad del paciente'
+        },
+        {
+          name: 'Peso en kg',
+          type: 'FLOAT',
+          required: true,
+          description: 'Peso del paciente'
         },
         {
           name: 'Notas adicionales',
@@ -63,45 +124,32 @@ describe('Edit Records Tests', () => {
           description: 'Notas adicionales del paciente'
         },
         {
-          name: 'Observaciones cortas',
+          name: 'Observaciones breves',
           type: 'SHORT_TEXT',
           required: true,
-          description: 'Observaciones breves del paciente'
+          description: 'Observaciones rápidas'
         },
         {
-          name: 'Peso en kg',
-          type: 'FLOAT',
+          name: 'Fecha de nacimiento',
+          type: 'DATE',
           required: true,
-          description: 'Peso del paciente en kilogramos'
-        },
-        {
-          name: 'Número de hijos',
-          type: 'NUMBER',
-          required: false,
-          description: 'Número de hijos del paciente'
+          description: 'Fecha de nacimiento del paciente'
         }
       ]
     )
 
     // Create a test record using the created template.
-    recordId = await createTestRecord(doctorId, templateId, {
-      names: 'Juan',
-      lastnames: 'Pérez García',
-      fields: [
-        {
-          name: 'Fecha de nacimiento',
-          options: ['Opción 1', 'Opción 2'],
-          value: '2024-09-01'
-        }
-      ]
-    })
+    recordId = await createTestRecord(doctorId, templateId, BASE_RECORD.patient)
+
+    BASE_RECORD.doctorId = doctorId // Update the BASE RECORD doctorId
+    BASE_RECORD.recordId = recordId // Also update the recordId
   })
 
   afterAll(async () => {
     await deleteUser(userId)
   })
 
-  // TODO:
+  // DONE:
   test('should succeed with 200 editing a record', async () => {
     const recordEditBody = {
       recordId: recordId,
@@ -111,34 +159,29 @@ describe('Edit Records Tests', () => {
         lastnames: 'Pérez García',
         fields: [
           {
-            name: 'Fecha de nacimiento',
-            type: 'DATE',
-            value: '2025-01-01'
-          },
-          {
             name: 'Estado Civil',
-            type: 'CHOICE',
-            value: 'Soltero'
+            options: ['Soltero', 'Casado'],
+            value: 'Casado'
           },
           {
-            name: 'Notas adicionales',
-            type: 'TEXT',
-            value: 'Observaciones adicionales del paciente'
-          },
-          {
-            name: 'Observaciones cortas',
-            type: 'SHORT_TEXT',
-            value: 'Sin cambios'
+            name: 'Edad',
+            value: 33
           },
           {
             name: 'Peso en kg',
-            type: 'FLOAT',
-            value: '75.5'
+            value: 40.5
           },
           {
-            name: 'Número de hijos',
-            type: 'NUMBER',
-            value: 3
+            name: 'Notas adicionales',
+            value: 'Condiciones medias'
+          },
+          {
+            name: 'Observaciones breves',
+            value: 'Otras observacoines'
+          },
+          {
+            name: 'Fecha de nacimiento',
+            value: '2024-11-13T14:30:00Z'
           }
         ]
       }
@@ -160,115 +203,27 @@ describe('Edit Records Tests', () => {
     }
   })
 
-  // TODO:
+  // DONE:
   test('should fail with 400 if recordId is not passed', async () => {
-    await checkFailCreateRequest(
-      {
-        doctorId: doctorId,
-        patient: {
-          names: 'Juan',
-          lastnames: 'Pérez García',
-          fields: [
-            {
-              name: 'Fecha de nacimiento',
-              type: 'DATE',
-              value: '2024-09-01'
-            },
-            {
-              name: 'Estado Civil',
-              type: 'CHOICE',
-              value: 'Soltero'
-            },
-            {
-              name: 'Notas adicionales',
-              type: 'TEXT',
-              value: 'Observaciones del paciente'
-            },
-            {
-              name: 'Observaciones cortas',
-              type: 'SHORT_TEXT',
-              value: 'Sin cambios'
-            },
-            {
-              name: 'Peso en kg',
-              type: 'FLOAT',
-              value: '75.5'
-            },
-            {
-              name: 'Número de hijos',
-              type: 'NUMBER',
-              value: 3
-            }
-          ]
-        }
-      },
-      400,
-      COMMON_MSG.MISSING_FIELDS
-    )
+    const record = deleteRecordAttribute('recordId')
+    await checkFailEditRequest(record, 400, COMMON_MSG.MISSING_FIELDS)
   })
 
-  // TODO:
+  // DONE:
   test('should fail with 400 if doctorId is not passed', async () => {
-    await checkFailCreateRequest(
-      {
-        recordId: recordId,
-        patient: {
-          names: 'Juan',
-          lastnames: 'Pérez García',
-          fields: [
-            {
-              name: 'Fecha de nacimiento',
-              type: 'DATE',
-              value: '2024-09-01'
-            },
-            {
-              name: 'Estado Civil',
-              type: 'CHOICE',
-              value: 'Soltero'
-            },
-            {
-              name: 'Notas adicionales',
-              type: 'TEXT',
-              value: 'Observaciones del paciente'
-            },
-            {
-              name: 'Observaciones cortas',
-              type: 'SHORT_TEXT',
-              value: 'Sin cambios'
-            },
-            {
-              name: 'Peso en kg',
-              type: 'FLOAT',
-              value: '75.5'
-            },
-            {
-              name: 'Número de hijos',
-              type: 'NUMBER',
-              value: 3
-            }
-          ]
-        }
-      },
-      400,
-      COMMON_MSG.MISSING_FIELDS
-    )
+    const record = deleteRecordAttribute('doctorId')
+    await checkFailEditRequest(record, 400, COMMON_MSG.MISSING_FIELDS)
   })
 
-  // TODO:
+  // DONE:
   test('should fail with 400 if patient is not passed', async () => {
-    await checkFailCreateRequest(
-      {
-        recordId: recordId,
-        doctorId: doctorId
-      },
-      400,
-      COMMON_MSG.MISSING_FIELDS
-    )
+    const record = deleteRecordAttribute('patient')
+    await checkFailEditRequest(record, 400, COMMON_MSG.MISSING_FIELDS)
   })
 
-  // TODO:
+  // DONE:
   test('should fail with 400 if patient is passed malformed (missing fields)', async () => {
-    await checkFailCreateRequest(
+    await checkFailEditRequest(
       {
         recordId: recordId,
         doctorId: doctorId,
@@ -281,149 +236,21 @@ describe('Edit Records Tests', () => {
     )
   })
 
-  // TODO:
-  test('should fail with 400 if patient does not include all the fields', async () => {
-    await checkFailCreateRequest(
-      {
-        recordId: recordId,
-        doctorId: doctorId,
-        patient: {
-          names: 'Juan',
-          lastnames: 'Pérez García',
-          fields: [
-            {
-              name: 'Fecha de nacimiento',
-              type: 'DATE',
-              value: '2024-09-01'
-            },
-            {
-              name: 'Estado Civil',
-              type: 'CHOICE',
-              value: 'Soltero'
-            },
-            {
-              name: 'Notas adicionales',
-              type: 'TEXT',
-              value: 'Observaciones del paciente'
-            },
-            {
-              name: 'Observaciones cortas',
-              type: 'SHORT_TEXT',
-              value: 'Sin cambios'
-            },
-            {
-              name: 'Peso en kg',
-              type: 'FLOAT',
-              value: '75.5'
-            }
-            // Missing the 'Número de hijos' field here
-          ]
-        }
-      },
-      400,
-      COMMON_MSG.MISSING_FIELDS
-    )
-  })
-
-  // TODO:
+  // DONE:
   test('should fail with 404 if doctorId is from a non-existent/active user', async () => {
-    await checkFailCreateRequest(
-      {
-        recordId: recordId,
-        doctorId: generateObjectId(),
-        patient: {
-          names: 'Juan',
-          lastnames: 'Pérez García',
-          fields: [
-            {
-              name: 'Fecha de nacimiento',
-              type: 'DATE',
-              value: '2024-09-01'
-            },
-            {
-              name: 'Estado Civil',
-              type: 'CHOICE',
-              value: 'Soltero'
-            },
-            {
-              name: 'Notas adicionales',
-              type: 'TEXT',
-              value: 'Observaciones del paciente'
-            },
-            {
-              name: 'Observaciones cortas',
-              type: 'SHORT_TEXT',
-              value: 'Sin cambios'
-            },
-            {
-              name: 'Peso en kg',
-              type: 'FLOAT',
-              value: '75.5'
-            },
-            {
-              name: 'Número de hijos',
-              type: 'NUMBER',
-              value: 3
-            }
-          ]
-        }
-      },
-      404,
-      COMMON_MSG.DOCTOR_NOT_FOUND
-    )
+    const record = modifyRecordAttribute('doctorId', generateObjectId())
+    await checkFailEditRequest(record, 404, COMMON_MSG.DOCTOR_NOT_FOUND)
   })
 
-  // TODO:
+  // DONE:
   test('should fail with 404 if recordId is from a non-existent record', async () => {
-    await checkFailCreateRequest(
-      {
-        recordId: generateObjectId(),
-        doctorId: doctorId,
-        patient: {
-          names: 'Juan',
-          lastnames: 'Pérez García',
-          fields: [
-            {
-              name: 'Fecha de nacimiento',
-              type: 'DATE',
-              value: '2024-09-01'
-            },
-            {
-              name: 'Estado Civil',
-              type: 'CHOICE',
-              value: 'Soltero'
-            },
-            {
-              name: 'Notas adicionales',
-              type: 'TEXT',
-              value: 'Observaciones del paciente'
-            },
-            {
-              name: 'Observaciones cortas',
-              type: 'SHORT_TEXT',
-              value: 'Sin cambios'
-            },
-            {
-              name: 'Peso en kg',
-              type: 'FLOAT',
-              value: '75.5'
-            },
-            {
-              name: 'Número de hijos',
-              type: 'NUMBER',
-              value: 3
-            }
-          ]
-        }
-      },
-      404,
-      COMMON_MSG.TEMPLATE_NOT_FOUND
-    )
+    const record = modifyRecordAttribute('recordId', generateObjectId())
+    await checkFailEditRequest(record, 404, COMMON_MSG.TEMPLATE_NOT_FOUND)
   })
 
-  // TODO:
+  // DONE:
   test('should fail with 404 if not all fields defined by the template are not sent', async () => {
-    await checkFailCreateRequest(
+    await checkFailEditRequest(
       {
         recordId: recordId,
         doctorId: doctorId,
@@ -433,8 +260,7 @@ describe('Edit Records Tests', () => {
           fields: [
             {
               name: 'Fecha de nacimiento',
-              type: 'DATE',
-              value: '2024-09-01'
+              value: '2024-11-13T14:30:00Z'
             }
           ]
         }
@@ -447,292 +273,52 @@ describe('Edit Records Tests', () => {
   // ==================
   // === TEXT ===
   // ==================
-  // TODO:
+  // DONE:
   test('should fail with 405 when passing NUMBER value for TEXT field', async () => {
-    await checkFailEditRequest(
-      {
-        recordId: recordId,
-        doctorId: doctorId,
-        patient: {
-          names: 'Juan',
-          lastnames: 'Pérez García',
-          fields: [
-            {
-              name: 'Notas adicionales',
-              type: 'TEXT',
-              value: 123
-            },
-            {
-              name: 'Fecha de nacimiento',
-              type: 'DATE',
-              value: '2024-09-01'
-            },
-            {
-              name: 'Estado Civil',
-              type: 'CHOICE',
-              value: 'Soltero'
-            },
-            {
-              name: 'Observaciones cortas',
-              type: 'SHORT_TEXT',
-              value: 'Sin cambios'
-            },
-            {
-              name: 'Peso en kg',
-              type: 'FLOAT',
-              value: '75.5'
-            },
-            {
-              name: 'Número de hijos',
-              type: 'NUMBER',
-              value: 3
-            }
-          ]
-        }
-      },
-      405,
-      COMMON_MSG.INVALID_FIELD_TYPE_TEXT
-    )
+    const record = modifyRecordField('Notas Adicionales', 123)
+    await checkFailEditRequest(record, 405, COMMON_MSG.INVALID_FIELD_TYPE_TEXT)
   })
 
-  // TODO:
+  // DONE:
   test('should fail with 405 when passing BOOLEAN value for TEXT field', async () => {
-    await checkFailEditRequest(
-      {
-        recordId: recordId,
-        doctorId: doctorId,
-        patient: {
-          names: 'Juan',
-          lastnames: 'Pérez García',
-          fields: [
-            {
-              name: 'Notas adicionales',
-              type: 'TEXT',
-              value: true
-            },
-            {
-              name: 'Fecha de nacimiento',
-              type: 'DATE',
-              value: '2024-09-01'
-            },
-            {
-              name: 'Estado Civil',
-              type: 'CHOICE',
-              value: 'Soltero'
-            },
-            {
-              name: 'Observaciones cortas',
-              type: 'SHORT_TEXT',
-              value: 'Sin cambios'
-            },
-            {
-              name: 'Peso en kg',
-              type: 'FLOAT',
-              value: '75.5'
-            },
-            {
-              name: 'Número de hijos',
-              type: 'NUMBER',
-              value: 3
-            }
-          ]
-        }
-      },
-      405,
-      COMMON_MSG.INVALID_FIELD_TYPE_TEXT
-    )
+    const record = modifyRecordField('Notas Adicionales', true)
+    await checkFailEditRequest(record, 405, COMMON_MSG.INVALID_FIELD_TYPE_TEXT)
   })
 
-  // TODO:
+  // DONE:
   test('should fail with 405 when passing ARRAY value for TEXT field', async () => {
-    await checkFailEditRequest(
-      {
-        recordId: recordId,
-        doctorId: doctorId,
-        patient: {
-          names: 'Juan',
-          lastnames: 'Pérez García',
-          fields: [
-            {
-              name: 'Notas adicionales',
-              type: 'TEXT',
-              value: ['Observación 1', 'Observación 2']
-            },
-            {
-              name: 'Fecha de nacimiento',
-              type: 'DATE',
-              value: '2024-09-01'
-            },
-            {
-              name: 'Estado Civil',
-              type: 'CHOICE',
-              value: 'Soltero'
-            },
-            {
-              name: 'Observaciones cortas',
-              type: 'SHORT_TEXT',
-              value: 'Sin cambios'
-            },
-            {
-              name: 'Peso en kg',
-              type: 'FLOAT',
-              value: '75.5'
-            },
-            {
-              name: 'Número de hijos',
-              type: 'NUMBER',
-              value: 3
-            }
-          ]
-        }
-      },
-      405,
-      COMMON_MSG.INVALID_FIELD_TYPE_TEXT
-    )
+    const record = modifyRecordField('Notas Adicionales', [])
+    await checkFailEditRequest(record, 405, COMMON_MSG.INVALID_FIELD_TYPE_TEXT)
   })
 
   // ==================
   // === SHORT_TEXT ===
   // ==================
-  // TODO:
+  // DONE:
   test('should fail with 405 when passing NUMBER value for SHORT_TEXT field', async () => {
+    const record = modifyRecordField('Observaciones breves', 123)
     await checkFailEditRequest(
-      {
-        recordId: recordId,
-        doctorId: doctorId,
-        patient: {
-          names: 'Juan',
-          lastnames: 'Pérez García',
-          fields: [
-            {
-              name: 'Observaciones cortas',
-              type: 'SHORT_TEXT',
-              value: 123
-            },
-            {
-              name: 'Fecha de nacimiento',
-              type: 'DATE',
-              value: '2024-09-01'
-            },
-            {
-              name: 'Estado Civil',
-              type: 'CHOICE',
-              value: 'Soltero'
-            },
-            {
-              name: 'Notas adicionales',
-              type: 'TEXT',
-              value: 'Notas relevantes'
-            },
-            {
-              name: 'Peso en kg',
-              type: 'FLOAT',
-              value: '75.5'
-            },
-            {
-              name: 'Número de hijos',
-              type: 'NUMBER',
-              value: 3
-            }
-          ]
-        }
-      },
+      record,
       405,
       COMMON_MSG.INVALID_FIELD_TYPE_SHORT_TEXT
     )
   })
 
-  // TODO:
+  // DONE:
   test('should fail with 405 when passing BOOLEAN value for SHORT_TEXT field', async () => {
+    const record = modifyRecordField('Observaciones breves', true)
     await checkFailEditRequest(
-      {
-        recordId: recordId,
-        doctorId: doctorId,
-        patient: {
-          names: 'Juan',
-          lastnames: 'Pérez García',
-          fields: [
-            {
-              name: 'Observaciones cortas',
-              type: 'SHORT_TEXT',
-              value: true
-            },
-            {
-              name: 'Fecha de nacimiento',
-              type: 'DATE',
-              value: '2024-09-01'
-            },
-            {
-              name: 'Estado Civil',
-              type: 'CHOICE',
-              value: 'Soltero'
-            },
-            {
-              name: 'Notas adicionales',
-              type: 'TEXT',
-              value: 'Notas relevantes'
-            },
-            {
-              name: 'Peso en kg',
-              type: 'FLOAT',
-              value: '75.5'
-            },
-            {
-              name: 'Número de hijos',
-              type: 'NUMBER',
-              value: 3
-            }
-          ]
-        }
-      },
+      record,
       405,
       COMMON_MSG.INVALID_FIELD_TYPE_SHORT_TEXT
     )
   })
 
-  // TODO:
+  // DONE:
   test('should fail with 405 when passing ARRAY value for SHORT_TEXT field', async () => {
+    const record = modifyRecordField('Observaciones breves', [])
     await checkFailEditRequest(
-      {
-        recordId: recordId,
-        doctorId: doctorId,
-        patient: {
-          names: 'Juan',
-          lastnames: 'Pérez García',
-          fields: [
-            {
-              name: 'Observaciones cortas',
-              type: 'SHORT_TEXT',
-              value: ['texto1', 'texto2']
-            },
-            {
-              name: 'Fecha de nacimiento',
-              type: 'DATE',
-              value: '2024-09-01'
-            },
-            {
-              name: 'Estado Civil',
-              type: 'CHOICE',
-              value: 'Soltero'
-            },
-            {
-              name: 'Notas adicionales',
-              type: 'TEXT',
-              value: 'Notas relevantes'
-            },
-            {
-              name: 'Peso en kg',
-              type: 'FLOAT',
-              value: '75.5'
-            },
-            {
-              name: 'Número de hijos',
-              type: 'NUMBER',
-              value: 3
-            }
-          ]
-        }
-      },
+      record,
       405,
       COMMON_MSG.INVALID_FIELD_TYPE_SHORT_TEXT
     )
@@ -741,194 +327,42 @@ describe('Edit Records Tests', () => {
   // ==================
   // === NUMBER ===
   // ==================
-  // TODO:
+  // DONE:
   test('should fail with 405 when passing TEXT value for NUMBER field', async () => {
+    const record = modifyRecordField('Edad', '12')
     await checkFailEditRequest(
-      {
-        recordId: recordId,
-        doctorId: doctorId,
-        patient: {
-          names: 'Juan',
-          lastnames: 'Pérez García',
-          fields: [
-            {
-              name: 'Número de hijos',
-              type: 'NUMBER',
-              value: 'veinticinco'
-            },
-            {
-              name: 'Fecha de nacimiento',
-              type: 'DATE',
-              value: '2024-09-01'
-            },
-            {
-              name: 'Estado Civil',
-              type: 'CHOICE',
-              value: 'Soltero'
-            },
-            {
-              name: 'Notas adicionales',
-              type: 'TEXT',
-              value: 'Notas relevantes'
-            },
-            {
-              name: 'Observaciones cortas',
-              type: 'SHORT_TEXT',
-              value: 'Observación breve'
-            },
-            {
-              name: 'Peso en kg',
-              type: 'FLOAT',
-              value: '75.5'
-            }
-          ]
-        }
-      },
+      record,
       405,
       COMMON_MSG.INVALID_FIELD_TYPE_NUMBER
     )
   })
 
-  // TODO:
+  // DONE:
   test('should fail with 405 when passing BOOLEAN value for NUMBER field', async () => {
+    const record = modifyRecordField('Edad', true)
     await checkFailEditRequest(
-      {
-        recordId: recordId,
-        doctorId: doctorId,
-        patient: {
-          names: 'Juan',
-          lastnames: 'Pérez García',
-          fields: [
-            {
-              name: 'Número de hijos',
-              type: 'NUMBER',
-              value: true
-            },
-            {
-              name: 'Fecha de nacimiento',
-              type: 'DATE',
-              value: '2024-09-01'
-            },
-            {
-              name: 'Estado Civil',
-              type: 'CHOICE',
-              value: 'Soltero'
-            },
-            {
-              name: 'Notas adicionales',
-              type: 'TEXT',
-              value: 'Notas relevantes'
-            },
-            {
-              name: 'Observaciones cortas',
-              type: 'SHORT_TEXT',
-              value: 'Observación breve'
-            },
-            {
-              name: 'Peso en kg',
-              type: 'FLOAT',
-              value: '75.5'
-            }
-          ]
-        }
-      },
+      record,
       405,
       COMMON_MSG.INVALID_FIELD_TYPE_NUMBER
     )
   })
 
-  // TODO:
+  // DONE:
   test('should fail with 405 when passing ARRAY value for NUMBER field', async () => {
+    const record = modifyRecordField('Edad', [])
     await checkFailEditRequest(
-      {
-        recordId: recordId,
-        doctorId: doctorId,
-        patient: {
-          names: 'Juan',
-          lastnames: 'Pérez García',
-          fields: [
-            {
-              name: 'Número de hijos',
-              type: 'NUMBER',
-              value: [23, 24]
-            },
-            {
-              name: 'Fecha de nacimiento',
-              type: 'DATE',
-              value: '2024-09-01'
-            },
-            {
-              name: 'Estado Civil',
-              type: 'CHOICE',
-              value: 'Soltero'
-            },
-            {
-              name: 'Notas adicionales',
-              type: 'TEXT',
-              value: 'Notas relevantes'
-            },
-            {
-              name: 'Observaciones cortas',
-              type: 'SHORT_TEXT',
-              value: 'Observación breve'
-            },
-            {
-              name: 'Peso en kg',
-              type: 'FLOAT',
-              value: '75.5'
-            }
-          ]
-        }
-      },
+      record,
       405,
       COMMON_MSG.INVALID_FIELD_TYPE_NUMBER
     )
   })
 
-  // TODO:
+  // DONE:
   test('should fail with 405 when passing FLOAT value for NUMBER field', async () => {
     // Number field just accepts integers
+    const record = modifyRecordField('Edad', 12.5)
     await checkFailEditRequest(
-      {
-        recordId: recordId,
-        doctorId: doctorId,
-        patient: {
-          names: 'Juan',
-          lastnames: 'Pérez García',
-          fields: [
-            {
-              name: 'Número de hijos',
-              type: 'NUMBER',
-              value: 23.5
-            },
-            {
-              name: 'Fecha de nacimiento',
-              type: 'DATE',
-              value: '2024-09-01'
-            },
-            {
-              name: 'Estado Civil',
-              type: 'CHOICE',
-              value: 'Soltero'
-            },
-            {
-              name: 'Notas adicionales',
-              type: 'TEXT',
-              value: 'Notas relevantes'
-            },
-            {
-              name: 'Observaciones cortas',
-              type: 'SHORT_TEXT',
-              value: 'Observación breve'
-            },
-            {
-              name: 'Peso en kg',
-              type: 'FLOAT',
-              value: '75.5'
-            }
-          ]
-        }
-      },
+      record,
       405,
       COMMON_MSG.INVALID_FIELD_TYPE_NUMBER
     )
@@ -937,342 +371,58 @@ describe('Edit Records Tests', () => {
   // ==================
   // === FLOAT ===
   // ==================
-  // TODO:
+  // DONE:
   test('should fail with 405 when passing TEXT value for FLOAT field', async () => {
-    await checkFailEditRequest(
-      {
-        recordId: recordId,
-        doctorId: doctorId,
-        patient: {
-          names: 'Juan',
-          lastnames: 'Pérez García',
-          fields: [
-            {
-              name: 'Peso en kg',
-              type: 'FLOAT',
-              value: 'sesenta y cinco'
-            },
-            {
-              name: 'Fecha de nacimiento',
-              type: 'DATE',
-              value: '2024-09-01'
-            },
-            {
-              name: 'Estado Civil',
-              type: 'CHOICE',
-              value: 'Soltero'
-            },
-            {
-              name: 'Notas adicionales',
-              type: 'TEXT',
-              value: 'Notas relevantes'
-            },
-            {
-              name: 'Observaciones cortas',
-              type: 'SHORT_TEXT',
-              value: 'Observación breve'
-            },
-            {
-              name: 'Número de hijos',
-              type: 'NUMBER',
-              value: 2
-            }
-          ]
-        }
-      },
-      405,
-      COMMON_MSG.INVALID_FIELD_TYPE_FLOAT
-    )
+    const record = modifyRecordField('Peso en kg', '12.5')
+    await checkFailEditRequest(record, 405, COMMON_MSG.INVALID_FIELD_TYPE_FLOAT)
   })
 
-  // TODO:
+  // DONE:
   test('should fail with 405 when passing BOOLEAN value for FLOAT field', async () => {
-    await checkFailEditRequest(
-      {
-        recordId: recordId,
-        doctorId: doctorId,
-        patient: {
-          names: 'Juan',
-          lastnames: 'Pérez García',
-          fields: [
-            {
-              name: 'Peso en kg',
-              type: 'FLOAT',
-              value: true
-            },
-            {
-              name: 'Fecha de nacimiento',
-              type: 'DATE',
-              value: '2024-09-01'
-            },
-            {
-              name: 'Estado Civil',
-              type: 'CHOICE',
-              value: 'Soltero'
-            },
-            {
-              name: 'Notas adicionales',
-              type: 'TEXT',
-              value: 'Notas relevantes'
-            },
-            {
-              name: 'Observaciones cortas',
-              type: 'SHORT_TEXT',
-              value: 'Observación breve'
-            },
-            {
-              name: 'Número de hijos',
-              type: 'NUMBER',
-              value: 2
-            }
-          ]
-        }
-      },
-      405,
-      COMMON_MSG.INVALID_FIELD_TYPE_FLOAT
-    )
+    const record = modifyRecordField('Peso en kg', true)
+    await checkFailEditRequest(record, 405, COMMON_MSG.INVALID_FIELD_TYPE_FLOAT)
   })
 
-  // TODO:
+  // DONE:
   test('should fail with 405 when passing ARRAY value for FLOAT field', async () => {
-    await checkFailEditRequest(
-      {
-        recordId: recordId,
-        doctorId: doctorId,
-        patient: {
-          names: 'Juan',
-          lastnames: 'Pérez García',
-          fields: [
-            {
-              name: 'Peso en kg',
-              type: 'FLOAT',
-              value: [65.5, 66.0]
-            },
-            {
-              name: 'Fecha de nacimiento',
-              type: 'DATE',
-              value: '2024-09-01'
-            },
-            {
-              name: 'Estado Civil',
-              type: 'CHOICE',
-              value: 'Soltero'
-            },
-            {
-              name: 'Notas adicionales',
-              type: 'TEXT',
-              value: 'Notas relevantes'
-            },
-            {
-              name: 'Observaciones cortas',
-              type: 'SHORT_TEXT',
-              value: 'Observación breve'
-            },
-            {
-              name: 'Número de hijos',
-              type: 'NUMBER',
-              value: 2
-            }
-          ]
-        }
-      },
-      405,
-      COMMON_MSG.INVALID_FIELD_TYPE_FLOAT
-    )
+    const record = modifyRecordField('Peso en kg', [])
+    await checkFailEditRequest(record, 405, COMMON_MSG.INVALID_FIELD_TYPE_FLOAT)
   })
 
   // ==================
   // === CHOICE =======
   // ==================
-  // TODO:
+  // DONE:
   test('should fail with 405 when passing NUMBER values to CHOICE', async () => {
+    const record = modifyRecordField('Estado Civil', 32)
     await checkFailEditRequest(
-      {
-        recordId: recordId,
-        doctorId: doctorId,
-        patient: {
-          names: 'Juan',
-          lastnames: 'Pérez García',
-          fields: [
-            {
-              name: 'Estado Civil',
-              type: 'CHOICE',
-              value: 123
-            },
-            {
-              name: 'Fecha de nacimiento',
-              type: 'DATE',
-              value: '2024-09-01'
-            },
-            {
-              name: 'Notas adicionales',
-              type: 'TEXT',
-              value: 'Notas relevantes'
-            },
-            {
-              name: 'Observaciones cortas',
-              type: 'SHORT_TEXT',
-              value: 'Observación breve'
-            },
-            {
-              name: 'Peso en kg',
-              type: 'FLOAT',
-              value: 70.5
-            },
-            {
-              name: 'Número de hijos',
-              type: 'NUMBER',
-              value: 2
-            }
-          ]
-        }
-      },
+      record,
       405,
       COMMON_MSG.INVALID_FIELD_TYPE_CHOICE
     )
   })
 
-  // TODO:
+  // DONE:
   test('should fail with 405 when passing BOOLEAN values to CHOICE', async () => {
+    const record = modifyRecordField('Estado Civil', true)
     await checkFailEditRequest(
-      {
-        recordId: recordId,
-        doctorId: doctorId,
-        patient: {
-          names: 'Juan',
-          lastnames: 'Pérez García',
-          fields: [
-            {
-              name: 'Estado Civil',
-              type: 'CHOICE',
-              value: true
-            },
-            {
-              name: 'Fecha de nacimiento',
-              type: 'DATE',
-              value: '2024-09-01'
-            },
-            {
-              name: 'Notas adicionales',
-              type: 'TEXT',
-              value: 'Notas relevantes'
-            },
-            {
-              name: 'Observaciones cortas',
-              type: 'SHORT_TEXT',
-              value: 'Observación breve'
-            },
-            {
-              name: 'Peso en kg',
-              type: 'FLOAT',
-              value: 70.5
-            },
-            {
-              name: 'Número de hijos',
-              type: 'NUMBER',
-              value: 2
-            }
-          ]
-        }
-      },
+      record,
       405,
       COMMON_MSG.INVALID_FIELD_TYPE_CHOICE
     )
   })
 
-  // TODO:
+  // DONE:
   test('should fail with 405 when passing VALUE that is not within CHOICE value', async () => {
-    await checkFailEditRequest(
-      {
-        recordId: recordId,
-        doctorId: doctorId,
-        patient: {
-          names: 'Juan',
-          lastnames: 'Pérez García',
-          fields: [
-            {
-              name: 'Estado Civil',
-              type: 'CHOICE',
-              options: ['Soltero', 'Casado'],
-              value: 'Divorciado'
-            },
-            {
-              name: 'Fecha de nacimiento',
-              type: 'DATE',
-              value: '2024-09-01'
-            },
-            {
-              name: 'Notas adicionales',
-              type: 'TEXT',
-              value: 'Notas relevantes'
-            },
-            {
-              name: 'Observaciones cortas',
-              type: 'SHORT_TEXT',
-              value: 'Observación breve'
-            },
-            {
-              name: 'Peso en kg',
-              type: 'FLOAT',
-              value: 70.5
-            },
-            {
-              name: 'Número de hijos',
-              type: 'NUMBER',
-              value: 2
-            }
-          ]
-        }
-      },
-      405,
-      COMMON_MSG.INVALID_CHOICE_VALUE
-    )
+    const record = modifyRecordField('Estado Civil', 'camello')
+    await checkFailEditRequest(record, 405, COMMON_MSG.INVALID_CHOICE_VALUE)
   })
 
-  // TODO:
+  // DONE:
   test('should fail with 405 when passing ARRAY value for CHOICE field', async () => {
+    const record = modifyRecordField('Estado Civil', [])
     await checkFailEditRequest(
-      {
-        recordId: recordId,
-        doctorId: doctorId,
-        patient: {
-          names: 'Juan',
-          lastnames: 'Pérez García',
-          fields: [
-            {
-              name: 'Estado Civil',
-              type: 'CHOICE',
-              options: ['Soltero', 'Casado'],
-              value: ['Soltero', 'Casado']
-            },
-            {
-              name: 'Fecha de nacimiento',
-              type: 'DATE',
-              value: '2024-09-01'
-            },
-            {
-              name: 'Notas adicionales',
-              type: 'TEXT',
-              value: 'Notas relevantes'
-            },
-            {
-              name: 'Observaciones cortas',
-              type: 'SHORT_TEXT',
-              value: 'Observación breve'
-            },
-            {
-              name: 'Peso en kg',
-              type: 'FLOAT',
-              value: 70.5
-            },
-            {
-              name: 'Número de hijos',
-              type: 'NUMBER',
-              value: 2
-            }
-          ]
-        }
-      },
+      record,
       405,
       COMMON_MSG.INVALID_FIELD_TYPE_CHOICE
     )
@@ -1281,195 +431,33 @@ describe('Edit Records Tests', () => {
   // ==================
   // === DATE =======
   // ==================
-  // TODO:
+  // DONE:
   test('should fail with 405 when passing TEXT value for DATE field', async () => {
-    await checkFailEditRequest(
-      {
-        recordId: recordId,
-        doctorId: doctorId,
-        patient: {
-          names: 'Juan',
-          lastnames: 'Pérez García',
-          fields: [
-            {
-              name: 'Fecha de nacimiento',
-              type: 'DATE',
-              value: 'invalid-date-string'
-            },
-            {
-              name: 'Estado Civil',
-              type: 'CHOICE',
-              value: 'Soltero'
-            },
-            {
-              name: 'Notas adicionales',
-              type: 'TEXT',
-              value: 'Notas relevantes'
-            },
-            {
-              name: 'Observaciones cortas',
-              type: 'SHORT_TEXT',
-              value: 'Observación breve'
-            },
-            {
-              name: 'Peso en kg',
-              type: 'FLOAT',
-              value: 70.5
-            },
-            {
-              name: 'Número de hijos',
-              type: 'NUMBER',
-              value: 2
-            }
-          ]
-        }
-      },
-      405,
-      COMMON_MSG.INVALID_FIELD_TYPE_DATE
-    )
+    const record = modifyRecordField('Fecha de nacimiento', 'hola')
+    await checkFailEditRequest(record, 405, COMMON_MSG.INVALID_FIELD_TYPE_DATE)
   })
 
-  // TODO:
+  // DONE:
   test('should fail with 405 when passing BOOLEAN value for DATE field', async () => {
-    await checkFailEditRequest(
-      {
-        recordId: recordId,
-        doctorId: doctorId,
-        patient: {
-          names: 'Juan',
-          lastnames: 'Pérez García',
-          fields: [
-            {
-              name: 'Fecha de nacimiento',
-              type: 'DATE',
-              value: true
-            },
-            {
-              name: 'Estado Civil',
-              type: 'CHOICE',
-              value: 'Soltero'
-            },
-            {
-              name: 'Notas adicionales',
-              type: 'TEXT',
-              value: 'Notas relevantes'
-            },
-            {
-              name: 'Observaciones cortas',
-              type: 'SHORT_TEXT',
-              value: 'Observación breve'
-            },
-            {
-              name: 'Peso en kg',
-              type: 'FLOAT',
-              value: 70.5
-            },
-            {
-              name: 'Número de hijos',
-              type: 'NUMBER',
-              value: 2
-            }
-          ]
-        }
-      },
-      405,
-      COMMON_MSG.INVALID_FIELD_TYPE_DATE
-    )
+    const record = modifyRecordField('Fecha de nacimiento', true)
+    await checkFailEditRequest(record, 405, COMMON_MSG.INVALID_FIELD_TYPE_DATE)
   })
 
-  // TODO:
+  // DONE:
   test('should fail with 405 when passing NUMBER value for DATE field', async () => {
-    await checkFailEditRequest(
-      {
-        recordId: recordId,
-        doctorId: doctorId,
-        patient: {
-          names: 'Juan',
-          lastnames: 'Pérez García',
-          fields: [
-            {
-              name: 'Fecha de nacimiento',
-              type: 'DATE',
-              value: 1234567890
-            },
-            {
-              name: 'Estado Civil',
-              type: 'CHOICE',
-              value: 'Soltero'
-            },
-            {
-              name: 'Notas adicionales',
-              type: 'TEXT',
-              value: 'Notas relevantes'
-            },
-            {
-              name: 'Observaciones cortas',
-              type: 'SHORT_TEXT',
-              value: 'Observación breve'
-            },
-            {
-              name: 'Peso en kg',
-              type: 'FLOAT',
-              value: 70.5
-            },
-            {
-              name: 'Número de hijos',
-              type: 'NUMBER',
-              value: 2
-            }
-          ]
-        }
-      },
-      405,
-      COMMON_MSG.INVALID_FIELD_TYPE_DATE
-    )
+    const record = modifyRecordField('Fecha de nacimiento', 1234)
+    await checkFailEditRequest(record, 405, COMMON_MSG.INVALID_FIELD_TYPE_DATE)
   })
 
-  // TODO:
+  // DONE:
   test('should fail with 405 when passing ARRAY value for DATE field', async () => {
-    await checkFailEditRequest(
-      {
-        recordId: recordId,
-        doctorId: doctorId,
-        patient: {
-          names: 'Juan',
-          lastnames: 'Pérez García',
-          fields: [
-            {
-              name: 'Fecha de nacimiento',
-              type: 'DATE',
-              value: ['2024-09-01', '2024-09-02']
-            },
-            {
-              name: 'Estado Civil',
-              type: 'CHOICE',
-              value: 'Soltero'
-            },
-            {
-              name: 'Notas adicionales',
-              type: 'TEXT',
-              value: 'Notas relevantes'
-            },
-            {
-              name: 'Observaciones cortas',
-              type: 'SHORT_TEXT',
-              value: 'Observación breve'
-            },
-            {
-              name: 'Peso en kg',
-              type: 'FLOAT',
-              value: 70.5
-            },
-            {
-              name: 'Número de hijos',
-              type: 'NUMBER',
-              value: 2
-            }
-          ]
-        }
-      },
-      405,
-      COMMON_MSG.INVALID_FIELD_TYPE_DATE
-    )
+    const record = modifyRecordField('Fecha de nacimiento', [])
+    await checkFailEditRequest(record, 405, COMMON_MSG.INVALID_FIELD_TYPE_DATE)
+  })
+
+  // DONE:
+  test('should fail with 405 when passing date not in ISO8601 format for DATE field', async () => {
+    const record = modifyRecordField('Fecha de nacimiento', '23/3/2024')
+    await checkFailEditRequest(record, 405, COMMON_MSG.INVALID_FIELD_TYPE_DATE)
   })
 })
