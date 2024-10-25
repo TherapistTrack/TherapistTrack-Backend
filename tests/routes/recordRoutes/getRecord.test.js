@@ -12,7 +12,7 @@ const COMMON_MSG = require('../../../utils/errorMsg')
 const yup = require('yup')
 
 describe('Get Record by ID', () => {
-  let userId, doctorId, recordId, templateId
+  let userId, doctorId, secondDoctor, recordId, templateId
 
   const REQUEST_URL = `${BASE_URL}/records/`
 
@@ -36,6 +36,7 @@ describe('Get Record by ID', () => {
 
   beforeAll(async () => {
     const doctor = await createTestDoctor()
+    secondDoctor = await createTestDoctor()
     userId = doctor.id
     doctorId = doctor.roleDependentInfo.id
 
@@ -44,6 +45,37 @@ describe('Get Record by ID', () => {
       'Plantilla de Identificación',
       ['General', 'Consultas'],
       [
+        {
+          name: 'Estado Civil',
+          type: 'CHOICE',
+          options: ['Soltero', 'Casado'],
+          required: true,
+          description: 'Estado civil del paciente'
+        },
+        {
+          name: 'Edad',
+          type: 'NUMBER',
+          required: true,
+          description: 'Edad del paciente'
+        },
+        {
+          name: 'Peso en kg',
+          type: 'FLOAT',
+          required: true,
+          description: 'Peso del paciente'
+        },
+        {
+          name: 'Notas adicionales',
+          type: 'TEXT',
+          required: false,
+          description: 'Notas adicionales del paciente'
+        },
+        {
+          name: 'Observaciones breves',
+          type: 'SHORT_TEXT',
+          required: true,
+          description: 'Observaciones rápidas'
+        },
         {
           name: 'Fecha de nacimiento',
           type: 'DATE',
@@ -58,22 +90,39 @@ describe('Get Record by ID', () => {
       lastnames: 'Pérez García',
       fields: [
         {
+          name: 'Estado Civil',
+          value: 'Soltero'
+        },
+        {
+          name: 'Edad',
+          value: 30
+        },
+        {
+          name: 'Peso en kg',
+          value: 70.5
+        },
+        {
+          name: 'Notas adicionales',
+          value: 'Paciente en buenas condiciones'
+        },
+        {
+          name: 'Observaciones breves',
+          value: 'Revisión rápida'
+        },
+        {
           name: 'Fecha de nacimiento',
-          type: 'DATE',
-          options: ['Opción 1', 'Opción 2'],
-          value: '2024-09-01',
-          required: true
+          value: '2024-11-13T14:30:00Z'
         }
       ]
     })
   })
 
   const recordSchema = yup.object().shape({
-    status: yup.number().required().oneOf([0]),
-    message: yup.string().required().oneOf(['Operation success!']),
+    status: yup.number().required().oneOf([200]),
+    message: yup.string().required().oneOf([COMMON_MSG.REQUEST_SUCCESS]),
     recordId: yup.string().required(),
     templateId: yup.string().required(),
-    categories: yup.array().of(yup.array().of(yup.string())).required(),
+    categories: yup.array().of(yup.string()).required(),
     createdAt: yup.string().required(),
     patient: yup
       .object()
@@ -97,7 +146,7 @@ describe('Get Record by ID', () => {
                   'DATE'
                 ]),
               options: yup.array().of(yup.string()).optional(),
-              value: yup.string().required(),
+              value: yup.mixed(),
               required: yup.boolean().required()
             })
           )
@@ -107,10 +156,10 @@ describe('Get Record by ID', () => {
   })
 
   afterAll(async () => {
-    await deleteUser(userId)
+    await Promise.all([deleteUser(userId), deleteUser(secondDoctor.id)])
   })
 
-  // TODO:
+  // DONE:
   test('should succeed with 200 fetching a valid record', async () => {
     try {
       const response = await axios.get(REQUEST_URL, {
@@ -133,81 +182,51 @@ describe('Get Record by ID', () => {
     }
   })
 
-  // TODO:
+  // DONE:
   test('should fail with 400 if doctorId is not sent', async () => {
-    await checkFailRequest(
-      'get',
-      REQUEST_URL,
-      HEADERS,
-      { recordId },
-      null,
-      400,
-      COMMON_MSG.MISSING_FIELDS
-    )
+    await checkFailGetRequest({ recordId }, 400, COMMON_MSG.MISSING_FIELDS)
   })
 
-  // TODO:
+  // DONE:
   test('should fail with 400 if recordId is not sent', async () => {
-    await checkFailRequest(
-      'get',
-      REQUEST_URL,
-      HEADERS,
-      { doctorId },
-      null,
-      400,
-      COMMON_MSG.MISSING_FIELDS
-    )
+    await checkFailGetRequest({ doctorId }, 400, COMMON_MSG.MISSING_FIELDS)
   })
 
-  // TODO:
+  // DONE:
   test('should fail with 403 if doctor is not the owner of the template', async () => {
-    const otherDoctorId = generateObjectId()
-
-    await checkFailRequest(
-      'get',
-      REQUEST_URL,
-      HEADERS,
+    await checkFailGetRequest(
       {
         recordId,
-        doctorId: otherDoctorId
+        doctorId: secondDoctor.roleDependentInfo.id
       },
-      null,
       403,
       COMMON_MSG.DOCTOR_IS_NOT_OWNER
     )
   })
 
-  // TODO:
+  // DONE:
   test('should fail with 404 if doctorId is from a non-existent/disable user', async () => {
     const nonExistentDoctorId = generateObjectId()
 
-    await checkFailRequest(
-      'get',
-      REQUEST_URL,
-      HEADERS,
+    await checkFailGetRequest(
       {
         recordId,
         doctorId: nonExistentDoctorId
       },
-      null,
       404,
       COMMON_MSG.DOCTOR_NOT_FOUND
     )
   })
 
-  // TODO:
+  // DONE:
   test('should fail with 404 if recordId is from a non-existent record', async () => {
     const nonExistentRecordId = generateObjectId()
 
-    await checkFailRequest(
-      'get',
-      REQUEST_URL,
-      HEADERS,
+    await checkFailGetRequest(
       {
         recordId: nonExistentRecordId,
         doctorId: doctorId
       },
-      null,
       404,
       COMMON_MSG.RECORD_NOT_FOUND
     )
