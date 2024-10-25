@@ -4,7 +4,8 @@ const COMMON_MSG = require('../../../utils/errorMsg')
 const {
   createTestDoctor,
   deleteUser,
-  checkFailRequest
+  checkFailRequest,
+  createTestFileTemplate
 } = require('../../testHelpers')
 
 describe('Delete File Template Tests', () => {
@@ -32,7 +33,7 @@ describe('Delete File Template Tests', () => {
   beforeAll(async () => {
     doctor = await createTestDoctor()
     secondDoctor = await createTestDoctor()
-    templateId = await createTestPatientTemplate(
+    templateId = await createTestFileTemplate(
       doctor.roleDependentInfo.id,
       `testTemplate_${Date.now()}`,
       [
@@ -109,14 +110,15 @@ describe('Delete File Template Tests', () => {
   })
 
   // DONE:
-  test('should delete with 200 a patient template correctly', async () => {
+  test('should delete with 200 a file template correctly', async () => {
+    const data = {
+      doctorId: doctor.roleDependentInfo.id,
+      templateId: templateId
+    }
     try {
       const response = await axios.delete(REQUEST_URL, {
-        data: {
-          doctorId: doctor.roleDependentInfo.id,
-          templateID: templateId
-        },
-        headers: HEADERS
+        headers: HEADERS,
+        data: data
       })
       expect(response.status).toBe(200)
       expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS)

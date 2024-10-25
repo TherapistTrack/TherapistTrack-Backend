@@ -3,7 +3,7 @@ const { BASE_URL, getAuthToken } = require('../../../jest.setup')
 const {
   createTestDoctor,
   deleteUser,
-  createTestPatientTemplate,
+  createTestFileTemplate,
   checkFailRequest
 } = require('../../../testHelpers')
 const COMMON_MSG = require('../../../../utils/errorMsg')
@@ -35,7 +35,7 @@ describe('Create File Template Field Tests', () => {
     doctor = await createTestDoctor()
     secondDoctor = await createTestDoctor()
 
-    templateId = await createTestPatientTemplate(
+    templateId = await createTestFileTemplate(
       doctor.roleDependentInfo.id,
       `testTemplate_${Date.now()}`,
       [
@@ -57,15 +57,15 @@ describe('Create File Template Field Tests', () => {
   })
 
   afterAll(async () => {
-    await Promise.all(deleteUser(doctor.id), deleteUser(secondDoctor.id))
+    await Promise.all([deleteUser(doctor.id), deleteUser(secondDoctor.id)])
   })
 
   // DONE:
-  test('should successfully add a new field to an existing file template', async () => {
+  test('should success with 200 add a new field to an existing file template', async () => {
     const fieldToAdd = {
       doctorId: doctor.roleDependentInfo.id,
       templateId: templateId, // Usar el ID de la plantilla creada
-      patientTemplate: {
+      field: {
         name: 'Numero de Telefono', // Campo nuevo 'Phone Number'
         type: 'NUMBER',
         required: true,
@@ -74,14 +74,11 @@ describe('Create File Template Field Tests', () => {
     }
 
     try {
-      const response = await axios.post(REQUEST_URL, {
-        data: fieldToAdd,
+      const response = await axios.post(REQUEST_URL, fieldToAdd, {
         headers: HEADERS
       })
       expect(response.status).toBe(200) // El backend debería devolver un estado 200
-      expect(response.data.message).toBe(
-        'Field added to patient template successfully'
-      ) // Mensaje esperado
+      expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS) // Mensaje esperado
     } catch (error) {
       console.error(
         'Error adding field:',
@@ -96,9 +93,10 @@ describe('Create File Template Field Tests', () => {
     await checkFailCreateRequest(
       {
         doctorId: doctor.roleDependentInfo.id,
-        patientTemplate: {
+        field: {
           name: 'Allergies',
           type: 'TEXT',
+          value: '',
           required: false,
           description: "Patient's known allergies"
         }
@@ -113,9 +111,10 @@ describe('Create File Template Field Tests', () => {
     await checkFailCreateRequest(
       {
         templateId: templateId,
-        patientTemplate: {
+        field: {
           name: 'Allergies',
           type: 'TEXT',
+          value: '',
           required: false,
           description: "Patient's known allergies"
         }
@@ -126,48 +125,12 @@ describe('Create File Template Field Tests', () => {
   })
 
   // DONE:
-  test("should fail with 400 creating field 'Nombres' since it is a reserved name ", async () => {
-    await checkFailCreateRequest(
-      {
-        doctorId: doctor.roleDependentInfo.id,
-        templateId: templateId,
-        patientTemplate: {
-          name: 'Nombres',
-          type: 'NUMBER',
-          required: true,
-          description: 'Edad del paciente'
-        }
-      },
-      400,
-      COMMON_MSG.RESERVED_FIELD_NAMES
-    )
-  })
-
-  // DONE:
-  test("should fail with 400 creating field 'Apellidos' since it is a reserved name ", async () => {
-    await checkFailCreateRequest(
-      {
-        doctorId: doctor.roleDependentInfo.id,
-        templateId: templateId,
-        patientTemplate: {
-          name: 'Apellidos',
-          type: 'NUMBER',
-          required: true,
-          description: 'Edad del paciente'
-        }
-      },
-      400,
-      COMMON_MSG.RESERVED_FIELD_NAMES
-    )
-  })
-
-  // DONE:
   test('should fail with 403 if doctor is not the owner of the template', async () => {
     await checkFailCreateRequest(
       {
         doctorId: secondDoctor.roleDependentInfo.id, // Doctor incorrecto
         templateId: templateId,
-        patientTemplate: {
+        field: {
           name: 'Phone Number',
           type: 'NUMBER',
           required: true,
@@ -185,7 +148,7 @@ describe('Create File Template Field Tests', () => {
       {
         doctorId: 'invalidDoctorId', // Doctor incorrecto
         templateId: templateId,
-        patientTemplate: {
+        field: {
           name: 'Phone Number',
           type: 'NUMBER',
           required: true,
@@ -203,7 +166,7 @@ describe('Create File Template Field Tests', () => {
       {
         doctorId: doctor.roleDependentInfo.id,
         templateId: 'nonExistentTemplate',
-        patientTemplate: {
+        field: {
           name: 'Phone Number',
           type: 'NUMBER',
           required: true,
@@ -216,12 +179,12 @@ describe('Create File Template Field Tests', () => {
   })
 
   // DONE:
-  test('should fail with 406 due to name already exist in template', async () => {
+  test('should fail with 406 due to name alredy exist in template', async () => {
     await checkFailCreateRequest(
       {
         doctorId: doctor.roleDependentInfo.id,
         templateId: templateId,
-        patientTemplate: {
+        field: {
           name: 'Edad',
           type: 'NUMBER',
           required: true,

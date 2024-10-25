@@ -4,11 +4,12 @@ const COMMON_MSG = require('../../../utils/errorMsg')
 const {
   createTestDoctor,
   deleteUser,
-  checkFailRequest
+  checkFailRequest,
+  createTestFileTemplate
 } = require('../../testHelpers')
 
 describe('Rename File Template Tests', () => {
-  let doctor, secondDoctor, templateId
+  let doctor, secondDoctor, templateId, secondTemplateId
 
   const REQUEST_URL = `${BASE_URL}/doctor/FileTemplate`
 
@@ -32,9 +33,21 @@ describe('Rename File Template Tests', () => {
   beforeAll(async () => {
     doctor = await createTestDoctor()
     secondDoctor = await createTestDoctor()
-    templateId = await createTestPatientTemplate(
+    templateId = await createTestFileTemplate(
       doctor.roleDependentInfo.id,
       `testTemplate_${Date.now()}`,
+      [
+        {
+          name: 'Edad',
+          type: 'NUMBER',
+          required: true,
+          description: 'Edad del paciente'
+        }
+      ]
+    )
+    secondTemplateId = await createTestFileTemplate(
+      doctor.roleDependentInfo.id,
+      `secondTemplate`,
       [
         {
           name: 'Edad',
@@ -48,6 +61,29 @@ describe('Rename File Template Tests', () => {
 
   afterAll(async () => {
     await Promise.all([deleteUser(doctor.id), deleteUser(secondDoctor.id)])
+  })
+
+  // DONE:
+  test('should rename with 200 a file template correctly', async () => {
+    const data = {
+      doctorId: doctor.roleDependentInfo.id,
+      templateId: templateId,
+      name: 'newName'
+    }
+
+    try {
+      const response = await axios.patch(REQUEST_URL, data, {
+        headers: HEADERS
+      })
+      expect(response.status).toBe(200)
+      expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS)
+    } catch (error) {
+      console.error(
+        'Error renaming template:',
+        error.response ? error.response.data : error.message
+      )
+      throw error
+    }
   })
 
   // DONE:
@@ -90,7 +126,7 @@ describe('Rename File Template Tests', () => {
   test("should fail with 403 to rename template if 'doctorid' exist but is not the owner of this template", async () => {
     await checkFailRenameRequest(
       {
-        doctorId: doctor.roleDependentInfo.id,
+        doctorId: secondDoctor.roleDependentInfo.id,
         templateId: templateId,
         name: 'NewName'
       },
@@ -124,26 +160,16 @@ describe('Rename File Template Tests', () => {
       COMMON_MSG.TEMPLATE_NOT_FOUND
     )
   })
-
   // DONE:
-  test('should rename with 200 a patient template correctly', async () => {
-    try {
-      const response = await axios.patch(REQUEST_URL, {
-        data: {
-          doctorId: doctor.roleDependentInfo.id,
-          templateID: templateId,
-          name: 'newName'
-        },
-        headers: HEADERS
-      })
-      expect(response.status).toBe(200)
-      expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS)
-    } catch (error) {
-      console.error(
-        'Error renaming template:',
-        error.response ? error.response.data : error.message
-      )
-      throw error
-    }
+  test('should fail with 406 when trying to rename template to with a existent template name', async () => {
+    await checkFailRenameRequest(
+      {
+        doctorId: doctor.roleDependentInfo.id,
+        templateId: secondTemplateId,
+        name: 'newName'
+      },
+      406,
+      COMMON_MSG.RECORDS_USING
+    )
   })
 })
