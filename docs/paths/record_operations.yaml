@@ -639,6 +639,26 @@ searchRecords:
                   type: integer
                   description: Número total de expedientes que coinciden con los filtros.
                   example: 25
+      '400':
+        description: Faltan campos o son inválidos en el cuerpo de la solicitud.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                  example: "Missing Fields."
+      '404':
+        description: Doctor no encontrado.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                  example: "Doctor not found."
       '405':
         description: Los valores de ciertos campos no corresponden con el tipo esperado (TEXT, NUMBER, FLOAT, CHOICE)
         content:
