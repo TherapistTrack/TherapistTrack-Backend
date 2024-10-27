@@ -30,7 +30,42 @@ tags:
       **CHOICE**: Guarda campos con opciones de seleccion predefinidas.
 
   - name: Operaciones de archivo
-    description: Operaciones relacionadas con la gestión de archivos.
+    description: | 
+      Operaciones relacionadas con la gestión de archivos. Todas las request que consistan en enviar o recibir un archivo, se manejaran con un formato 
+      diferente a JSON, llamado `multipart/form-data`, para ello se recomienda primero leer estos articulos para entender como funciona el formato:
+
+      - [what the heck is multipart/form-data???](https://varaprasadh.medium.com/what-the-heck-is-multipart-form-data-8df091d598b5)
+      - [A strategy for handling multiple file uploads using JavaScript](https://medium.com/typecode/a-strategy-for-handling-multiple-file-uploads-using-javascript-eb00a77e15f)
+      
+      Para ello necesitarán usar el constructor [FormData()](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest_API/Using_FormData_Objects) para poder formatear los datos según el estilo multipart-form-Data
+
+      ### Pero como un pequeño Intro
+        Los multipart-form-data estan compuestos por campos. Cada campo especifica el formato de la información con el atributo `Content-Type`. Los fields estan separados por guiones seguidos de una string random. 
+        Dado que cada campo puede especificar su tipo, las request puede tener formato mixto, de ahi el *multipart*
+
+        Este formato es optimo para enviar grandes cantidades de datos como imagenes, o documentos.
+      ```
+        POST /upload HTTP/1.1
+        Host: example.com
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+        Content-Length: 800
+
+        ------WebKitFormBoundary7MA4YWxkTrZu0gW
+        Content-Disposition: form-data; name="metadata"
+        Content-Type: application/json
+
+        {
+            "userId": "12345",
+            "description": "Este es el archivo que vamos a subir",
+            "timestamp": "2024-10-26T15:30:00Z"
+        }
+        ------WebKitFormBoundary7MA4YWxkTrZu0gW
+        Content-Disposition: form-data; name="file"; filename="imagen.jpg"
+        Content-Type: image/jpeg
+
+        <contenido binario del archivo imagen.jpg>
+        ------WebKitFormBoundary7MA4YWxkTrZu0gW--
+      ```
 
 paths:
   /users/register:
@@ -45,17 +80,6 @@ paths:
     $ref: './paths/user_management.yaml#/userMe'
   /users/{:id}:
     $ref: './paths/user_management.yaml#/userGetByID'
-
-  /createFile:
-    $ref: './paths/file_operations.yaml#/createFile'
-  /updateFile:
-    $ref: './paths/file_operations.yaml#/updateFile'
-  /deleteFile:
-    $ref: './paths/file_operations.yaml#/deleteFile'
-  /listFiles:
-    $ref: './paths/file_operations.yaml#/listFiles'
-  /getFileById:
-    $ref: './paths/file_operations.yaml#/getFileById'
 
   /doctor/PatientTemplate:
     $ref: './paths/patient_template.yaml#/doctorPatientTemplate'
@@ -75,3 +99,8 @@ paths:
     $ref: './paths/file_template.yaml#/doctorFileTemplateList'
   /doctor/FileTemplate/fields:
     $ref: './paths/file_template.yaml#/doctorFileTemplateFields'
+
+  /files:
+    $ref: './paths/file_operations.yaml#/baseFileRoute'
+  /files/search:
+    $ref: './paths/file_operations.yaml#/searchFiles'
