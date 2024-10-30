@@ -1,12 +1,11 @@
 const axios = require('axios')
 const { BASE_URL, getAuthToken } = require('./jest.setup')
-const yup = require('yup')
-const { response } = require('express')
-const COMMON_MSG = require('../../../utils/')
+const COMMON_MSG = require('../../../utils/errorMsg')
 const {
   setUpEnvironmentForFilesTests,
   checkFailRequest,
-  generateObjectId
+  generateObjectId,
+  createTestFile
 } = require('../../testHelpers')
 
 describe('Delete Files Tests', () => {
@@ -30,26 +29,6 @@ describe('Delete Files Tests', () => {
       {
         name: 'Notas adicionales',
         value: 'nota 1'
-      },
-      {
-        name: 'Instrucciones de administracion',
-        value: 'tomar oralmente'
-      },
-      {
-        name: 'Dosis (mg)',
-        value: 32
-      },
-      {
-        name: 'Concentracion',
-        value: 3.0
-      },
-      {
-        name: 'Forma de dosis',
-        value: 'Oral'
-      },
-      {
-        name: 'Fecha de preescripcion',
-        value: '2024-11-13T14:30:00Z'
       }
     ]
   }
@@ -77,32 +56,6 @@ describe('Delete Files Tests', () => {
             name: 'Notas adicionales',
             type: 'TEXT',
             required: true
-          },
-          {
-            name: 'Instrucciones de administracion',
-            type: 'SHORT_TEXT',
-            required: true
-          },
-          {
-            name: 'Dosis (mg)',
-            type: 'NUMBER',
-            required: true
-          },
-          {
-            name: 'Concentracion',
-            type: 'FLOAT',
-            required: true
-          },
-          {
-            name: 'Forma de dosis',
-            type: 'CHOICE',
-            options: ['Oral', 'Capsula'],
-            required: true
-          },
-          {
-            name: 'Fecha de preescripcion',
-            type: 'DATE',
-            required: true
           }
         ]
       ))
@@ -116,17 +69,57 @@ describe('Delete Files Tests', () => {
     await deleteUser(doctor.id)
   })
 
-  // TODO:
-  test('Should fail with 400 if fileId is not send', async () => {})
+  // DONE:
+  test('should fail with 400 if doctorId is not sent', async () => {
+    await checkFailGetRequest({ fileId }, 400, COMMON_MSG.MISSING_FIELDS)
+  })
 
-  // TODO:
-  test('Should fail with 400 if doctorId is not send', async () => {})
+  // DONE:
+  test('should fail with 400 if fileId is not sent', async () => {
+    await checkFailGetRequest(
+      { doctorId: doctor.roleDependentInfo.id },
+      400,
+      COMMON_MSG.MISSING_FIELDS
+    )
+  })
 
-  // TODO:
-  test('Should fail with 403 if doctor is not the owner of the file ', async () => {})
-  // TODO:
-  test('Should fail with 404 if doctorId is from a invalid/inexistent doctor', async () => {})
+  // DONE:
+  test('should fail with 403 if doctor is not the owner of the file', async () => {
+    await checkFailGetRequest(
+      {
+        fileId,
+        doctorId: secondDoctor.roleDependentInfo.id
+      },
+      403,
+      COMMON_MSG.DOCTOR_IS_NOT_OWNER
+    )
+  })
 
-  // TODO:
-  test('Should fail with 404 if file with given id do not exist', async () => {})
+  // DONE:
+  test('should fail with 404 if doctorId is from a non-existent/disable user', async () => {
+    const nonExistentDoctorId = generateObjectId()
+
+    await checkFailGetRequest(
+      {
+        fileId,
+        doctorId: nonExistentDoctorId
+      },
+      404,
+      COMMON_MSG.DOCTOR_NOT_FOUND
+    )
+  })
+
+  // DONE:
+  test('should fail with 404 if fileId is from a non-existent file', async () => {
+    const nonExistentRecordId = generateObjectId()
+
+    await checkFailGetRequest(
+      {
+        fileId: nonExistentRecordId,
+        doctorId: doctor.roleDependentInfo.id
+      },
+      404,
+      COMMON_MSG.FILE_NOT_FOUND
+    )
+  })
 })
