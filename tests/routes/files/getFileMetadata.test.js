@@ -2,11 +2,11 @@ const axios = require('axios')
 const { BASE_URL, getAuthToken } = require('../../jest.setup')
 const {
   createTestDoctor,
-  createTestPatientTemplate,
   deleteUser,
-  createTestRecord,
   checkFailRequest,
-  validateResponse
+  validateResponse,
+  createTestFile,
+  iso8601Regex
 } = require('../../testHelpers')
 const COMMON_MSG = require('../../../utils/errorMsg')
 const yup = require('yup')
@@ -118,7 +118,37 @@ describe('Get Record by ID', () => {
     await deleteUser(doctor.id)
   })
 
-  // TODO: FALTA CREAR SCHEMA de respuesta
+  const FILE_SCHEMA = yup.object().shape({
+    status: yup.number().required().oneOf([200]),
+    message: yup.string().required().oneOf([COMMON_MSG.REQUEST_SUCCESS]),
+    fileId: yup.string().required(),
+    recordId: yup.string().required(),
+    templateId: yup.string().required(),
+    name: yup.string().required(),
+    category: yup.string().required(),
+    createdAt: yup
+      .string()
+      .matches(iso8601Regex)
+      .required('Date should be format ISO8601'),
+    pages: yup.number().required(),
+    fields: yup.array().of(
+      yup.object().shape({
+        name: yup.string().required(),
+        type: yup
+          .string()
+          .required()
+          .oneOf(['TEXT', 'SHORT_TEXT', 'NUMBER', 'FLOAT', 'CHOICE', 'DATE']),
+        options: yup
+          .array()
+          .of(yup.string())
+          .optional('options should not be an empty array'),
+        value: yup.mixed(),
+        required: yup.boolean().required()
+      })
+    )
+  })
+
+  // DONE:
   test('should succeed with 200 fetching a valid record', async () => {
     try {
       const response = await axios.get(REQUEST_URL, {
@@ -131,7 +161,7 @@ describe('Get Record by ID', () => {
 
       expect(response.status).toBe(200)
       expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS)
-      await validateResponse(response.data, recordSchema)
+      await validateResponse(response.data, FILE_SCHEMA)
     } catch (error) {
       console.error(
         'Error fetching record:',
@@ -182,7 +212,7 @@ describe('Get Record by ID', () => {
   })
 
   // DONE:
-  test('should fail with 404 if fileId is from a non-existent record', async () => {
+  test('should fail with 404 if fileId is from a non-existent file', async () => {
     const nonExistentRecordId = generateObjectId()
 
     await checkFailGetRequest(
@@ -191,7 +221,7 @@ describe('Get Record by ID', () => {
         doctorId: doctor.roleDependentInfo.id
       },
       404,
-      COMMON_MSG.RECORD_NOT_FOUND
+      COMMON_MSG.FILE_NOT_FOUND
     )
   })
 })
