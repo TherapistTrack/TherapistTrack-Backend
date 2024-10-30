@@ -3,6 +3,10 @@ const { BASE_URL, getAuthToken } = require('./jest.setup')
 const yup = require('yup')
 const { response } = require('express')
 
+// OTHER EXPRESIONS
+const iso8601Regex =
+  /^(\d{4})-(\d{2})-(\d{2})(?:[T\s](\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{1,3}))?)?(Z|[+-]\d{2}:\d{2})?)?$/
+
 /**
  * Makes a request using the specified axios method, and checks if it fails with the expected status and message.
  *
@@ -440,6 +444,7 @@ function createFormDataWithFile(body) {
   return form
 }
 module.exports = {
+  iso8601Regex,
   checkFailRequest,
   generateObjectId,
   createTestDoctor,

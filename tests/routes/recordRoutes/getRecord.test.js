@@ -123,7 +123,10 @@ describe('Get Record by ID', () => {
     recordId: yup.string().required(),
     templateId: yup.string().required(),
     categories: yup.array().of(yup.string()).required(),
-    createdAt: yup.string().required(),
+    createdAt: yup
+      .string()
+      .matches(iso8601Regex)
+      .required('Date should be format ISO8601'),
     patient: yup
       .object()
       .shape({
