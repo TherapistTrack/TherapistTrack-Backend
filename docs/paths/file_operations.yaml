@@ -355,6 +355,9 @@ metadataFileRoute:
                 status: 
                   type: number
                   example: 200
+                message: 
+                  type: string
+                  example: "Operation succesful"
                 fileId: 
                   type: string
                   description: ID del archivo.
