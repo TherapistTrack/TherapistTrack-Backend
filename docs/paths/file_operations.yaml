@@ -275,12 +275,12 @@ baseFileRoute:
     tags:
       - Operaciones de archivo
     summary: Obtener un archivo.
-    description: Devuelve toda la información sobre un archivo incluyendo el archivo PDF.
+    description: Devuelve un archivo PDF para el id enviado.
     parameters:
       - in: query
-        name: recordId
+        name: fileId
         required: true
-        description: ID del expediente a obtener.
+        description: ID del archivo a devolver.
         schema:
           type: string
           example: "60d0fe4f5311236168a109cc"
@@ -295,68 +295,9 @@ baseFileRoute:
       '200':
         description: Lista de archivos obtenida exitosamente.
         content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                metadata: 
-                  format: application/json
-                  type: object
-                  properties: 
-                    fileId: 
-                      type: string
-                      description: ID del archivo.
-                    recordId: 
-                      type: string
-                      description: ID del expediente al que este pertenece.
-                    templateId:
-                      type: string
-                      description: Plantilla de archivo que seguira este nuevo documento.
-                    name: 
-                      type: string
-                      description: Nombre del archivo. No se pueden crear archivos con el mismo nombre.
-                    category:
-                      type: string
-                      description: Categoria del documento, es definida por el doctor, y ayudara a filtrar.
-                    createdAt: 
-                      type: string
-                      description: should be on ISO8601 format.
-                    pages:
-                      type: number
-                    fields: 
-                      type: array
-                      items:
-                        type: object
-                        properties:
-                          name:
-                            type: string
-                            description: Nombre del campo definido por la plantilla.
-                          type:
-                            type: string
-                            enum:
-                            - NUMBER
-                            - FLOAT
-                            - TEXT
-                            - SHORT_TEXT
-                            - DATE
-                            - CHOICE
-                            description: Tipo del campo.
-                          options:
-                            type: array
-                            description: Si el campo es de tipo CHOICE, mostrar cuales son las opciones disponibles.
-                            required: false
-                            items:
-                              type: string
-                          value:
-                            type: any
-                            description: Valor para el campo definido.
-                          required:
-                            type: boolean
-                            description: Si este campo quiere estar lleno.
-                file:
-                  type: binary
-                  format: application/pdf
-                  description: Información binaria del archivo PDF.
+          application/pdf:
+            schema: string
+            format: binary
       '400':
         description: Faltan campos o son inválidos en el cuerpo de la solicitud.
         content:
@@ -382,6 +323,113 @@ baseFileRoute:
             schema:
               $ref: '#/components/schemas/ErrorResponse'
 
+metadataFileRoute:
+  get: 
+    tags:
+      - Operaciones de archivo
+    summary: Obtener metadata de un archivo.
+    description: Devuelve toda la metadata del archivo en formato JSON.
+    parameters:
+      - in: query
+        name: fileId
+        required: true
+        description: ID del archivo a obtener.
+        schema:
+          type: string
+          example: "60d0fe4f5311236168a109cc"
+      - in: query
+        name: doctorId
+        required: true
+        description: ID del doctor asociado al archivo.
+        schema:
+          type: string
+          example: "60d0fe4f5311236168a109ca"
+    responses:
+      '200':
+        description: Lista de archivos obtenida exitosamente.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status: 
+                  type: number
+                  example: 200
+                fileId: 
+                  type: string
+                  description: ID del archivo.
+                recordId: 
+                  type: string
+                  description: ID del expediente al que este pertenece.
+                templateId:
+                  type: string
+                  description: Plantilla de archivo que seguira este nuevo documento.
+                name: 
+                  type: string
+                  description: Nombre del archivo. No se pueden crear archivos con el mismo nombre.
+                category:
+                  type: string
+                  description: Categoria del documento, es definida por el doctor, y ayudara a filtrar.
+                createdAt: 
+                  type: string
+                  description: should be on ISO8601 format.
+                pages:
+                  type: number
+                fields: 
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        description: Nombre del campo definido por la plantilla.
+                      type:
+                        type: string
+                        enum:
+                        - NUMBER
+                        - FLOAT
+                        - TEXT
+                        - SHORT_TEXT
+                        - DATE
+                        - CHOICE
+                        description: Tipo del campo.
+                      options:
+                        type: array
+                        description: Si el campo es de tipo CHOICE, mostrar cuales son las opciones disponibles.
+                        required: false
+                        items:
+                          type: string
+                      value:
+                        type: any
+                        description: Valor para el campo definido.
+                      required:
+                        type: boolean
+                        description: Si este campo quiere estar lleno.
+      '400':
+        description: Faltan campos o son inválidos en el cuerpo de la solicitud.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+      '403':
+        description: No se tiene permisos para obtener el archivo.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+      '404':
+        description: Archivo o doctor no encontrados.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+      '500':
+        description: Error interno del servidor.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+              
 searchFiles:
   get:
     tags:
