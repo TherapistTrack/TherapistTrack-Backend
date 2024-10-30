@@ -193,7 +193,7 @@ describe('Get Record by ID', () => {
   })
 
   // DONE:
-  test('should fail with 403 if doctor is not the owner of the template', async () => {
+  test('should fail with 403 if doctor is not the owner of the record', async () => {
     await checkFailGetRequest(
       {
         recordId,

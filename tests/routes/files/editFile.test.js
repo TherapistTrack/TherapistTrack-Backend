@@ -26,6 +26,8 @@ describe('Edit Files Tests', () => {
 
   const BASE_FILE = {
     doctorId: '', // Will be filled on the beforaAll()
+    recordId: '',
+    templateId: '',
     fileId: '',
     name: 'test_file',
     category: 'consultas',
@@ -125,7 +127,10 @@ describe('Edit Files Tests', () => {
         ]
       ))
     BASE_FILE.doctorId = doctor.roleDependentInfo.id
+    BASE_FILE.recordId = recordId
+    BASE_FILE.templateId = fileTemplateId
     fileId = createTestFile(BASE_FILE)
+    BASE_FILE.fileId = fileId
   })
 
   afterAll(async () => {
