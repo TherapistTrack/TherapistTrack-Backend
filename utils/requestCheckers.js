@@ -25,7 +25,7 @@ const checkDoctor = async (res, Controller, doctorId, templateId) => {
   if (patientemplate.doctor.toString() !== doctorId) {
     res
       .status(403)
-      .send({ status: 403, message: COMMON_MSG.DOCTOR_IS_NOT_OWNER })
+      .json({ status: 403, message: COMMON_MSG.DOCTOR_IS_NOT_OWNER })
     return false
   }
   return true
@@ -38,7 +38,7 @@ const checkExistingField = async (res, Controller, templateId, field) => {
     (existingField) => existingField.name === field.name
   )
   if (fieldExists) {
-    res.status(406).send({ status: 406, message: COMMON_MSG.RECORDS_USING })
+    res.status(406).json({ status: 406, message: COMMON_MSG.RECORDS_USING })
     return false
   }
   return true
@@ -46,6 +46,11 @@ const checkExistingField = async (res, Controller, templateId, field) => {
 
 const doctorActive = async (res, doctorId) => {
   const doctor = await findUserByRoleID(doctorId)
+  if (!doctor) {
+    res.status(404).json({ status: 404, message: COMMON_MSG.DOCTOR_NOT_FOUND })
+    return false
+  }
+
   if (!doctor.isActive) {
     res.status(403).json({ status: 403, message: COMMON_MSG.DOCTOR_INACTIVE })
     return false
