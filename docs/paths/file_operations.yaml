@@ -92,7 +92,17 @@ baseFileRoute:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ErrorResponse'
+              type: object
+              properties:
+                status:
+                  type: number
+                  example: 200
+                message: 
+                  type: string
+                  example: File created succesfully
+                fileId:
+                  type: string
+                  example: a3098bakd2lb0slal
       '400':
         description: Faltan campos o son inválidos en el cuerpo de la solicitud.
         content:
@@ -143,7 +153,7 @@ baseFileRoute:
             properties: 
               doctorId: 
                 type: string
-              recordId: 
+              fileId: 
                 type: string
               name: 
                 type: string
