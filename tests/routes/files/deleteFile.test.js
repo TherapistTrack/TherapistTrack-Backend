@@ -1,12 +1,14 @@
 const axios = require('axios')
 const { BASE_URL, getAuthToken } = require('../../jest.setup')
+const COMMON_MSG = require('../../../utils/errorMsg')
 
 const {
   deleteUser,
   checkFailRequest,
   setUpEnvironmentForFilesTests,
   createTestFile,
-  createTestDoctor
+  createTestDoctor,
+  generateObjectId
 } = require('../../testHelpers')
 
 describe('Delete Files Tests', () => {
@@ -133,7 +135,7 @@ describe('Delete Files Tests', () => {
       expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS)
     } catch (error) {
       console.error(
-        'Error deleting record:',
+        'Error deleting file:',
         error.response ? error.response.data : error.message
       )
       throw error
@@ -187,11 +189,11 @@ describe('Delete Files Tests', () => {
   })
 
   // DONE:
-  test('should fail with 404 if recordId is from a non-existent file', async () => {
+  test('should fail with 404 if fileId is from a non-existent file', async () => {
     await checkFailDeleteRequest(
       {
-        recordId: generateObjectId(),
-        fileId: fileId
+        doctor: doctor.roleDependentInfo.id,
+        doctorId: generateObjectId()
       },
       404,
       COMMON_MSG.RECORD_NOT_FOUND
