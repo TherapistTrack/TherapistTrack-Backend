@@ -107,7 +107,7 @@ describe('Quet available fields for files Tests', () => {
         doctorId: generateObjectId()
       },
       404,
-      COMMON_MSG.MISSING_FIELDS
+      COMMON_MSG.DOCTOR_NOT_FOUND
     )
   })
 })

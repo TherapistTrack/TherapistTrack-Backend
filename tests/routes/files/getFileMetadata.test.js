@@ -164,7 +164,7 @@ describe('Get Record by ID', () => {
       await validateResponse(response.data, FILE_SCHEMA)
     } catch (error) {
       console.error(
-        'Error fetching record:',
+        'Error fetching metadata:',
         error.response ? error.response.data : error.message
       )
       throw error

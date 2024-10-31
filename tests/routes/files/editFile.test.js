@@ -236,7 +236,7 @@ describe('Edit Files Tests', () => {
   // DONE:
   test('should fail with 404 if fileId is from a non-existent record', async () => {
     const file = modifyFileAttribute('fileId', generateObjectId())
-    await checkFailEditRequest(file, 404, COMMON_MSG.TEMPLATE_NOT_FOUND)
+    await checkFailEditRequest(file, 404, COMMON_MSG.FILE_NOT_FOUND)
   })
 
   // ==================
@@ -360,7 +360,7 @@ describe('Edit Files Tests', () => {
   // DONE:
   test('should fail with 405 when passing VALUE that is not within CHOICE value', async () => {
     const file = modifyFileField('Forma de dosis', 'camello')
-    await checkFailEditRequest(file, 405, COMMON_MSG.INVALID_CHOICE_VALUE)
+    await checkFailEditRequest(file, 405, COMMON_MSG.INVALID_FIELD_TYPE_CHOICE)
   })
 
   // DONE:

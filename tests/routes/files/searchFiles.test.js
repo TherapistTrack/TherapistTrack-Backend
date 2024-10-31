@@ -3,28 +3,28 @@ const { BASE_URL } = require('../../jest.setup')
 
 describe('Search Files endpoint', () => {
   // TODO:
-  test('should suceed with 200 searching a list of patients with no sorting or filtering', async () => {})
+  test('should suceed with 200 searching a list of files with no sorting or filtering', async () => {})
 
   // ===================
   // ==== SORTING
   // ===================
   // TODO:
-  test('should suceed with 200 searching a list of patients with sorting on SHORT_TEXT field', async () => {})
+  test('should suceed with 200 searching a list of files with sorting on SHORT_TEXT field', async () => {})
 
   // TODO:
-  test('should suceed with 200 searching a list of patients with sorting on TEXT field', async () => {})
+  test('should suceed with 200 searching a list of files with sorting on TEXT field', async () => {})
 
   // TODO:
-  test('should suceed with 200 searching a list of patients with sorting on NUMBER field', async () => {})
+  test('should suceed with 200 searching a list of files with sorting on NUMBER field', async () => {})
 
   // TODO:
-  test('should suceed with 200 searching a list of patients with sorting on FLOAT field', async () => {})
+  test('should suceed with 200 searching a list of files with sorting on FLOAT field', async () => {})
 
   // TODO:
-  test('should suceed with 200 searching a list of patients with sorting on DATE field', async () => {})
+  test('should suceed with 200 searching a list of files with sorting on DATE field', async () => {})
 
   // TODO:
-  test('should suceed with 200 searching a list of patients with sorting on CHOICE field', async () => {})
+  test('should suceed with 200 searching a list of files with sorting on CHOICE field', async () => {})
 
   // ===================
   // ==== FILTERING

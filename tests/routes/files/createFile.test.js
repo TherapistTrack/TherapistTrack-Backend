@@ -141,7 +141,35 @@ describe('Create Files Tests', () => {
   }
 
   // TODO:
-  test('should succed with 200 creating a file', async () => {})
+  test('should succed with 200 creating a file', async () => {
+    const form = new FormData()
+
+    // Append the metadata first.
+    form.append('metadata', JSON.stringify(BASE_FILE))
+
+    // Append a test PDF file.
+    const filePath = path.join(__dirname, 'testFile.pdf')
+    const fileName = 'testFile.pdf'
+    form.append('file', fs.createReadStream(filePath), { fileName: fileName })
+
+    try {
+      const response = await axios.post(REQUEST_URL, form, {
+        headers: {
+          ...form.getHeaders(),
+          Authorization: `Bearer ${getAuthToken()}`,
+          Origin: 'http://localhost'
+        }
+      })
+      expect(response.status).toBe(200)
+      expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS)
+    } catch (error) {
+      console.error(
+        'Error creating file:',
+        error.response ? error.response.data : error.message
+      )
+      throw error
+    }
+  })
 
   // TODO:
   test('should fail with 400 if doctorId not passed', async () => {
@@ -180,12 +208,30 @@ describe('Create Files Tests', () => {
     await checkFailCreateRequest(file, 404, COMMON_MSG.DOCTOR_NOT_FOUND)
   })
   // TODO:
-  test('should fail with 404 if file template with given id do not exist', async () => {})
+  test('should fail with 404 if file template with given id do not exist', async () => {
+    const file = modifyFileAttribute('templateId', generateObjectId())
+    await checkFailCreateRequest(file, 404, COMMON_MSG.TEMPLATE_NOT_FOUND)
+  })
   // TODO:
-  test('should fail with 404 if record with given id do not exist', async () => {})
+  test('should fail with 404 if record with given id do not exist', async () => {
+    const file = modifyFileAttribute('recordId', generateObjectId())
+    await checkFailCreateRequest(file, 404, COMMON_MSG.DOCTOR_NOT_FOUND)
+  })
 
-  // TODO:
-  test('should with 404 if not all field defined by the template are not sent', async () => {})
+  // TODO: HACER ESTE
+  test('should fail with 404 if not all required fields are sent', async () => {
+    const file = modifyFileAttribute('fields', [
+      {
+        name: 'Notas adicionales',
+        value: 'Una nota'
+      }
+    ])
+    await checkFailCreateRequest(
+      file,
+      404,
+      COMMON_MSG.MISSING_FIELDS_IN_TEMPLATE
+    )
+  })
 
   // TODO:
   test('should fail with 405 when passing a category that is not defined by the template', async () => {
@@ -368,7 +414,7 @@ describe('Create Files Tests', () => {
     await checkFailCreateRequest(
       record,
       405,
-      COMMON_MSG.INVALID_FIELD_VALUE_CHOICE
+      COMMON_MSG.INVALID_FIELD_TYPE_CHOICE
     )
   })
 

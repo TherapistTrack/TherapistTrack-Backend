@@ -196,7 +196,7 @@ describe('Delete Files Tests', () => {
         doctorId: generateObjectId()
       },
       404,
-      COMMON_MSG.RECORD_NOT_FOUND
+      COMMON_MSG.FILE_NOT_FOUND
     )
   })
 })
