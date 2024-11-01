@@ -341,6 +341,68 @@ function deleteObjectAttribute(record, attributePath) {
   return newRecord // Return the modified clone
 }
 
+/**
+ * Build a search request body with customizable parameters.
+ * @param {string} doctorId - ID of the doctor.
+ * @param {number} limit - Maximum number of items per page (default: 10).
+ * @param {number} page - Page number to retrieve (default: 0).
+ * @param {Array} fields - Fields to include in the response (default: []).
+ * @param {Array} sorts - Sorting criteria (default: []).
+ * @param {Array} filters - Filters to apply to the search (default: []).
+ * @returns {Object} - The constructed request body.
+ */
+function buildSearchRequestBody({
+  doctorId,
+  limit = 10,
+  page = 0,
+  fields = [],
+  sorts = [],
+  filters = []
+} = {}) {
+  return {
+    doctorId,
+    limit,
+    page,
+    fields,
+    sorts,
+    filters
+  }
+}
+
+/**
+ * Build a filter object for the search request.
+ * @param {string} name - Name of the field to filter.
+ * @param {string} type - Type of the field (e.g., NUMBER, TEXT).
+ * @param {string} operation - Operation to apply (e.g., 'less_than', 'contains').
+ * @param {Array} values - Array of values for the filter.
+ * @param {string} logicGate - Logic gate for combining filters (e.g., 'and', 'or').
+ * @returns {Object} - The constructed filter object.
+ */
+function buildFilterObject(name, type, operation, values, logicGate = 'and') {
+  return {
+    name,
+    type,
+    operation,
+    values,
+    logicGate
+  }
+}
+
+/**
+ * Build a sort object for the search request.
+ * @param {string} name - Name of the field to sort.
+ * @param {string} type - Type of the field (e.g., DATE, NUMBER).
+ * @param {string} mode - Sorting mode ('asc' or 'desc').
+ * @returns {Object} - The constructed sort object.
+ */
+function buildSortObject(name, type, mode) {
+  return {
+    name,
+    type,
+    mode
+  }
+}
+
 module.exports = {
   checkFailRequest,
   generateObjectId,
@@ -352,5 +414,8 @@ module.exports = {
   validateResponse,
   modifyObjectArray,
   modifyObjectAttribute,
-  deleteObjectAttribute
+  deleteObjectAttribute,
+  buildSearchRequestBody,
+  buildFilterObject,
+  buildSortObject
 }
