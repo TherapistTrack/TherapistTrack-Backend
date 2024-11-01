@@ -1,6 +1,11 @@
 const axios = require('axios')
 const { BASE_URL, getAuthToken } = require('./jest.setup')
 const yup = require('yup')
+const { response } = require('express')
+
+// OTHER EXPRESIONS
+const iso8601Regex =
+  /^(\d{4})-(\d{2})-(\d{2})(?:[T\s](\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{1,3}))?)?(Z|[+-]\d{2}:\d{2})?)?$/
 
 /**
  * Makes a request using the specified axios method, and checks if it fails with the expected status and message.
@@ -226,7 +231,37 @@ async function createTestRecord(doctorId, templateId, patientData) {
     const response = await axios.post(`${BASE_URL}/records/`, recordData, {
       headers: HEADERS
     })
-    return response.data.data.recordId
+    return response.data.recordId
+  } catch (error) {
+    console.error(
+      'Error creating record:',
+      error.response ? error.response.data : error.message
+    )
+    throw error
+  }
+}
+
+/**
+ * Creates a record for a patient based on a template.
+ *
+ * @param {object} fileData - File data including name, category, fields...
+ * @returns {Promise<string>} a Promise to the recordId created.
+ * @throws Will throw an error if the request fails.
+ */
+async function createTestFile(fileData) {
+  const form = createFormDataWithFile(fileData)
+
+  const HEADERS = {
+    ...form.getHeaders(),
+    Authorization: `Bearer ${getAuthToken()}`,
+    Origin: 'http://localhost'
+  }
+
+  try {
+    const response = await axios.post(`${BASE_URL}/files/`, form, {
+      headers: HEADERS
+    })
+    return response.data.fileId
   } catch (error) {
     console.error(
       'Error creating record:',
@@ -403,7 +438,75 @@ function buildSortObject(name, type, mode) {
   }
 }
 
+/**
+ * The manipulation of files requires a lot of other entities to set up first: a doctor,
+ * patientTemplate, record, and fileTempalte. This function encapsulates the logic to do so,
+ * and return the created entities.
+ * @param {} categories list of posible file categories.
+ * @param {*} fileTemplateName Name of the fileTemplate
+ * @param {*} fileTemplateFields Fields for the fileTemplate
+ * @returns doctor object, patientTemplatId, recordId, fileTemplateId.
+ */
+async function setUpEnvironmentForFilesTests(
+  categories,
+  fileTemplateName,
+  fileTemplateFields
+) {
+  try {
+    const doctor = await createTestDoctor()
+    const patientTemplateId = await createTestPatientTemplate(
+      doctor.roleDependentInfo.id,
+      `template_${Date.now()}`,
+      categories,
+      [
+        {
+          name: 'edad',
+          type: 'NUMBER',
+          required: true
+        }
+      ]
+    )
+    const fileTemplateId = await createTestFileTemplate(
+      doctor.roleDependentInfo.id,
+      fileTemplateName,
+      fileTemplateFields
+    )
+    const recordId = await createTestRecord(
+      doctor.roleDependentInfo.id,
+      templateId,
+      {
+        names: 'user',
+        lastNames: 'test',
+        fields: [
+          {
+            name: 'edad',
+            value: 30
+          }
+        ]
+      }
+    )
+    return doctor, patientTemplateId, recordId, fileTemplateId
+  } catch (error) {
+    console.error(`Error setting up environments for files.`)
+    throw error
+  }
+}
+
+function createFormDataWithFile(body) {
+  const form = new FormData()
+
+  // Append the metadata first.
+  form.append('metadata', JSON.stringify(body))
+
+  // Append a test PDF file.
+  const filePath = path.join(__dirname, 'testFile.pdf')
+  const fileName = 'testFile.pdf'
+  form.append('file', fs.createReadStream(filePath), { fileName: fileName })
+
+  return form
+}
 module.exports = {
+  iso8601Regex,
   checkFailRequest,
   generateObjectId,
   createTestDoctor,
@@ -411,11 +514,14 @@ module.exports = {
   createTestPatientTemplate,
   createTestFileTemplate,
   createTestRecord,
+  createTestFile,
   validateResponse,
   modifyObjectArray,
   modifyObjectAttribute,
   deleteObjectAttribute,
   buildSearchRequestBody,
   buildFilterObject,
-  buildSortObject
+  buildSortObject,
+  setUpEnvironmentForFilesTests,
+  createFormDataWithFile
 }

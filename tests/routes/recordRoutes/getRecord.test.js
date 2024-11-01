@@ -123,7 +123,10 @@ describe('Get Record by ID', () => {
     recordId: yup.string().required(),
     templateId: yup.string().required(),
     categories: yup.array().of(yup.string()).required(),
-    createdAt: yup.string().required(),
+    createdAt: yup
+      .string()
+      .matches(iso8601Regex)
+      .required('Date should be format ISO8601'),
     patient: yup
       .object()
       .shape({
@@ -193,7 +196,7 @@ describe('Get Record by ID', () => {
   })
 
   // DONE:
-  test('should fail with 403 if doctor is not the owner of the template', async () => {
+  test('should fail with 403 if doctor is not the owner of the record', async () => {
     await checkFailGetRequest(
       {
         recordId,
