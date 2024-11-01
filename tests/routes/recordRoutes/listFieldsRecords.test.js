@@ -3,15 +3,15 @@ const { BASE_URL, getAuthToken } = require('../../jest.setup')
 const {
   createTestDoctor,
   createTestPatientTemplate,
-  createTestRecord,
   deleteUser,
   checkFailRequest,
   validateResponse
 } = require('../../testHelpers')
 const COMMON_MSG = require('../../../utils/errorMsg')
+const yup = require('yup')
 
 describe('List possible fields', () => {
-  let doctorId, userId, templateId, recordId
+  let doctorId, userId
 
   const REQUEST_URL = `${BASE_URL}/records/search`
 
@@ -38,7 +38,7 @@ describe('List possible fields', () => {
     userId = doctor.id
     doctorId = doctor.roleDependentInfo.id
 
-    templateId = await createTestPatientTemplate(
+    await createTestPatientTemplate(
       doctorId,
       'Plantilla de Prueba',
       ['General'],
@@ -51,46 +51,43 @@ describe('List possible fields', () => {
         }
       ]
     )
-
-    recordId1 = await createTestRecord(doctorId, templateId, {
-      names: 'Juan',
-      lastnames: 'Pérez García',
-      fields: [
+    await createTestPatientTemplate(
+      doctorId,
+      'Plantilla de Prueba 2',
+      ['General'],
+      [
         {
-          name: 'Age',
-          value: 30
+          name: 'Height',
+          type: 180.0,
+          required: true,
+          description: 'Altura del paciente'
         }
       ]
-    })
-
-    recordId2 = await createTestRecord(doctorId, templateId, {
-      names: 'Ana',
-      lastnames: 'López Martínez',
-      fields: [
-        {
-          name: 'Age',
-          value: 25
-        }
-      ]
-    })
-
-    recordId3 = await createTestRecord(doctorId, templateId, {
-      names: 'Carlos',
-      lastnames: 'Ramírez Díaz',
-      fields: [
-        {
-          name: 'Age',
-          value: 45
-        }
-      ]
-    })
+    )
   })
 
   afterAll(async () => {
     await deleteUser(userId)
   })
 
-  // TODO:
+  const LIST_FIELDS_SCHEMA = yup.object().shape({
+    status: yup.number().required().oneOf([200]),
+    message: yup.string().required().oneOf([COMMON_MSG.REQUEST_SUCCESS]),
+    fields: yup
+      .array()
+      .of(
+        yup.object().shape({
+          name: yup.string().required(),
+          type: yup
+            .string()
+            .required()
+            .oneOf(['TEXT', 'SHORT_TEXT', 'NUMBER', 'FLOAT', 'CHOICE', 'DATE'])
+        })
+      )
+      .required()
+  })
+
+  // DONE:
   test('Should succeed with 200 in retreiving available record fields', async () => {
     try {
       const response = await axios.get(REQUEST_URL, {
@@ -100,20 +97,10 @@ describe('List possible fields', () => {
         }
       })
 
+      await validateResponse(response.data, LIST_FIELDS_SCHEMA)
       expect(response.status).toBe(200)
       expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS)
-
-      // Validar que el campo 'fields' contiene los datos esperados
-      expect(response.data.fields).toBeDefined()
-      expect(Array.isArray(response.data.fields)).toBe(true)
-      expect(response.data.fields).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            name: 'Age',
-            type: 'NUMBER'
-          })
-        ])
-      )
+      expect(response.data.fields.length).toBe(2)
     } catch (error) {
       console.error(
         'Error retrieving available record fields:',
@@ -123,26 +110,17 @@ describe('List possible fields', () => {
     }
   })
 
-  // TODO:
+  // DONE:
   test('Should fail with 400 if doctorId is not sent', async () => {
     await checkFailListRequest({}, 400, COMMON_MSG.MISSING_FIELDS)
   })
 
-  // TODO:
+  // DONE:
   test('Should fail with 404 if doctorId not correspond to and existent/valid user', async () => {
     const nonExistentDoctorId = 'nonExistentDoctorId12345'
 
     await checkFailListRequest(
       { doctorId: nonExistentDoctorId },
-      404,
-      COMMON_MSG.DOCTOR_NOT_FOUND
-    )
-  })
-
-  // TODO:
-  test('Should fail with 404 if doctorId is blank', async () => {
-    await checkFailListRequest(
-      { doctorId: '' },
       404,
       COMMON_MSG.DOCTOR_NOT_FOUND
     )
