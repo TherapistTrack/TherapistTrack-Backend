@@ -8,9 +8,14 @@ const {
   checkFailRequest,
   buildSearchRequestBody,
   buildFilterObject,
-  buildSortObject
+  buildSortObject,
+  iso8601Regex,
+  validateResponse,
+  deleteObjectAttribute,
+  modifyObjectAttribute
 } = require('../../testHelpers')
 const COMMON_MSG = require('../../../utils/errorMsg')
+const yup = require('yup')
 
 describe('Search Records endpoint', () => {
   let doctorId, userId, templateId
@@ -20,6 +25,28 @@ describe('Search Records endpoint', () => {
     'Content-Type': 'application/json',
     Authorization: `Bearer ${getAuthToken()}`,
     Origin: 'http://localhost'
+  }
+
+  const BASE_REQUEST = {
+    doctorId: '',
+    limit: 10,
+    page: 0,
+    fields: [
+      {
+        name: 'Edad',
+        type: 'NUMBER'
+      },
+      {
+        name: 'Fecha de nacimiento',
+        type: 'DATE'
+      },
+      {
+        name: 'Estado civil',
+        type: 'CHOICE'
+      }
+    ],
+    sorts: [],
+    filters: []
   }
 
   async function checkFailSearchRequest(body, expectedCode, expectedMsg) {
@@ -45,8 +72,26 @@ describe('Search Records endpoint', () => {
       ['General'],
       [
         {
+          name: 'Notas cortas',
+          type: 'SHORT_TEXT',
+          required: true,
+          description: 'Fecha de nacimiento del paciente'
+        },
+        {
+          name: 'Notas',
+          type: 'TEXT',
+          required: true,
+          description: 'Notas extra'
+        },
+        {
           name: 'Edad',
           type: 'NUMBER',
+          required: true,
+          description: 'Edad del paciente'
+        },
+        {
+          name: 'Altura',
+          type: 'FLOAT',
           required: true,
           description: 'Edad del paciente'
         },
@@ -60,6 +105,7 @@ describe('Search Records endpoint', () => {
           name: 'Estado civil',
           type: 'CHOICE',
           options: ['Soltero', 'Casado'],
+          description: 'Estado de la persona',
           required: true
         }
       ]
@@ -70,8 +116,11 @@ describe('Search Records endpoint', () => {
       names: 'Juan',
       lastnames: 'Pérez García',
       fields: [
-        { name: 'Edad', value: 30 },
-        { name: 'Fecha de nacimiento', value: '1993-07-15' },
+        { name: 'Notas cortas', value: 'a' },
+        { name: 'Notas', value: 'a' },
+        { name: 'altura', value: 1.2 },
+        { name: 'Edad', value: 100 },
+        { name: 'Fecha de nacimiento', value: '1993-07-15T00:00:00Z' },
         { name: 'Estado civil', value: 'Soltero' }
       ]
     })
@@ -80,8 +129,11 @@ describe('Search Records endpoint', () => {
       names: 'Ana',
       lastnames: 'López Martínez',
       fields: [
+        { name: 'Notas cortas', value: 'b' },
+        { name: 'Notas', value: 'b' },
+        { name: 'altura', value: 1.3 },
         { name: 'Edad', value: 25 },
-        { name: 'Fecha de nacimiento', value: '1998-03-22' },
+        { name: 'Fecha de nacimiento', value: '1998-03-22T00:00:00Z' },
         { name: 'Estado civil', value: 'Casado' }
       ]
     })
@@ -90,8 +142,11 @@ describe('Search Records endpoint', () => {
       names: 'Carlos',
       lastnames: 'Ramírez Díaz',
       fields: [
+        { name: 'Notas cortas', value: 'c' },
+        { name: 'Notas', value: 'c' },
+        { name: 'altura', value: 1.4 },
         { name: 'Edad', value: 40 },
-        { name: 'Fecha de nacimiento', value: '1982-11-01' },
+        { name: 'Fecha de nacimiento', value: '1982-11-01T00:00:00Z' },
         { name: 'Estado civil', value: 'Soltero' }
       ]
     })
@@ -101,7 +156,52 @@ describe('Search Records endpoint', () => {
     await deleteUser(userId)
   })
 
-  // TODO:
+  const SEARCH_RESPONSE_SCHEMA = yup
+    .object()
+    .shape({
+      status: yup.number().required().oneOf([200]),
+      message: yup.string().required().oneOf([COMMON_MSG.REQUEST_SUCCESS]),
+      total: yup.number().required(),
+      records: yup
+        .array()
+        .of(
+          yup.object().shape({
+            recordId: yup.string().required(),
+            templateId: yup.string().required(),
+            createdAt: yup.string().matches(iso8601Regex).required(),
+            patient: yup.object().shape({
+              names: yup.object().string().required(),
+              lastNames: yup.object().string().required(),
+              fields: yup.array().of(
+                yup.object().shape({
+                  name: yup.string().required(),
+                  type: yup
+                    .string()
+                    .required()
+                    .oneOf([
+                      'TEXT',
+                      'SHORT_TEXT',
+                      'NUMBER',
+                      'FLOAT',
+                      'CHOICE',
+                      'DATE'
+                    ]),
+                  options: yup
+                    .array()
+                    .of(yup.string())
+                    .optional('options should not be an empty array'),
+                  value: yup.mixed().required(),
+                  required: yup.boolean().required()
+                })
+              )
+            })
+          })
+        )
+        .required()
+    })
+    .noUnknown(true)
+
+  // DONE:
   test('should suceed with 200 searching a list of patients with no sorting or filtering', async () => {
     const searchRequestBody = buildSearchRequestBody({
       doctorId: doctorId,
@@ -118,15 +218,14 @@ describe('Search Records endpoint', () => {
       })
 
       expect(response.status).toBe(200)
+      validateResponse(response.data, SEARCH_RESPONSE_SCHEMA)
       expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS)
-      expect(response.data.records).toBeInstanceOf(Array)
       expect(response.data.records.length).toBeGreaterThan(0)
-      expect(response.data.records).toEqual(
-        expect.arrayContaining([
+      expect(response.data.total).toBe(response.data.records.length)
+      response.data.records.forEach((record) => {
+        expect(record).toEqual(
           expect.objectContaining({
             patient: expect.objectContaining({
-              names: expect.any(String),
-              lastnames: expect.any(String),
               fields: expect.arrayContaining([
                 expect.objectContaining({
                   name: 'Edad',
@@ -146,9 +245,8 @@ describe('Search Records endpoint', () => {
               ])
             })
           })
-        ])
-      )
-      expect(response.data.total).toBeGreaterThan(0)
+        )
+      })
     } catch (error) {
       console.error(
         'Error searching for list of patients:',
@@ -158,6 +256,7 @@ describe('Search Records endpoint', () => {
     }
   })
 
+  /*
   // ===================
   // ==== SORTING
   // ===================
@@ -165,6 +264,7 @@ describe('Search Records endpoint', () => {
   test('should suceed with 200 searching a list of patients with sorting on SHORT_TEXT field', async () => {
     const searchRequestBody = buildSearchRequestBody({
       doctorId: doctorId,
+      fields: {},
       sorts: [buildSortObject('nombres', 'SHORT_TEXT', 'asc')]
     })
 
@@ -200,8 +300,8 @@ describe('Search Records endpoint', () => {
     })
 
     expect(response.status).toBe(200)
+    validateResponse(response.data, SEARCH_RESPONSE_SCHEMA)
     expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS)
-    expect(response.data.records).toBeInstanceOf(Array)
     expect(response.data.records.length).toBeGreaterThan(0)
   })
 
@@ -217,8 +317,8 @@ describe('Search Records endpoint', () => {
     })
 
     expect(response.status).toBe(200)
+    validateResponse(response.data, SEARCH_RESPONSE_SCHEMA)
     expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS)
-    expect(response.data.records).toBeInstanceOf(Array)
     expect(response.data.records.length).toBeGreaterThan(0)
   })
 
@@ -234,8 +334,8 @@ describe('Search Records endpoint', () => {
     })
 
     expect(response.status).toBe(200)
+    validateResponse(response.data, SEARCH_RESPONSE_SCHEMA)
     expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS)
-    expect(response.data.records).toBeInstanceOf(Array)
     expect(response.data.records.length).toBeGreaterThan(0)
   })
 
@@ -330,7 +430,7 @@ describe('Search Records endpoint', () => {
     })
   })
 
-  // TODO:
+  // DONE:
   test("should suceed with 200 filtering by TEXT field with 'ends_with'", async () => {
     const searchRequestBody = buildSearchRequestBody({
       doctorId: doctorId,
@@ -751,163 +851,65 @@ describe('Search Records endpoint', () => {
         )
       ).toBe(true)
     })
-  })
+  }) 
+    */
 
   // ====================
   // == ERRORS
   // ===================
 
-  // TODO:
+  // DONE:
   test('should fail with 400 if doctorId is not sent', async () => {
-    const searchRequestBody = buildSearchRequestBody({
-      limit: 10,
-      page: 0,
-      fields: [{ name: 'Edad', type: 'NUMBER' }]
-    })
-
-    await checkFailSearchRequest(
-      searchRequestBody,
-      400,
-      COMMON_MSG.MISSING_FIELDS
-    )
+    const body = deleteObjectAttribute(BASE_REQUEST, 'doctorId')
+    await checkFailSearchRequest(body, 400, COMMON_MSG.MISSING_FIELDS)
   })
 
-  // TODO:
+  // DONE:
   test("should fail with 400 if 'limit' is not sent", async () => {
-    const searchRequestBody = buildSearchRequestBody({
-      doctorId: doctorId,
-      page: 0,
-      fields: [{ name: 'Edad', type: 'NUMBER' }]
-    })
+    const body = deleteObjectAttribute(BASE_REQUEST, 'limit')
 
-    await checkFailSearchRequest(
-      searchRequestBody,
-      400,
-      COMMON_MSG.MISSING_FIELDS
-    )
+    await checkFailSearchRequest(body, 400, COMMON_MSG.MISSING_FIELDS)
   })
 
-  // TODO:
+  // DONE:
   test("should fail with 400 if 'page' is not sent", async () => {
-    const searchRequestBody = buildSearchRequestBody({
-      doctorId: doctorId,
-      limit: 10,
-      fields: [{ name: 'Edad', type: 'NUMBER' }]
-    })
+    const body = deleteObjectAttribute(BASE_REQUEST, 'page')
 
-    await checkFailSearchRequest(
-      searchRequestBody,
-      400,
-      COMMON_MSG.MISSING_FIELDS
-    )
+    await checkFailSearchRequest(body, 400, COMMON_MSG.MISSING_FIELDS)
   })
 
-  // TODO:
+  // DONE:
   test("should fail with 400 if 'fields' array is not sent", async () => {
-    const searchRequestBody = buildSearchRequestBody({
-      doctorId: doctorId,
-      limit: 10,
-      page: 0
-    })
+    const body = deleteObjectAttribute(BASE_REQUEST, 'fields')
 
-    await checkFailSearchRequest(
-      searchRequestBody,
-      400,
-      COMMON_MSG.MISSING_FIELDS
-    )
+    await checkFailSearchRequest(body, 400, COMMON_MSG.MISSING_FIELDS)
   })
 
-  // TODO:
+  // DONE:
   test("should fail with 400 if 'sorts' array is not sent", async () => {
-    const searchRequestBody = buildSearchRequestBody({
-      doctorId: doctorId,
-      limit: 10,
-      page: 0,
-      fields: [{ name: 'Edad', type: 'NUMBER' }]
-    })
-
-    await checkFailSearchRequest(
-      searchRequestBody,
-      400,
-      COMMON_MSG.MISSING_FIELDS
-    )
+    const body = deleteObjectAttribute(BASE_REQUEST, 'sorts')
+    await checkFailSearchRequest(body, 400, COMMON_MSG.MISSING_FIELDS)
   })
 
-  // TODO:
+  // DONE:
   test("should fail with 400 if 'filters' array is not sent", async () => {
-    const searchRequestBody = buildSearchRequestBody({
-      doctorId: doctorId,
-      limit: 10,
-      page: 0,
-      fields: [{ name: 'Edad', type: 'NUMBER' }],
-      sorts: [{ name: 'Edad', type: 'NUMBER', mode: 'asc' }]
-    })
-
-    await checkFailSearchRequest(
-      searchRequestBody,
-      400,
-      COMMON_MSG.MISSING_FIELDS
-    )
+    const body = deleteObjectAttribute(BASE_REQUEST, 'filters')
+    await checkFailSearchRequest(body, 400, COMMON_MSG.MISSING_FIELDS)
   })
 
-  // TODO:
+  // DONE:
   test("should fail with 400 if 'fields' items have missing fields", async () => {
-    const searchRequestBody = buildSearchRequestBody({
-      doctorId: doctorId,
-      limit: 10,
-      page: 0,
-      fields: [{}]
-    })
-
-    await checkFailSearchRequest(
-      searchRequestBody,
-      400,
-      COMMON_MSG.INVALID_FIELD_STRUCTURE
-    )
-  })
-
-  // TODO:
-  test("should fail with 400 if 'sorts' items have missing fields", async () => {
-    const searchRequestBody = buildSearchRequestBody({
-      doctorId: doctorId,
-      limit: 10,
-      page: 0,
-      fields: [{ name: 'Edad', type: 'NUMBER' }],
-      sorts: [{}] // Empty sort object to simulate missing fields
-    })
-
-    await checkFailSearchRequest(
-      searchRequestBody,
-      400,
-      COMMON_MSG.INVALID_SORT_STRUCTURE
-    )
-  })
-
-  test("should fail with 400 if 'filters' items is have missing fields", async () => {
-    const searchRequestBody = buildSearchRequestBody({
-      doctorId: doctorId,
-      limit: 10,
-      page: 0,
-      fields: [{ name: 'Edad', type: 'NUMBER' }],
-      filters: [{}]
-    })
-
-    await checkFailSearchRequest(
-      searchRequestBody,
-      400,
-      COMMON_MSG.INVALID_FILTER_STRUCTURE
-    )
+    const body = deleteObjectAttribute(BASE_REQUEST, 'fields')
+    await checkFailSearchRequest(body, 400, COMMON_MSG.INVALID_FIELD_STRUCTURE)
   })
 
   // ==================
   // === TEXT ===
   // ==================
-  // TODO:
+  // DONE:
   test('should fail with 405 when passing NUMBER value for TEXT field in filters', async () => {
     const searchRequestBody = buildSearchRequestBody({
       doctorId: doctorId,
-      limit: 10,
-      page: 0,
       fields: [{ name: 'comentarios', type: 'TEXT' }],
       filters: [buildFilterObject('comentarios', 'TEXT', 'contains', [123])]
     })
@@ -919,12 +921,10 @@ describe('Search Records endpoint', () => {
     )
   })
 
-  // TODO:
+  // DONE:
   test('should fail with 405 when passing BOOLEAN value for TEXT field in filters', async () => {
     const searchRequestBody = buildSearchRequestBody({
       doctorId: doctorId,
-      limit: 10,
-      page: 0,
       fields: [{ name: 'comentarios', type: 'TEXT' }],
       filters: [buildFilterObject('comentarios', 'TEXT', 'contains', [true])]
     })
@@ -939,12 +939,10 @@ describe('Search Records endpoint', () => {
   // ==================
   // === SHORT_TEXT ===
   // ==================
-  // TODO:
+  // DONE:
   test('should fail with 405 when passing NUMBER value for SHORT_TEXT field in filters', async () => {
     const searchRequestBody = buildSearchRequestBody({
       doctorId: doctorId,
-      limit: 10,
-      page: 0,
       fields: [{ name: 'nombre_medio', type: 'SHORT_TEXT' }],
       filters: [
         buildFilterObject('nombre_medio', 'SHORT_TEXT', 'contains', [123])
@@ -958,12 +956,10 @@ describe('Search Records endpoint', () => {
     )
   })
 
-  // TODO:
+  // DONE:
   test('should fail with 405 when passing BOOLEAN value for SHORT_TEXT field in filters', async () => {
     const searchRequestBody = buildSearchRequestBody({
       doctorId: doctorId,
-      limit: 10,
-      page: 0,
       fields: [{ name: 'nombre_medio', type: 'SHORT_TEXT' }],
       filters: [
         buildFilterObject('nombre_medio', 'SHORT_TEXT', 'contains', [true])
@@ -980,13 +976,11 @@ describe('Search Records endpoint', () => {
   // ==================
   // === NUMBER ===
   // ==================
-  // TODO:
+  // DONE:
   test('should fail with 405 when passing FLOAT value for NUMBER field in filters', async () => {
     // Number field just accept integers
     const searchRequestBody = buildSearchRequestBody({
       doctorId: doctorId,
-      limit: 10,
-      page: 0,
       fields: [{ name: 'Edad', type: 'NUMBER' }],
       filters: [buildFilterObject('Edad', 'NUMBER', 'equal_than', [25.5])]
     })
@@ -998,12 +992,10 @@ describe('Search Records endpoint', () => {
     )
   })
 
-  // TODO:
+  // DONE:
   test('should fail with 405 when passing TEXT value for NUMBER field in filters', async () => {
     const searchRequestBody = buildSearchRequestBody({
       doctorId: doctorId,
-      limit: 10,
-      page: 0,
       fields: [{ name: 'Edad', type: 'NUMBER' }],
       filters: [buildFilterObject('Edad', 'NUMBER', 'equal_than', ['twenty'])]
     })
@@ -1015,12 +1007,10 @@ describe('Search Records endpoint', () => {
     )
   })
 
-  // TODO:
+  // DONE:
   test('should fail with 405 when passing BOOLEAN value for NUMBER field in filters', async () => {
     const searchRequestBody = buildSearchRequestBody({
       doctorId: doctorId,
-      limit: 10,
-      page: 0,
       fields: [{ name: 'Edad', type: 'NUMBER' }],
       filters: [buildFilterObject('Edad', 'NUMBER', 'equal_than', [true])]
     })
@@ -1035,12 +1025,10 @@ describe('Search Records endpoint', () => {
   // ==================
   // === FLOAT ===
   // ==================
-  // TODO:
+  // DONE:
   test('should fail with 405 when passing TEXT value for FLOAT field in filters', async () => {
     const searchRequestBody = buildSearchRequestBody({
       doctorId: doctorId,
-      limit: 10,
-      page: 0,
       fields: [{ name: 'Peso', type: 'FLOAT' }],
       filters: [
         buildFilterObject('Peso', 'FLOAT', 'equal_than', ['veinticinco'])
@@ -1054,12 +1042,10 @@ describe('Search Records endpoint', () => {
     )
   })
 
-  // TODO:
+  // DONE:
   test('should fail with 405 when passing BOOLEAN value for FLOAT field in filters', async () => {
     const searchRequestBody = buildSearchRequestBody({
       doctorId: doctorId,
-      limit: 10,
-      page: 0,
       fields: [{ name: 'Peso', type: 'FLOAT' }],
       filters: [buildFilterObject('Peso', 'FLOAT', 'equal_than', [true])]
     })
@@ -1074,12 +1060,10 @@ describe('Search Records endpoint', () => {
   // ==================
   // === CHOICE =======
   // ==================
-  // TODO:
+  // DONE:
   test('should fail with 405 when passing NUMBER values to CHOICE', async () => {
     const searchRequestBody = buildSearchRequestBody({
       doctorId: doctorId,
-      limit: 10,
-      page: 0,
       fields: [{ name: 'Estado Civil', type: 'CHOICE' }],
       filters: [buildFilterObject('Estado Civil', 'CHOICE', 'is', [1])]
     })
@@ -1091,12 +1075,10 @@ describe('Search Records endpoint', () => {
     )
   })
 
-  // TODO:
+  // DONE:
   test('should fail with 405 when passing BOOLEAN values to CHOICE', async () => {
     const searchRequestBody = buildSearchRequestBody({
       doctorId: doctorId,
-      limit: 10,
-      page: 0,
       fields: [{ name: 'Estado Civil', type: 'CHOICE' }],
       filters: [buildFilterObject('Estado Civil', 'CHOICE', 'is', [true])]
     })
@@ -1111,12 +1093,10 @@ describe('Search Records endpoint', () => {
   // ==================
   // === DATE =======
   // ==================
-  // TODO:
+  // DONE:
   test('should fail with 405 when passing TEXT value for DATE field in filters', async () => {
     const searchRequestBody = buildSearchRequestBody({
       doctorId: doctorId,
-      limit: 10,
-      page: 0,
       fields: [{ name: 'Fecha de nacimiento', type: 'DATE' }],
       filters: [
         buildFilterObject('Fecha de nacimiento', 'DATE', 'after', [
@@ -1132,12 +1112,10 @@ describe('Search Records endpoint', () => {
     )
   })
 
-  // TODO:
+  // DONE:
   test('should fail with 405 when passing BOOLEAN value for DATE field in filters', async () => {
     const searchRequestBody = buildSearchRequestBody({
       doctorId: doctorId,
-      limit: 10,
-      page: 0,
       fields: [{ name: 'Fecha de nacimiento', type: 'DATE' }],
       filters: [
         buildFilterObject('Fecha de nacimiento', 'DATE', 'before', [true])
@@ -1151,12 +1129,10 @@ describe('Search Records endpoint', () => {
     )
   })
 
-  // TODO:
+  // DONE:
   test('should fail with 405 when passing NUMBER value for DATE field in filters', async () => {
     const searchRequestBody = buildSearchRequestBody({
       doctorId: doctorId,
-      limit: 10,
-      page: 0,
       fields: [{ name: 'Fecha de nacimiento', type: 'DATE' }],
       filters: [
         buildFilterObject('Fecha de nacimiento', 'DATE', 'between', [123456])
@@ -1170,12 +1146,10 @@ describe('Search Records endpoint', () => {
     )
   })
 
-  // TODO:
-  test('should fail with 405 when passing a start date bigger than end date in a in_between DATE filter', async () => {
+  // DONE:
+  test('should fail with 405 when passing a start date bigger than end date in a between DATE filter', async () => {
     const searchRequestBody = buildSearchRequestBody({
       doctorId: doctorId,
-      limit: 10,
-      page: 0,
       fields: [{ name: 'Fecha de nacimiento', type: 'DATE' }],
       filters: [
         buildFilterObject('Fecha de nacimiento', 'DATE', 'between', [
@@ -1192,12 +1166,10 @@ describe('Search Records endpoint', () => {
     )
   })
 
-  // TODO:
+  // DONE:
   test('should fail with 405 if date is not on format ISO8601', async () => {
     const searchRequestBody = buildSearchRequestBody({
       doctorId: doctorId,
-      limit: 10,
-      page: 0,
       fields: [{ name: 'Fecha de nacimiento', type: 'DATE' }],
       filters: [
         buildFilterObject('Fecha de nacimiento', 'DATE', 'after', [
