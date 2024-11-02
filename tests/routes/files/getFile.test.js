@@ -1,5 +1,5 @@
 const axios = require('axios')
-const { BASE_URL, getAuthToken } = require('./jest.setup')
+const { BASE_URL, getAuthToken } = require('../../jest.setup')
 const COMMON_MSG = require('../../../utils/errorMsg')
 const {
   setUpEnvironmentForFilesTests,
