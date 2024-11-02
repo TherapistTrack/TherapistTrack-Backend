@@ -3,7 +3,7 @@ const { BASE_URL, getAuthToken } = require('../../../jest.setup')
 const {
   createTestDoctor,
   deleteUser,
-  createTestPatientTemplate,
+  createTestFileTemplate,
   checkFailRequest
 } = require('../../../testHelpers')
 const COMMON_MSG = require('../../../../utils/errorMsg')
@@ -11,7 +11,7 @@ const COMMON_MSG = require('../../../../utils/errorMsg')
 describe('Edit Field from Patient Template Tests', () => {
   let doctor, secondDoctor, templateId
 
-  const REQUEST_URL = `${BASE_URL}/doctor/PatientTemplate/fields`
+  const REQUEST_URL = `${BASE_URL}/doctor/FileTemplate/fields`
 
   const HEADERS = {
     'Content-Type': 'application/json',
@@ -20,7 +20,7 @@ describe('Edit Field from Patient Template Tests', () => {
   }
 
   async function checkFailEditRequest(body, expectedCode, expectedMsg) {
-    await checkFailRequest(
+    return checkFailRequest(
       'put',
       REQUEST_URL,
       HEADERS,
@@ -35,7 +35,7 @@ describe('Edit Field from Patient Template Tests', () => {
     doctor = await createTestDoctor()
     secondDoctor = await createTestDoctor()
 
-    templateId = await createTestPatientTemplate(
+    templateId = await createTestFileTemplate(
       doctor.roleDependentInfo.id,
       `testTemplate_${Date.now()}`,
       [
@@ -57,13 +57,12 @@ describe('Edit Field from Patient Template Tests', () => {
   })
 
   afterAll(async () => {
-    await deleteUser(doctor.id)
-    await deleteUser(secondDoctor.id)
+    await Promise.all([deleteUser(doctor.id), deleteUser(secondDoctor.id)])
   })
 
   // DONE:
   test('should fail with 400 to edit a field without templateID', async () => {
-    checkFailEditRequest(
+    await checkFailEditRequest(
       {
         doctorId: doctor.roleDependentInfo.id,
         oldFieldName: 'Edad',
@@ -81,7 +80,7 @@ describe('Edit Field from Patient Template Tests', () => {
 
   // DONE:
   test('should fail with 400 to edit a field without doctorId', async () => {
-    checkFailEditRequest(
+    await checkFailEditRequest(
       {
         templateId: doctor.roleDependentInfo.id,
         oldFieldName: 'Edad',
@@ -99,7 +98,7 @@ describe('Edit Field from Patient Template Tests', () => {
 
   // DONE:
   test('should fail with 400 to edit a field without oldFieldName', async () => {
-    checkFailEditRequest(
+    await checkFailEditRequest(
       {
         doctorId: doctor.roleDependentInfo.id,
         templateId: templateId,
@@ -117,7 +116,7 @@ describe('Edit Field from Patient Template Tests', () => {
 
   // DONE:
   test('should fail with 403 if doctor is not template owner', async () => {
-    checkFailEditRequest(
+    await checkFailEditRequest(
       {
         doctorId: secondDoctor.roleDependentInfo.id,
         templateId: templateId,
@@ -136,7 +135,7 @@ describe('Edit Field from Patient Template Tests', () => {
 
   // DONE:
   test('should fail with 404 if doctorid is from a not existent/valid user', async () => {
-    checkFailEditRequest(
+    await checkFailEditRequest(
       {
         doctorId: 'notExistentDoctor',
         templateId: templateId,
@@ -155,7 +154,7 @@ describe('Edit Field from Patient Template Tests', () => {
 
   // DONE:
   test('should fail with 404 if templateid is from a not existent/valid template', async () => {
-    checkFailEditRequest(
+    await checkFailEditRequest(
       {
         doctorId: doctor.roleDependentInfo.id,
         templateId: 'notExistentTemplate',
@@ -174,7 +173,7 @@ describe('Edit Field from Patient Template Tests', () => {
 
   // DONE:
   test('should fail with 404 if oldfieldName is from a not existent/valid field', async () => {
-    checkFailEditRequest(
+    await checkFailEditRequest(
       {
         doctorId: doctor.roleDependentInfo.id,
         templateId: templateId,
@@ -193,7 +192,7 @@ describe('Edit Field from Patient Template Tests', () => {
 
   // DONE:
   test('should fail with 406 to rename a field to a field that already has that name', async () => {
-    checkFailEditRequest(
+    await checkFailEditRequest(
       {
         doctorId: doctor.roleDependentInfo.id,
         templateId: templateId,
@@ -210,48 +209,10 @@ describe('Edit Field from Patient Template Tests', () => {
     )
   })
 
-  // DONE:
-  test("should fail with 400 to rename field to 'Nombres' since its a reserved name", async () => {
-    checkFailEditRequest(
-      {
-        doctorId: doctor.roleDependentInfo.id,
-        templateId: templateId,
-        oldFieldName: 'Edad',
-        fieldData: {
-          name: 'Nombres',
-          options: [],
-          required: true,
-          description: 'Nombre del paciente'
-        }
-      },
-      400,
-      COMMON_MSG.RESERVED_FIELD_NAMES
-    )
-  })
-
-  // DONE:
-  test("should fail with 400 to rename field to 'Apellidos' since its a reserved name", async () => {
-    checkFailEditRequest(
-      {
-        doctorId: doctor.roleDependentInfo.id,
-        templateId: templateId,
-        oldFieldName: 'Edad',
-        fieldData: {
-          name: 'Apellidos',
-          options: [],
-          required: true,
-          description: 'Apellido del paciente'
-        }
-      },
-      400,
-      COMMON_MSG.RESERVED_FIELD_NAMES
-    )
-  })
-
   // TODO: test edit property that is already atached to real records.
   //
   // DONE:
-  test('should edit with 200 the name of an existing field in a patient template', async () => {
+  test('should edit with 200 the name of an existing field in a fil template', async () => {
     const fieldToEdit = {
       doctorId: doctor.roleDependentInfo.id,
       templateId: templateId,
@@ -265,15 +226,11 @@ describe('Edit Field from Patient Template Tests', () => {
     }
 
     try {
-      const response = await axios.put(
-        `${BASE_URL}/doctor/PatientTemplate/fields`,
-        {
-          data: fieldToEdit,
-          headers: HEADERS
-        }
-      )
+      const response = await axios.put(REQUEST_URL, fieldToEdit, {
+        headers: HEADERS
+      })
       expect(response.status).toBe(200)
-      expect(response.data.message).toBe('Field successfully edited')
+      expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS)
     } catch (error) {
       console.error(
         'Error editing field:',
@@ -287,7 +244,7 @@ describe('Edit Field from Patient Template Tests', () => {
   test('should edit with 200 an existing field to change required status', async () => {
     const fieldToEdit = {
       doctorId: doctor.roleDependentInfo.id,
-      templateID: templateId,
+      templateId: templateId,
       oldFieldName: 'Edad Actualizada',
       fieldData: {
         name: 'Edad Actualizada',
@@ -298,15 +255,11 @@ describe('Edit Field from Patient Template Tests', () => {
     }
 
     try {
-      const response = await axios.put(
-        `${BASE_URL}/doctor/PatientTemplate/fields`,
-        {
-          data: fieldToEdit,
-          headers: HEADERS
-        }
-      )
+      const response = await axios.put(REQUEST_URL, fieldToEdit, {
+        headers: HEADERS
+      })
       expect(response.status).toBe(200)
-      expect(response.data.message).toBe('Field successfully edited')
+      expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS)
     } catch (error) {
       console.error(
         'Error editing field:',

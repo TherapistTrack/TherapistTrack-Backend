@@ -177,7 +177,6 @@ describe('Create Patient Template Tests', () => {
           {
             name: 'Estado Civil',
             type: 'CHOICE',
-            options: ['Soltero', 'Casado'],
             required: true,
             description: 'Estado civil del paciente'
           }
@@ -280,9 +279,8 @@ describe('Create Patient Template Tests', () => {
   })
 
   // DONE:
-  test('should fail with 406 when creating template with two fields that have the same name', async () => {
+  test('should fail with 400 when creating template with two fields that have the same name', async () => {
     await checkFailCreateRequest(
-
       {
         doctorId: doctorId,
         name: 'testTemplate',
@@ -302,8 +300,8 @@ describe('Create Patient Template Tests', () => {
           }
         ]
       },
-      406,
-      COMMON_MSG.RECORDS_USING
+      400,
+      COMMON_MSG.DUPLICATE_FIELD_NAMES
     )
   })
 

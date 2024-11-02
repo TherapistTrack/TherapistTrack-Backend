@@ -1,5 +1,4 @@
-const PatientTemplate = require('../models/patientTemplateModel')
-//const Record = require('../models/Record')
+const FileTemplate = require('../models/fileTemplateModel')
 const COMMON_MSG = require('../utils/errorMsg')
 const {
   emptyFields,
@@ -18,19 +17,19 @@ const {
 const mongoose = require('mongoose')
 
 exports.createTemplate = async (req, res) => {
-  const { doctorId, name, categories, fields } = req.body
+  const { doctorId, name, fields } = req.body
 
   try {
-    if (!emptyFields(res, doctorId, name, categories, fields)) return
+    if (!emptyFields(res, doctorId, name, fields)) return
 
-    if (!validArrays(res, fields, categories)) return
+    if (!validArrays(res, fields)) return
 
     if (!validFields(res, fields)) return
 
     if (
       !(await checkExistenceName(
         res,
-        PatientTemplate,
+        FileTemplate,
         name,
         COMMON_MSG.RECORDS_USING
       ))
@@ -39,25 +38,24 @@ exports.createTemplate = async (req, res) => {
 
     if (!validMongoId(res, doctorId, COMMON_MSG.DOCTOR_NOT_FOUND)) return
 
-    const template = new PatientTemplate({
+    const template = new FileTemplate({
       doctor: doctorId,
       name,
-      categories,
       fields
     })
-    const patientTemplate = await template.save()
+    const fileTemplate = await template.save()
 
     res.status(201).json({
       status: 200,
       message: COMMON_MSG.REQUEST_SUCCESS,
-      data: { patientTemplateId: patientTemplate._id }
+      data: { doctorId: fileTemplate.doctor, fileTemplateId: fileTemplate._id }
     })
   } catch (error) {
     // Rollback: Eliminar la plantilla creada si ocurre un error
-    await PatientTemplate.deleteOne({ name: req.body.name })
+    await FileTemplate.deleteOne({ name: req.body.name })
 
     if (!res.headersSent) {
-      res.status(500).json({ error: COMMON_MSG.INTERNAL_SERVER_ERROR })
+      res.status(500).json({ error: error.message })
     }
   }
 }
@@ -76,18 +74,18 @@ exports.renameTemplate = async (req, res) => {
     const [templateExists, doctorIsOwner, nameExists] = await Promise.all([
       checkExistenceId(
         res,
-        PatientTemplate,
+        FileTemplate,
         templateId,
         COMMON_MSG.TEMPLATE_NOT_FOUND
       ),
-      checkDoctor(res, PatientTemplate, doctorId, templateId),
-      checkExistenceName(res, PatientTemplate, name, COMMON_MSG.RECORDS_USING)
+      checkDoctor(res, FileTemplate, doctorId, templateId),
+      checkExistenceName(res, FileTemplate, name, COMMON_MSG.RECORDS_USING)
     ])
 
     // Verificar si alguna validación ha fallado
     if (!templateExists || !doctorIsOwner || !nameExists) return
 
-    const updatedTemplate = await PatientTemplate.findByIdAndUpdate(
+    const updatedTemplate = await FileTemplate.findByIdAndUpdate(
       templateId,
       { name },
       { new: true }
@@ -96,7 +94,10 @@ exports.renameTemplate = async (req, res) => {
     res.status(200).json({
       status: 200,
       message: COMMON_MSG.REQUEST_SUCCESS,
-      data: [updatedTemplate.doctor, updatedTemplate._id]
+      data: {
+        doctorId: updatedTemplate.doctor,
+        fileTemplateId: updatedTemplate._id
+      }
     })
   } catch (error) {
     res.status(500).json({ error: COMMON_MSG.INTERNAL_SERVER_ERROR })
@@ -117,24 +118,24 @@ exports.deleteTemplate = async (req, res) => {
     const [templateExists, doctorIsOwner] = await Promise.all([
       checkExistenceId(
         res,
-        PatientTemplate,
+        FileTemplate,
         templateId,
         COMMON_MSG.TEMPLATE_NOT_FOUND
       ),
-      checkDoctor(res, PatientTemplate, doctorId, templateId)
+      checkDoctor(res, FileTemplate, doctorId, templateId)
     ])
 
     // Verificar si alguna validación ha fallado
     if (!templateExists || !doctorIsOwner) return
 
-    /* Cuando se tenga Record, se utilizara esta programacion defensiva
-        const patientUsingTemplate = await Record.findOne({ 'template': templateId })
+    /* Cuando se tenga File, se utilizara esta programacion defensiva
+        const fileUsingTemplate = await File.findOne({ 'template': templateId })
 
-        if (patientUsingTemplate) {
+        if (fileUsingTemplate) {
             return res.status(409).send({ status: 'error', message: 'Cannot delete template: it is being used by a patient.' });
         }*/
 
-    await PatientTemplate.findByIdAndDelete(templateId)
+    await FileTemplate.findByIdAndDelete(templateId)
 
     res.status(200).json({
       status: 200,
@@ -155,23 +156,23 @@ exports.getTemplate = async (req, res) => {
 
     if (!validMongoId(res, templateId, COMMON_MSG.TEMPLATE_NOT_FOUND)) return
 
-    const patientemplate = await PatientTemplate.findById(templateId).lean()
+    const filetemplate = await FileTemplate.findById(templateId).lean()
 
     // Ejecutar las dos validaciones en paralelo
     const [templateExists, doctorIsOwner] = await Promise.all([
       checkExistenceId(
         res,
-        PatientTemplate,
+        FileTemplate,
         templateId,
         COMMON_MSG.TEMPLATE_NOT_FOUND
       ),
-      checkDoctor(res, PatientTemplate, doctorId, templateId)
+      checkDoctor(res, FileTemplate, doctorId, templateId)
     ])
 
     // Verificar si alguna validación ha fallado
     if (!templateExists || !doctorIsOwner) return
 
-    const { _id, doctor, __v, ...filteredTemplate } = patientemplate
+    const { _id, doctor, __v, ...filteredTemplate } = filetemplate
 
     res.status(200).json({
       status: 200,
@@ -191,18 +192,18 @@ exports.getTemplatesDoctor = async (req, res) => {
 
     if (!validMongoId(res, doctorId, COMMON_MSG.DOCTOR_NOT_FOUND)) return
 
-    const patientemplates = await PatientTemplate.find({
+    const filetemplates = await FileTemplate.find({
       doctor: doctorId
     }).lean()
 
-    if (!patientemplates || patientemplates.length === 0) {
+    if (!filetemplates || filetemplates.length === 0) {
       return res
         .status(404)
         .send({ status: 404, message: COMMON_MSG.TEMPLATE_NOT_FOUND })
     }
 
-    for (let i = 0; i < patientemplates.length; i++) {
-      if (patientemplates[i].doctor.toString() !== doctorId) {
+    for (let i = 0; i < filetemplates.length; i++) {
+      if (filetemplates[i].doctor.toString() !== doctorId) {
         return res
           .status(403)
           .send({ status: 403, message: COMMON_MSG.DOCTOR_IS_NOT_OWNER })
@@ -210,7 +211,7 @@ exports.getTemplatesDoctor = async (req, res) => {
     }
 
     // Mapear los templates eliminando los campos _id y __v
-    const templatesWithId = patientemplates.map((template) => {
+    const templatesWithId = filetemplates.map((template) => {
       const { _id, __v, doctor, ...rest } = template // Extraer _id y __v, dejando el resto
       return { ...rest, templateId: _id } // Retornar el objeto con templateId en lugar de _id
     })
@@ -242,11 +243,11 @@ exports.createField = async (req, res) => {
     const [templateExists, doctorIsOwner] = await Promise.all([
       checkExistenceId(
         res,
-        PatientTemplate,
+        FileTemplate,
         templateId,
         COMMON_MSG.TEMPLATE_NOT_FOUND
       ),
-      checkDoctor(res, PatientTemplate, doctorId, templateId)
+      checkDoctor(res, FileTemplate, doctorId, templateId)
     ])
 
     // Verificar si alguna validación ha fallado
@@ -254,10 +255,10 @@ exports.createField = async (req, res) => {
 
     if (!validField(res, field)) return
 
-    if (!(await checkExistingField(res, PatientTemplate, templateId, field)))
+    if (!(await checkExistingField(res, FileTemplate, templateId, field)))
       return
 
-    const updatedTemplate = await PatientTemplate.findByIdAndUpdate(
+    const updatedTemplate = await FileTemplate.findByIdAndUpdate(
       templateId,
       { $push: { fields: field } },
       { new: true }
@@ -270,7 +271,7 @@ exports.createField = async (req, res) => {
     })
   } catch (error) {
     // Rollback: Eliminar el campo recién agregado si hay un error
-    await PatientTemplate.findByIdAndUpdate(templateId, {
+    await FileTemplate.findByIdAndUpdate(templateId, {
       $pull: { fields: { name: field.name } }
     })
 
@@ -294,28 +295,26 @@ exports.deleteField = async (req, res) => {
     const [templateExists, doctorIsOwner] = await Promise.all([
       checkExistenceId(
         res,
-        PatientTemplate,
+        FileTemplate,
         templateId,
         COMMON_MSG.TEMPLATE_NOT_FOUND
       ),
-      checkDoctor(res, PatientTemplate, doctorId, templateId)
+      checkDoctor(res, FileTemplate, doctorId, templateId)
     ])
 
     // Verificar si alguna validación ha fallado
     if (!templateExists || !doctorIsOwner) return
 
-    const patientemplate = await PatientTemplate.findById(templateId)
+    const filetemplate = await FileTemplate.findById(templateId)
 
-    const fieldExists = patientemplate.fields.some(
-      (field) => field.name === name
-    )
+    const fieldExists = filetemplate.fields.some((field) => field.name === name)
     if (!fieldExists) {
       return res
         .status(404)
         .json({ status: 404, message: COMMON_MSG.FIELD_NOT_FOUND })
     }
 
-    const updatedTemplate = await PatientTemplate.findByIdAndUpdate(
+    const updatedTemplate = await FileTemplate.findByIdAndUpdate(
       templateId,
       { $pull: { fields: { name } } },
       { new: true }
@@ -328,7 +327,7 @@ exports.deleteField = async (req, res) => {
     })
   } catch (error) {
     // Rollback: Volver a agregar el campo si hay un error
-    await PatientTemplate.findByIdAndUpdate(templateId, {
+    await FileTemplate.findByIdAndUpdate(templateId, {
       $push: { fields: fieldToRemove }
     })
 
@@ -346,23 +345,23 @@ exports.updateField = async (req, res) => {
 
     if (!validMongoId(res, templateId, COMMON_MSG.TEMPLATE_NOT_FOUND)) return
 
-    const patientemplate = await PatientTemplate.findById(templateId)
+    const filetemplate = await FileTemplate.findById(templateId)
 
     // Ejecutar las dos validaciones en paralelo
     const [templateExists, doctorIsOwner] = await Promise.all([
       checkExistenceId(
         res,
-        PatientTemplate,
+        FileTemplate,
         templateId,
         COMMON_MSG.TEMPLATE_NOT_FOUND
       ),
-      checkDoctor(res, PatientTemplate, doctorId, templateId)
+      checkDoctor(res, FileTemplate, doctorId, templateId)
     ])
 
     // Verificar si alguna validación ha fallado
     if (!templateExists || !doctorIsOwner) return
 
-    const fieldIndex = patientemplate.fields.findIndex(
+    const fieldIndex = filetemplate.fields.findIndex(
       (existingField) => existingField.name === oldFieldName
     )
     if (fieldIndex === -1) {
@@ -378,7 +377,7 @@ exports.updateField = async (req, res) => {
         .json({ status: 400, message: COMMON_MSG.RESERVED_FIELD_NAMES })
     }
 
-    const nameConflict = patientemplate.fields.some(
+    const nameConflict = filetemplate.fields.some(
       (existingField) =>
         existingField.name === fieldData.name &&
         existingField.name !== oldFieldName
@@ -389,13 +388,13 @@ exports.updateField = async (req, res) => {
         .json({ status: 406, message: COMMON_MSG.RECORDS_USING })
     }
 
-    patientemplate.fields[fieldIndex].name = fieldData.name
-    patientemplate.fields[fieldIndex].type = fieldData.type
-    patientemplate.fields[fieldIndex].options = fieldData.options
-    patientemplate.fields[fieldIndex].required = fieldData.required
-    patientemplate.fields[fieldIndex].description = fieldData.description
+    filetemplate.fields[fieldIndex].name = fieldData.name
+    filetemplate.fields[fieldIndex].type = fieldData.type
+    filetemplate.fields[fieldIndex].options = fieldData.options
+    filetemplate.fields[fieldIndex].required = fieldData.required
+    filetemplate.fields[fieldIndex].description = fieldData.description
 
-    const updatedTemplate = await patientemplate.save()
+    const updatedTemplate = await filetemplate.save()
 
     res.status(200).json({
       status: 200,
@@ -404,8 +403,8 @@ exports.updateField = async (req, res) => {
     })
   } catch (error) {
     // Rollback: Revertir el campo a su estado original si hay un error
-    patientemplate.fields[fieldIndex] = originalField
-    await patientemplate.save()
+    filetemplate.fields[fieldIndex] = originalField
+    await filetemplate.save()
 
     res.status(500).json({ error: error.message })
   }

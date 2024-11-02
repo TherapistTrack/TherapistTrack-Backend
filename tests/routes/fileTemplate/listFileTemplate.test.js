@@ -4,13 +4,14 @@ const COMMON_MSG = require('../../../utils/errorMsg')
 const {
   createTestDoctor,
   deleteUser,
-  checkFailRequest
+  checkFailRequest,
+  createTestFileTemplate
 } = require('../../testHelpers')
 
-describe('List Patiente Templates Tests', () => {
+describe('List File Templates Tests', () => {
   let doctor
 
-  const REQUEST_URL = `${BASE_URL}/doctor/PatientTemplate/list`
+  const REQUEST_URL = `${BASE_URL}/doctor/FileTemplate/list`
 
   const HEADERS = {
     'Content-Type': 'application/json',
@@ -19,7 +20,7 @@ describe('List Patiente Templates Tests', () => {
   }
 
   async function checkFailListRequest(queryParams, expectedCode, expectedMsg) {
-    await checkFailRequest(
+    return checkFailRequest(
       'get',
       REQUEST_URL,
       HEADERS,
@@ -34,7 +35,7 @@ describe('List Patiente Templates Tests', () => {
     doctor = await createTestDoctor()
 
     // Crear varias plantillas de paciente para usarlas en los tests
-    templateId1 = await createTestPatientTemplate(
+    templateId1 = await createTestFileTemplate(
       doctor.roleDependentInfo.id,
       `testTemplate1_${Date.now()}`,
       [
@@ -54,7 +55,7 @@ describe('List Patiente Templates Tests', () => {
       ]
     )
 
-    templateId2 = await createTestPatientTemplate(
+    templateId2 = await createTestFileTemplate(
       doctor.roleDependentInfo.id,
       `testTemplate2_${Date.now()}`,
       [
@@ -73,7 +74,7 @@ describe('List Patiente Templates Tests', () => {
       ]
     )
 
-    templateId3 = await createTestPatientTemplate(
+    templateId3 = await createTestFileTemplate(
       doctor.roleDependentInfo.id,
       `testTemplate3_${Date.now()}`,
       [
@@ -95,7 +96,7 @@ describe('List Patiente Templates Tests', () => {
   })
 
   afterAll(async () => {
-    await deleteUser(doctorId)
+    await deleteUser(doctor.roleDependentInfo.id)
   })
 
   // DONE:
@@ -103,8 +104,7 @@ describe('List Patiente Templates Tests', () => {
     try {
       const response = await axios.get(REQUEST_URL, {
         params: {
-          doctorId: doctor.roleDependentInfo.id,
-          templateId: templateId
+          doctorId: doctor.roleDependentInfo.id
         },
         headers: HEADERS
       })
@@ -114,7 +114,7 @@ describe('List Patiente Templates Tests', () => {
       expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS)
     } catch (error) {
       console.error(
-        'Error fetching patient template list:',
+        'Error fetching file template list:',
         error.response ? error.response.data : error.message
       )
       throw error
