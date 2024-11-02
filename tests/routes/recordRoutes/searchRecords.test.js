@@ -65,6 +65,7 @@ describe('Search Records endpoint', () => {
     const doctor = await createTestDoctor()
     userId = doctor.id
     doctorId = doctor.roleDependentInfo.id
+    BASE_REQUEST.doctorId = doctorId
 
     templateId = await createTestPatientTemplate(
       doctorId,
@@ -867,7 +868,6 @@ describe('Search Records endpoint', () => {
   // DONE:
   test("should fail with 400 if 'limit' is not sent", async () => {
     const body = deleteObjectAttribute(BASE_REQUEST, 'limit')
-
     await checkFailSearchRequest(body, 400, COMMON_MSG.MISSING_FIELDS)
   })
 

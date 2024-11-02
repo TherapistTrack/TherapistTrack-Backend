@@ -381,6 +381,7 @@ function deleteObjectAttribute(record, attributePath) {
  * @param {string} doctorId - ID of the doctor.
  * @param {number} limit - Maximum number of items per page (default: 10).
  * @param {number} page - Page number to retrieve (default: 0).
+ * @param {Array} fields - For files search, that rquired filter by category.
  * @param {Array} fields - Fields to include in the response (default: []).
  * @param {Array} sorts - Sorting criteria (default: []).
  * @param {Array} filters - Filters to apply to the search (default: []).
@@ -390,6 +391,7 @@ function buildSearchRequestBody({
   doctorId,
   limit = 10,
   page = 0,
+  category = '',
   fields = [],
   sorts = [],
   filters = []
@@ -398,6 +400,7 @@ function buildSearchRequestBody({
     doctorId,
     limit,
     page,
+    category,
     fields,
     sorts,
     filters

@@ -650,7 +650,7 @@ searchFiles:
                   type: integer
                 message:
                   type: string
-                records:
+                files:
                   type: array
                   description: Lista de expedientes.
                   items:
