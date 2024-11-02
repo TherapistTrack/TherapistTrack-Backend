@@ -1,16 +1,128 @@
 const axios = require('axios')
-const { BASE_URL } = require('../../jest.setup')
+const { BASE_URL, getAuthToken } = require('../../jest.setup')
+const {
+  createTestDoctor,
+  createTestPatientTemplate,
+  deleteUser,
+  checkFailRequest,
+  validateResponse
+} = require('../../testHelpers')
+const COMMON_MSG = require('../../../utils/errorMsg')
+const yup = require('yup')
 
-describe('POST /records/list endpoint', () => {
-  // TODO:
-  test('Should succeed with 200 in retreiving available record fields', async () => {})
+describe('List possible fields', () => {
+  let doctorId, userId
 
-  // TODO:
-  test('Should fail with 400 if doctorId is not sent', async () => {})
+  const REQUEST_URL = `${BASE_URL}/records/search`
 
-  // TODO:
-  test('Should fail with 404 if doctorId not correspond to and existent/valid user', async () => {})
+  const HEADERS = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${getAuthToken()}`,
+    Origin: 'http://localhost'
+  }
 
-  // TODO:
-  test('Should fail with 404 if doctorId not correspond to and existent/valid user', async () => {})
+  async function checkFailListRequest(body, expectedCode, expectedMsg) {
+    return checkFailRequest(
+      'get',
+      REQUEST_URL,
+      HEADERS,
+      {},
+      body,
+      expectedCode,
+      expectedMsg
+    )
+  }
+
+  beforeAll(async () => {
+    const doctor = await createTestDoctor()
+    userId = doctor.id
+    doctorId = doctor.roleDependentInfo.id
+
+    await createTestPatientTemplate(
+      doctorId,
+      'Plantilla de Prueba',
+      ['General'],
+      [
+        {
+          name: 'Age',
+          type: 'NUMBER',
+          required: true,
+          description: 'Edad del paciente'
+        }
+      ]
+    )
+    await createTestPatientTemplate(
+      doctorId,
+      'Plantilla de Prueba 2',
+      ['General'],
+      [
+        {
+          name: 'Height',
+          type: 180.0,
+          required: true,
+          description: 'Altura del paciente'
+        }
+      ]
+    )
+  })
+
+  afterAll(async () => {
+    await deleteUser(userId)
+  })
+
+  const LIST_FIELDS_SCHEMA = yup.object().shape({
+    status: yup.number().required().oneOf([200]),
+    message: yup.string().required().oneOf([COMMON_MSG.REQUEST_SUCCESS]),
+    fields: yup
+      .array()
+      .of(
+        yup.object().shape({
+          name: yup.string().required(),
+          type: yup
+            .string()
+            .required()
+            .oneOf(['TEXT', 'SHORT_TEXT', 'NUMBER', 'FLOAT', 'CHOICE', 'DATE'])
+        })
+      )
+      .required()
+  })
+
+  // DONE:
+  test('Should succeed with 200 in retreiving available record fields', async () => {
+    try {
+      const response = await axios.get(REQUEST_URL, {
+        headers: HEADERS,
+        params: {
+          doctorId: doctorId
+        }
+      })
+
+      await validateResponse(response.data, LIST_FIELDS_SCHEMA)
+      expect(response.status).toBe(200)
+      expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS)
+      expect(response.data.fields.length).toBe(2)
+    } catch (error) {
+      console.error(
+        'Error retrieving available record fields:',
+        error.response ? error.response.data : error.message
+      )
+      throw error
+    }
+  })
+
+  // DONE:
+  test('Should fail with 400 if doctorId is not sent', async () => {
+    await checkFailListRequest({}, 400, COMMON_MSG.MISSING_FIELDS)
+  })
+
+  // DONE:
+  test('Should fail with 404 if doctorId not correspond to and existent/valid user', async () => {
+    const nonExistentDoctorId = 'nonExistentDoctorId12345'
+
+    await checkFailListRequest(
+      { doctorId: nonExistentDoctorId },
+      404,
+      COMMON_MSG.DOCTOR_NOT_FOUND
+    )
+  })
 })
