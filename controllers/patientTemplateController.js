@@ -12,8 +12,8 @@ const {
   checkExistenceName,
   checkExistenceId,
   checkDoctor,
-  checkExistingField,
-  doctorActive
+  checkExistingField
+  // doctorActive
 } = require('../utils/requestCheckers')
 const mongoose = require('mongoose')
 
@@ -236,7 +236,7 @@ exports.createField = async (req, res) => {
 
     if (!validMongoId(res, templateId, COMMON_MSG.TEMPLATE_NOT_FOUND)) return
 
-    if (!doctorActive(res, doctorId)) return
+    // if (!doctorActive(res, doctorId)) return
 
     // Ejecutar las dos validaciones en paralelo
     const [templateExists, doctorIsOwner] = await Promise.all([
