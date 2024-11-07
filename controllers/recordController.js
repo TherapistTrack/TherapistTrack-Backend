@@ -18,274 +18,11 @@ const {
   checkExistingField,
   doctorActive
 } = require('../utils/requestCheckers')
-
-function buildFilterExpression(filters) {
-  let expressions = []
-  let currentLogic = '$and'
-  let logicStack = []
-
-  filters.forEach((filter, index) => {
-    const { name, type, operation, values, logicGate = 'and' } = filter
-
-    // Construir la expresión de condición para el filtro actual
-    const condition = buildFilterCondition(name, type, operation, values, index)
-
-    // Añadir la condición al arreglo de expresiones
-    expressions.push(condition)
-
-    // Manejar el logicGate
-    if (logicGate.toLowerCase() === 'or') {
-      // Si es 'or', combinar las últimas dos expresiones
-      if (expressions.length >= 2) {
-        const expr1 = expressions.pop()
-        const expr2 = expressions.pop()
-        expressions.push({ $or: [expr2, expr1] })
-      }
-    } else {
-      // Si es 'and', las expresiones se combinarán naturalmente en $and
-    }
-  })
-
-  // Si solo hay una expresión, devolverla directamente
-  if (expressions.length === 1) {
-    return expressions[0]
-  } else if (expressions.length > 1) {
-    // Combinar todas las expresiones restantes con $and
-    return { $and: expressions }
-  } else {
-    return {}
-  }
-}
-
-// Función para construir la condición de un filtro individual
-function buildFilterCondition(name, type, operation, values, index) {
-  const fieldPath = `$patient.fields`
-  const fieldAlias = `field_${index}`
-  const valueAlias = `value_${index}`
-
-  // Crear una expresión para extraer el campo
-  const fieldExpr = {
-    $arrayElemAt: [
-      {
-        $filter: {
-          input: fieldPath,
-          as: 'field',
-          cond: { $eq: ['$$field.name', name] }
-        }
-      },
-      0
-    ]
-  }
-
-  // Convertir el valor según el tipo
-  let convertedValue
-  if (type === 'NUMBER' || type === 'FLOAT') {
-    convertedValue = {
-      $convert: {
-        input: `$${fieldAlias}.value`,
-        to: 'double',
-        onError: null,
-        onNull: null
-      }
-    }
-  } else if (type === 'DATE') {
-    convertedValue = {
-      $toDate: `$${fieldAlias}.value`
-    }
-  } else {
-    // Otros tipos
-    convertedValue = `$${fieldAlias}.value`
-  }
-
-  // Construir la condición basada en la operación
-  let condition = {}
-
-  switch (operation) {
-    case 'less_than':
-      condition = { $lt: [convertedValue, parseValue(type, values[0])] }
-      break
-    case 'equal_than':
-      condition = { $eq: [convertedValue, parseValue(type, values[0])] }
-      break
-    case 'greater_than':
-      condition = { $gt: [convertedValue, parseValue(type, values[0])] }
-      break
-    case 'between':
-      condition = {
-        $and: [
-          { $gte: [convertedValue, parseValue(type, values[0])] },
-          { $lte: [convertedValue, parseValue(type, values[1])] }
-        ]
-      }
-      break
-    case 'contains':
-      condition = {
-        $regexMatch: {
-          input: convertedValue,
-          regex: values[0],
-          options: 'i'
-        }
-      }
-      break
-    case 'starts_with':
-      condition = {
-        $regexMatch: {
-          input: convertedValue,
-          regex: `^${values[0]}`,
-          options: 'i'
-        }
-      }
-      break
-    case 'ends_with':
-      condition = {
-        $regexMatch: {
-          input: convertedValue,
-          regex: `${values[0]}$`,
-          options: 'i'
-        }
-      }
-      break
-    case 'is':
-      condition = { $eq: [convertedValue, values[0]] }
-      break
-    case 'is_not':
-      condition = { $ne: [convertedValue, values[0]] }
-      break
-    case 'is_not_empty':
-      condition = { $ne: [convertedValue, null] }
-      break
-    case 'after':
-      condition = { $gt: [convertedValue, parseValue(type, values[0])] }
-      break
-    case 'before':
-      condition = { $lt: [convertedValue, parseValue(type, values[0])] }
-      break
-    default:
-      throw new Error(`Operación de filtro no soportada: ${operation}`)
-  }
-
-  // Crear la expresión $let para utilizar alias
-  const filterCondition = {
-    $let: {
-      vars: {
-        [fieldAlias]: fieldExpr,
-        [valueAlias]: convertedValue
-      },
-      in: condition
-    }
-  }
-
-  return filterCondition
-}
-
-// Función para construir la etapa de ordenamiento
-function buildSortStage(sorts) {
-  let addFields = {}
-  let sort = {}
-
-  const MAX_NUMBER = Number.MAX_SAFE_INTEGER
-  const MIN_NUMBER = -Number.MAX_SAFE_INTEGER
-
-  sorts.forEach((sortObj, index) => {
-    const { name, type, mode } = sortObj
-    const fieldAlias = `sortField_${index}`
-    const valueAlias = `sortValue_${index}`
-    const sortValueAlias = `sortValueForSort_${index}`
-    const order = mode === 'asc' ? 1 : -1
-
-    // Extraer el campo
-    addFields[fieldAlias] = {
-      $arrayElemAt: [
-        {
-          $filter: {
-            input: '$patient.fields',
-            as: 'field',
-            cond: { $eq: ['$$field.name', name] }
-          }
-        },
-        0
-      ]
-    }
-
-    // Convertir el valor según el tipo
-    if (type === 'NUMBER' || type === 'FLOAT') {
-      addFields[valueAlias] = {
-        $toDouble: `$${fieldAlias}.value`
-      }
-    } else if (type === 'DATE') {
-      addFields[valueAlias] = {
-        $toDate: `$${fieldAlias}.value`
-      }
-    } else {
-      addFields[valueAlias] = `$${fieldAlias}.value`
-    }
-
-    // Manejar valores nulos en el ordenamiento
-    addFields[sortValueAlias] = {
-      $ifNull: [`$${valueAlias}`, order === 1 ? MAX_NUMBER : MIN_NUMBER]
-    }
-
-    // Definir el criterio de ordenamiento
-    sort[sortValueAlias] = order
-  })
-
-  return { addFields, sort }
-}
-
-// Función para construir la proyección final
-function buildProjection(fields, filters) {
-  let projection = {
-    _id: 0,
-    recordId: { $toString: '$_id' },
-    templateId: { $toString: '$template' },
-    createdAt: {
-      $dateToString: { format: '%Y/%m/%d', date: '$createdAt' }
-    },
-    'patient.names': 1,
-    'patient.lastNames': 1
-  }
-
-  // Determinar los campos a proyectar
-  let fieldNames = []
-
-  if (fields && fields.length > 0) {
-    fieldNames = fields.map((field) => field.name)
-  }
-
-  // Incluir campos de filtros si no están ya en fieldNames
-  if (filters && filters.length > 0) {
-    filters.forEach((filter) => {
-      if (!fieldNames.includes(filter.name)) {
-        fieldNames.push(filter.name)
-      }
-    })
-  }
-
-  if (fieldNames.length > 0) {
-    projection['patient.fields'] = {
-      $filter: {
-        input: '$patient.fields',
-        as: 'field',
-        cond: { $in: ['$$field.name', fieldNames] }
-      }
-    }
-  } else {
-    projection['patient.fields'] = 1 // Proyectar todos los campos
-  }
-
-  return projection
-}
-
-// Función para parsear los valores según el tipo
-function parseValue(type, value) {
-  if (type === 'NUMBER' || type === 'FLOAT') {
-    return Number(value)
-  } else if (type === 'DATE') {
-    return new Date(value)
-  } else {
-    return value
-  }
-}
+const {
+  buildFilterExpression,
+  buildSortStage,
+  buildProjection
+} = require('../utils/filterUtils')
 
 exports.createRecord = async (req, res) => {
   const { doctorId, templateId, patient } = req.body
@@ -313,8 +50,6 @@ exports.createRecord = async (req, res) => {
         value: validateAndFormatFieldValue(field)
       }
     })
-
-    console.log(f)
 
     const record = new Record({
       doctor: doctorId,
@@ -535,73 +270,64 @@ exports.searchAndFilterRecords = async (req, res) => {
   const { doctorId, limit = 10, page = 1, fields, sorts, filters } = req.body
 
   try {
-    // Validar doctorId
     if (!mongoose.Types.ObjectId.isValid(doctorId)) {
-      return res.status(400).json({ error: 'ID de doctor inválido' })
+      return res.status(400).json({ error: 'Invalid doctor ID' })
     }
 
-    // Convertir limit y page a números
     const limitNum = parseInt(limit)
     const pageNum = parseInt(page) > 0 ? parseInt(page) - 1 : 0
 
-    // Construir el pipeline de agregación
     let pipeline = []
 
-    // Etapa 1: Filtrar por doctorId
+    // Stage 1: Match doctorId
     pipeline.push({
       $match: {
         doctor: new mongoose.Types.ObjectId(doctorId)
       }
     })
 
-    // Etapa 2: Procesar filtros
-    if (filters && filters.length > 0) {
-      // Crear una expresión $expr para combinar condiciones
-      let filterExpr = buildFilterExpression(filters)
-
-      if (Object.keys(filterExpr).length > 0) {
-        pipeline.push({
-          $match: {
-            $expr: filterExpr
-          }
-        })
-      }
-    }
-
-    // Etapa 3: Procesar ordenamientos
+    // Stage 2: Add sort fields
     if (sorts && sorts.length > 0) {
-      let sortStage = buildSortStage(sorts)
-      if (sortStage.addFields) {
-        pipeline.push({ $addFields: sortStage.addFields })
+      const { addFields: sortAddFields, sort } = buildSortStage(sorts)
+
+      // Add fields for sorting
+      if (Object.keys(sortAddFields).length > 0) {
+        pipeline.push({ $addFields: sortAddFields })
       }
-      if (sortStage.sort) {
-        pipeline.push({ $sort: sortStage.sort })
+
+      // Add sort stage
+      if (Object.keys(sort).length > 0) {
+        pipeline.push({ $sort: sort })
       }
     }
 
-    // Etapa 4: Paginación
-    pipeline.push({ $skip: pageNum * limitNum })
-    pipeline.push({ $limit: limitNum })
+    // Stage 3: Pagination
+    pipeline.push({ $skip: pageNum * limitNum }, { $limit: limitNum })
 
-    // Etapa 5: Proyección final
-    let projection = buildProjection(fields, filters)
+    // Stage 4: Projection
+    const projection = buildProjection(fields, filters)
     pipeline.push({ $project: projection })
 
-    // Ejecutar la consulta
+    console.log('Pipeline:', JSON.stringify(pipeline, null, 2))
+    // Execute the query
     const records = await Record.aggregate(pipeline)
 
-    // Obtener el total de documentos que cumplen las condiciones (sin paginación)
-    const countPipeline = pipeline.filter(
-      (stage) => !('$skip' in stage || '$limit' in stage)
-    )
-    countPipeline.push({ $count: 'total' })
+    // Count pipeline
+    const countPipeline = [
+      {
+        $match: {
+          doctor: new mongoose.Types.ObjectId(doctorId)
+        }
+      },
+      { $count: 'total' }
+    ]
+
     const totalResult = await Record.aggregate(countPipeline)
     const totalCount = totalResult.length > 0 ? totalResult[0].total : 0
 
-    // Responder con los resultados
     res.status(200).json({
       status: 200,
-      message: 'Búsqueda de expedientes exitosa',
+      message: 'Search successful',
       records,
       total: totalCount
     })
