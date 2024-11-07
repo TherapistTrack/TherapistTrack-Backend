@@ -80,10 +80,8 @@ baseFileRoute:
                           type: string
                           description: Nombre del campo definido por la plantilla.
                         value:
-                          type: any
                           description: Valor para el campo definido.
               file:
-                type: binary
                 format: application/pdf
                 description: Información binaria del archivo PDF.
     responses:
@@ -170,7 +168,6 @@ baseFileRoute:
                       type: string
                       description: Nombre del campo definido por la plantilla.
                     value:
-                      type: any
                       description: Valor para el campo definido.
     responses:
       '200':
@@ -296,8 +293,8 @@ baseFileRoute:
         description: Lista de archivos obtenida exitosamente.
         content:
           application/pdf:
-            schema: string
-            format: binary
+            schema: 
+              type: object
       '400':
         description: Faltan campos o son inválidos en el cuerpo de la solicitud.
         content:
@@ -399,11 +396,9 @@ metadataFileRoute:
                       options:
                         type: array
                         description: Si el campo es de tipo CHOICE, mostrar cuales son las opciones disponibles.
-                        required: false
                         items:
                           type: string
                       value:
-                        type: any
                         description: Valor para el campo definido.
                       required:
                         type: boolean
