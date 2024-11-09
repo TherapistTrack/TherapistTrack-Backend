@@ -4,12 +4,10 @@ const RecordSchema = new mongoose.Schema(
   {
     doctor: {
       type: mongoose.Schema.Types.ObjectId,
-      //ref: 'Doctor',
       required: true
     },
     template: {
       type: mongoose.Schema.Types.ObjectId,
-      //ref: 'PatientTemplate',
       required: true
     },
     createdAt: {
@@ -28,7 +26,7 @@ const RecordSchema = new mongoose.Schema(
             enum: ['SHORT_TEXT', 'TEXT', 'DATE', 'NUMBER', 'FLOAT', 'CHOICE']
           },
           options: [String],
-          value: { type: String, required: true },
+          value: { type: mongoose.Schema.Types.Mixed, required: true },
           required: { type: Boolean, required: true }
         }
       ]

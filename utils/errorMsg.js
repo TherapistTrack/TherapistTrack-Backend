@@ -1,6 +1,6 @@
 const COMMON_MSG = {
   // 200: Success
-  REQUEST_SUCCESS: 'Request succesful.',
+  REQUEST_SUCCESS: 'Request successful.',
   // 400: Missing data on request
   MISSING_FIELDS: 'Missing Fields.',
   RESERVED_FIELD_NAMES: 'Names as Apellidos and Nombres are reserved',
@@ -23,9 +23,9 @@ const COMMON_MSG = {
   INVALID_FIELD_TYPE_CHOICE: 'Invalid value for CHOICE field.',
   INVALID_FIELD_TYPE_DATE: 'Invalid value for DATE field.',
   // 406: Resource already in use
-  RECORDS_USING: 'Item with that id/name already exist',
+  RECORDS_USING: 'Item with that id/name already exists',
   // 409: Resources depend on this resource
   OPERATION_REJECTED: 'Could not modify item since other resources depend on it'
 }
 
-module.exports = COMMON_MSG
+module.exports = COMMON_MSG;

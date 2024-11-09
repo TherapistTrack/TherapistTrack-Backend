@@ -51,7 +51,7 @@ const doctorActive = async (res, doctorId) => {
     return false
   }
   if (!doctor.isActive) {
-    res.status(403).json({ status: 403, message: COMMON_MSG.DOCTOR_INACTIVE })
+    res.status(404).json({ status: 404, message: COMMON_MSG.DOCTOR_NOT_FOUND })
     return false
   }
   return true
