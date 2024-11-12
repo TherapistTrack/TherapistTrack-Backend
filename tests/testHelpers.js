@@ -1,7 +1,8 @@
 const axios = require('axios')
 const { BASE_URL, getAuthToken } = require('./jest.setup')
-const yup = require('yup')
-const { response } = require('express')
+const fs = require('fs') // Import the 'fs' module
+const path = require('path') // Import the 'path' module
+const FormData = require('form-data') // Import 'form-data' module
 
 // OTHER EXPRESIONS
 const iso8601Regex =
@@ -465,7 +466,8 @@ async function setUpEnvironmentForFilesTests(
         {
           name: 'edad',
           type: 'NUMBER',
-          required: true
+          required: true,
+          description: '_'
         }
       ]
     )
@@ -476,21 +478,23 @@ async function setUpEnvironmentForFilesTests(
     )
     const recordId = await createTestRecord(
       doctor.roleDependentInfo.id,
-      templateId,
+      patientTemplateId,
       {
         names: 'user',
         lastNames: 'test',
         fields: [
           {
+            type: 'NUMBER',
             name: 'edad',
-            value: 30
+            value: 30,
+            required: true
           }
         ]
       }
     )
-    return doctor, patientTemplateId, recordId, fileTemplateId
+    return { doctor, patientTemplateId, recordId, fileTemplateId }
   } catch (error) {
-    console.error(`Error setting up environments for files.`)
+    console.error(`Error setting up environments for files. ${error}`)
     throw error
   }
 }
@@ -502,7 +506,7 @@ function createFormDataWithFile(body) {
   form.append('metadata', JSON.stringify(body))
 
   // Append a test PDF file.
-  const filePath = path.join(__dirname, 'testFile.pdf')
+  const filePath = path.join(__dirname, './routes/files/testFile.pdf')
   const fileName = 'testFile.pdf'
   form.append('file', fs.createReadStream(filePath), { fileName: fileName })
 
