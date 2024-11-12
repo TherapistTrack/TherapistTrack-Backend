@@ -5,7 +5,25 @@ const {
 } = require('../controllers/s3ClientController')
 const mongoose = require('mongoose')
 const File = require('../models/fileModel')
-const Usuario = require('../models/userModel').Usuario
+const FileTemplate = require('../models/fileTemplateModel')
+const Record = require('../models/recordModel')
+const COMMON_MSG = require('../utils/errorMsg')
+const {
+  emptyFields,
+  validArrays,
+  validFields,
+  validMongoId,
+  validField,
+  checkFieldType
+} = require('../utils/fieldCheckers')
+const {
+  checkExistenceName,
+  checkExistenceId,
+  checkDoctor,
+  checkExistingField,
+  doctorActive
+} = require('../utils/requestCheckers')
+const { findUserByRoleID } = require('../models/userModel')
 
 //create a new file and a new patient
 exports.createFile = async (req, res) => {
@@ -69,25 +87,86 @@ exports.createFile = async (req, res) => {
 
 //Edit a file
 exports.updateFile = async (req, res) => {
-  const { id, record, template, name, category, location, pages, metadata } =
-    req.body
+  const { doctorId, fileId, name, category, fields } = req.body
 
-  const isValidObjectId = mongoose.Types.ObjectId.isValid(id)
-  if (!isValidObjectId) {
-    return res
-      .status(400)
-      .send({ status: 'error', message: 'Invalid ID format' })
-  }
+  try {
+    // 400 : check if is not missing data.
+    if (!emptyFields(res, doctorId, fileId, name, category, fields)) return
+    if (!validMongoId(res, doctorId, COMMON_MSG.INVALID_DOCTOR_ID)) return
+    if (!validMongoId(res, fileId, COMMON_MSG.INVALID_FILE_ID)) return
+    if (!validFields(res, fields)) return
 
-  const file = await File.findByIdAndUpdate(
-    id,
-    { record, name, category, location, pages, metadata },
-    { new: true }
-  )
-  if (!file) {
-    return res.status(404).send({ status: 'error', message: 'File not found' })
+    // 404 : check if doctor and file exist
+    const [isDoctorActive, fileExist] = await Promise.all([
+      doctorActive(res, doctorId),
+      checkExistenceId(res, File, fileId, COMMON_MSG.FILE_NOT_FOUND)
+    ])
+
+    if (!isDoctorActive) {
+      res
+        .status(404)
+        .send({ status: 404, message: COMMON_MSG.DOCTOR_NOT_FOUND })
+      return
+    }
+    if (!fileExist) {
+      res.status(404).send({ status: 404, message: COMMON_MSG.FILE_NOT_FOUND })
+      return
+    }
+
+    // 403 : Check if doctor is the owner of the file
+    const file = await File.findById(fileId)
+    const [record, fileWithNameExist] = await Promise.all([
+      Record.findById(file.record),
+      File.findOne({ name: name })
+    ])
+
+    if (record.doctor !== doctorId) {
+      res
+        .status(403)
+        .send({ status: 403, message: COMMON_MSG.DOCTOR_IS_NOT_OWNER })
+      return
+    }
+
+    // 406
+    if (fileWithNameExist) {
+      res.status(406).send({ status: 406, message: COMMON_MSG.RECORDS_USING })
+      return
+    }
+
+    // 405
+    const baseFields = file.fields
+
+    for (const baseField in baseFields) {
+      for (const newField in fields) {
+        let { type, value, options } = newField
+        if (newField.name === baseField.name) {
+          if (!checkFieldType(res, type, value, options)) return
+          else {
+            baseField.value = value
+            break
+          }
+        }
+      }
+    }
+
+    // Update the file
+    await File.updateOne(
+      { _id: fileId },
+      {
+        $set: {
+          name,
+          category,
+          fields: baseFields
+        }
+      }
+    )
+
+    // send response
+
+    res.status(200).json({ status: 500, error: COMMON_MSG.REQUEST_SUCCESS })
+  } catch (error) {
+    res.status(500).json({ status: 500, error: error.message })
   }
-  res.status(200).send({ status: 'success', data: file })
 }
 
 //Delete file
