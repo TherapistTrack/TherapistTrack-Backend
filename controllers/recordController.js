@@ -326,21 +326,36 @@ exports.getRecordById = async (req, res) => {
     if (!emptyFields(res, doctorId, recordId)) return
 
     if (!validMongoId(res, doctorId, COMMON_MSG.DOCTOR_NOT_FOUND)) return
-
     if (!validMongoId(res, recordId, COMMON_MSG.RECORD_NOT_FOUND)) return
 
     const record = await Record.findById(recordId)
-
     if (!record) {
-      return res
-        .status(404)
-        .json({ status: 404, message: COMMON_MSG.RECORD_NOT_FOUND })
+      return res.status(404).json({
+        status: 404,
+        message: COMMON_MSG.RECORD_NOT_FOUND
+      })
     }
 
     const patientTemplate = await PatientTemplate.findById(record.template)
+    if (!patientTemplate) {
+      return res.status(404).json({
+        status: 404,
+        message: COMMON_MSG.TEMPLATE_NOT_FOUND
+      })
+    }
+
     const { _id, template, createdAt, patient } = record
 
-    const filteredFields = patient.fields.map(({ _id, ...rest }) => rest)
+    const filteredFields = patient.fields.map(
+      ({ _id, name, type, options, value, required }) => ({
+        _id,
+        name,
+        type,
+        options,
+        value,
+        required
+      })
+    )
 
     res.status(200).json({
       status: 200,
@@ -355,7 +370,8 @@ exports.getRecordById = async (req, res) => {
       }
     })
   } catch (error) {
-    res.status(500).json({ error: 'Error getting the record' })
+    console.error('Error fetching record:', error)
+    res.status(500).json({ status: 500, error: 'Error getting the record' })
   }
 }
 
