@@ -5,6 +5,22 @@ const {
 } = require('../controllers/s3ClientController')
 const mongoose = require('mongoose')
 const File = require('../models/fileModel')
+const COMMON_MSG = require('../utils/errorMsg')
+const {
+  emptyFields,
+  validArrays,
+  validFields,
+  validMongoId,
+  validField
+} = require('../utils/fieldCheckers')
+const {
+  checkExistenceName,
+  checkExistenceId,
+  checkDoctor,
+  checkExistingField,
+  doctorActive
+} = require('../utils/requestCheckers')
+const Record = require('../models/recordModel')
 const Usuario = require('../models/userModel').Usuario
 
 //create a new file and a new patient
@@ -127,18 +143,48 @@ exports.deleteFile = async (req, res) => {
   }
 }
 
-//List of the last 10 files
+//List all possible fields
 exports.listFiles = async (req, res) => {
-  try {
-    const { limit = 10, sortBy = 'created_at', order = 'asc' } = req.query
-    const files = await File.find()
-      .populate('record')
-      .sort({ [sortBy]: order === 'desc' ? -1 : 1 })
-      .limit(parseInt(limit, 10))
+  const { doctorId } = req.query
 
-    res.status(200).json(files)
+  try {
+    if (!emptyFields(res, doctorId)) return
+    if (!validMongoId(res, doctorId, COMMON_MSG.DOCTOR_NOT_FOUND)) return
+
+    const records = await Record.find({ doctor: doctorId })
+
+    const fieldsSet = new Set()
+
+    await Promise.all(
+      records.map(async (record) => {
+        const files = await File.find({ record: record._id }, 'metadata')
+
+        files.forEach((file) => {
+          file.metadata.forEach((field) => {
+            const fieldKey = `${field.name}-${field.type}`
+            if (!fieldsSet.has(fieldKey)) {
+              fieldsSet.add(fieldKey)
+            }
+          })
+        })
+      })
+    )
+
+    const fields = Array.from(fieldsSet).map((fieldKey) => {
+      const [name, type] = fieldKey.split('-')
+      return { name, type }
+    })
+
+    res.status(200).json({
+      status: 200,
+      message: COMMON_MSG.REQUEST_SUCCESS,
+      fields
+    })
   } catch (error) {
-    res.status(400).send({ status: 'error', message: error.message })
+    res.status(500).json({
+      status: 500,
+      message: COMMON_MSG.SERVER_ERROR + ': ' + error.message
+    })
   }
 }
 
@@ -178,3 +224,5 @@ exports.getFileById = async (req, res) => {
     res.status(400).send({ status: 'error', message: error.message })
   }
 }
+
+//Serch files by sorts, filters and fields

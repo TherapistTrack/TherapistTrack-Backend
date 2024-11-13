@@ -79,7 +79,6 @@ describe('Quet available fields for files Tests', () => {
       const response = await axios.get(REQUEST_URL, {
         headers: HEADERS,
         params: {
-          recordId: recordId,
           doctorId: doctor.roleDependentInfo.id
         }
       })

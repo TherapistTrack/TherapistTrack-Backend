@@ -28,7 +28,7 @@ router.delete(
   fileController.deleteFile
 )
 router.get(
-  '/listFiles',
+  '/search',
   checkJwt,
   requiredPermissions(['read:files']),
   fileController.listFiles
