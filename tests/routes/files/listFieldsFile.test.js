@@ -5,7 +5,8 @@ const {
   createTestDoctor,
   deleteUser,
   createTestFileTemplate,
-  checkFailRequest
+  checkFailRequest,
+  validateResponse
 } = require('../../testHelpers')
 const yup = require('yup')
 const COMMON_MSG = require('../../../utils/errorMsg')

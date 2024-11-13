@@ -20,7 +20,7 @@ const {
   checkExistingField,
   doctorActive
 } = require('../utils/requestCheckers')
-const Record = require('../models/recordModel')
+const FileTemplate = require('../models/fileTemplateModel')
 const Usuario = require('../models/userModel').Usuario
 
 //create a new file and a new patient
@@ -150,25 +150,28 @@ exports.listFiles = async (req, res) => {
   try {
     if (!emptyFields(res, doctorId)) return
     if (!validMongoId(res, doctorId, COMMON_MSG.DOCTOR_NOT_FOUND)) return
+    if (!(await doctorActive(res, doctorId))) return
 
-    const records = await Record.find({ doctor: doctorId })
+    const fileTemplates = await FileTemplate.find(
+      { doctor: doctorId },
+      'fields'
+    )
+
+    if (!fileTemplates.length) {
+      return res.status(404).json({
+        status: 404,
+        message: COMMON_MSG.DOCTOR_NOT_FOUND
+      })
+    }
 
     const fieldsSet = new Set()
 
-    await Promise.all(
-      records.map(async (record) => {
-        const files = await File.find({ record: record._id }, 'metadata')
-
-        files.forEach((file) => {
-          file.metadata.forEach((field) => {
-            const fieldKey = `${field.name}-${field.type}`
-            if (!fieldsSet.has(fieldKey)) {
-              fieldsSet.add(fieldKey)
-            }
-          })
-        })
+    fileTemplates.forEach((template) => {
+      template.fields.forEach((field) => {
+        const fieldKey = `${field.name}-${field.type}`
+        fieldsSet.add(fieldKey)
       })
-    )
+    })
 
     const fields = Array.from(fieldsSet).map((fieldKey) => {
       const [name, type] = fieldKey.split('-')
@@ -226,3 +229,87 @@ exports.getFileById = async (req, res) => {
 }
 
 //Serch files by sorts, filters and fields
+exports.searchAndFilterFiles = async (req, res) => {
+  const {
+    doctorId,
+    recordId,
+    limit = 10,
+    page = 1,
+    fields,
+    sorts,
+    filters
+  } = req.body
+
+  try {
+    if (!mongoose.Types.ObjectId.isValid(doctorId)) {
+      return res.status(400).json({ error: 'Invalid doctor ID' })
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(recordId)) {
+      return res.status(400).json({ error: 'Invalid doctor ID' })
+    }
+
+    if (!checkDoctor(res, Record, doctorId, recordId)) return
+
+    const limitNum = parseInt(limit)
+    const pageNum = parseInt(page) > 0 ? parseInt(page) - 1 : 0
+
+    let pipeline = []
+
+    // Stage 1: Match recordId
+    pipeline.push({
+      $match: {
+        record: new mongoose.Types.ObjectId(recordId)
+      }
+    })
+
+    // Stage 2: Add sort fields
+    if (sorts && sorts.length > 0) {
+      const { addFields: sortAddFields, sort } = buildSortStage(sorts)
+
+      // Add fields for sorting
+      if (Object.keys(sortAddFields).length > 0) {
+        pipeline.push({ $addFields: sortAddFields })
+      }
+
+      // Add sort stage
+      if (Object.keys(sort).length > 0) {
+        pipeline.push({ $sort: sort })
+      }
+    }
+
+    // Stage 3: Pagination
+    pipeline.push({ $skip: pageNum * limitNum }, { $limit: limitNum })
+
+    // Stage 4: Projection
+    const projection = buildProjection(fields, filters)
+    pipeline.push({ $project: projection })
+
+    console.log('Pipeline:', JSON.stringify(pipeline, null, 2))
+    // Execute the query
+    const files = await File.aggregate(pipeline)
+
+    // Count pipeline
+    const countPipeline = [
+      {
+        $match: {
+          record: new mongoose.Types.ObjectId(recordId)
+        }
+      },
+      { $count: 'total' }
+    ]
+
+    const totalResult = await File.aggregate(countPipeline)
+    const totalCount = totalResult.length > 0 ? totalResult[0].total : 0
+
+    res.status(200).json({
+      status: 200,
+      message: 'Search successful',
+      files,
+      total: totalCount
+    })
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ error: error.message })
+  }
+}

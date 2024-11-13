@@ -39,5 +39,10 @@ router.post(
   requiredPermissions(['read:files']),
   fileController.getFileById
 )
+router.post(
+  '/search',
+  requiredPermissions(['read:files']),
+  fileController.searchAndFilterFiles
+)
 
 module.exports = router
