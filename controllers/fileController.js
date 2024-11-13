@@ -17,7 +17,7 @@ exports.createFile = async (req, res) => {
 
   if (!uploadfile || !uploadfile.buffer) {
     return res
-      .status(400)
+      .status(403)
       .send({ status: 'error', message: 'No file provided' })
   }
 
@@ -91,7 +91,8 @@ exports.createFile = async (req, res) => {
     }
 
     const timestamp = Date.now()
-    const key = `${recordId}/${timestamp}-${uploadfile.originalname}`
+    const doctorId = fileTemplate.doctor
+    const key = `${doctorId}/${recordId}/${timestamp}-${uploadfile.originalname}`
     console.log(key)
     const s3Response = await s3Upload(key, uploadfile.buffer)
     const location = s3Response.Location.split('.com/')[1]
