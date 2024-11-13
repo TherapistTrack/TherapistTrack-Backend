@@ -25,14 +25,11 @@ const {
 } = require('../utils/requestCheckers')
 const { findUserByRoleID } = require('../models/userModel')
 
-//create a new file and a new patient
 exports.createFile = async (req, res) => {
-  const { record, template, name, category, pages, created_at, metadata } =
-    req.body
+  const { metadata } = req.body
   const uploadfile = req.file
-  let newmetadata
+  let parsedMetadata
 
-  // Validate the request of a file in the body
   if (!uploadfile || !uploadfile.buffer) {
     return res
       .status(400)
@@ -40,7 +37,8 @@ exports.createFile = async (req, res) => {
   }
 
   try {
-    newmetadata = JSON.parse(metadata)
+    parsedMetadata = JSON.parse(metadata)
+    console.log(parsedMetadata)
   } catch (error) {
     return res
       .status(400)
@@ -48,25 +46,33 @@ exports.createFile = async (req, res) => {
   }
 
   try {
-    const fileExtension = uploadfile.originalname.split('.').pop()
-    const key = `${record}/${uploadfile.originalname}.${fileExtension}`
+    const { recordId, templateId, name, category, fields } = parsedMetadata
+
+    if (
+      !mongoose.Types.ObjectId.isValid(recordId) ||
+      !mongoose.Types.ObjectId.isValid(templateId)
+    ) {
+      return res.status(400).send({
+        status: 'error',
+        message: 'Invalid recordId or templateId format'
+      })
+    }
+
+    const timestamp = Date.now()
+    const key = `${recordId}/${timestamp}-${uploadfile.originalname}`
+    console.log(key)
     const s3Response = await s3Upload(key, uploadfile.buffer)
     const location = s3Response.Location.split('.com/')[1]
 
-    //const isValidObjectId = mongoose.Types.ObjectId.isValid(record)
-    //const isValidtemplateId = mongoose.Types.ObjectId.isValid(template)
-    // if (!isValidObjectId || !isValidtemplateId) {
-    //   return res.status(400).send({ status: 'error', message: 'Invalid record or template ID' });
-    // }
     const fileData = {
-      record,
-      template,
+      record: new mongoose.Types.ObjectId(recordId),
+      template: new mongoose.Types.ObjectId(templateId),
       name,
       category,
       location,
-      pages,
-      created_at: created_at || new Date(),
-      newmetadata
+      pages: fields.length,
+      created_at: new Date(),
+      metadata: fields
     }
 
     console.log(fileData)
