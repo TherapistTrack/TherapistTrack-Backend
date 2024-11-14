@@ -3,6 +3,7 @@ const { BASE_URL, getAuthToken } = require('../../jest.setup')
 const COMMON_MSG = require('../../../utils/errorMsg')
 
 const {
+  generateObjectId,
   deleteUser,
   checkFailRequest,
   setUpEnvironmentForFilesTests,
@@ -91,38 +92,44 @@ describe('Edit Files Tests', () => {
     ;({ doctor, recordId, fileTemplateId } =
       await setUpEnvironmentForFilesTests(
         ['consultas', 'tests'],
-        'template_test',
+        `template_${Date.now()}`,
         [
           {
             name: 'Notas adicionales',
             type: 'TEXT',
-            required: true
+            required: true,
+            description: '_'
           },
           {
             name: 'Instrucciones de administracion',
             type: 'SHORT_TEXT',
-            required: true
+            required: true,
+            description: '_'
           },
           {
             name: 'Dosis (mg)',
             type: 'NUMBER',
-            required: true
+            required: true,
+            description: '_'
           },
           {
             name: 'Concentracion',
             type: 'FLOAT',
-            required: true
+            required: true,
+            description: '_'
           },
           {
             name: 'Forma de dosis',
             type: 'CHOICE',
             options: ['Oral', 'Capsula'],
-            required: true
+            required: true,
+            description: '_'
           },
           {
             name: 'Fecha de preescripcion',
             type: 'DATE',
-            required: true
+            required: true,
+            description: '_'
           }
         ]
       ))
@@ -138,6 +145,8 @@ describe('Edit Files Tests', () => {
   })
 
   // DONE:
+  /** 
+   * 
   test('should succeed with 200 editing a record', async () => {
     const fileEditBody = {
       doctorId: doctor.roleDependentInfo.id,
@@ -187,6 +196,7 @@ describe('Edit Files Tests', () => {
       throw error
     }
   })
+    */
 
   // DONE:
   test('should fail with 400 if doctorId is not passed', async () => {

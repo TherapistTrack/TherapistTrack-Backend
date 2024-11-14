@@ -2,7 +2,6 @@ const Record = require('../models/recordModel')
 const PatientTemplate = require('../models/patientTemplateModel')
 const mongoose = require('mongoose')
 const { validateAndFormatFieldValue } = require('../utils/validatorConfig')
-const { options } = require('../routes/recordRoutes')
 const COMMON_MSG = require('../utils/errorMsg')
 const {
   emptyFields,
@@ -35,40 +34,134 @@ exports.createRecord = async (req, res) => {
         templateId,
         patient,
         patient.names,
-        patient.lastNames
+        patient.lastnames
       )
-    )
+    ) {
+      return
+    }
+
+    const formattedDoctorId = new mongoose.Types.ObjectId(doctorId)
+    const formattedTemplateId = new mongoose.Types.ObjectId(templateId)
+
+    if (!validMongoId(res, formattedDoctorId, COMMON_MSG.DOCTOR_NOT_FOUND))
+      return
+    if (!validMongoId(res, formattedTemplateId, COMMON_MSG.TEMPLATE_NOT_FOUND))
       return
 
-    if (!validMongoId(res, doctorId, COMMON_MSG.DOCTOR_NOT_FOUND)) return
-    if (!validMongoId(res, templateId, COMMON_MSG.TEMPLATE_NOT_FOUND)) return
-    if (!doctorActive(res, doctorId)) return
+    if (!(await doctorActive(res, formattedDoctorId))) return
 
-    const formattedFields = patient.fields.map((field) => {
+    const template = await PatientTemplate.findById(formattedTemplateId)
+    if (!template) {
+      return res
+        .status(404)
+        .json({ status: 404, message: COMMON_MSG.TEMPLATE_NOT_FOUND })
+    }
+
+    const formattedFields = template.fields.map((templateField) => {
+      const patientField = patient.fields.find(
+        (field) => field.name === templateField.name
+      )
+      let value = patientField ? patientField.value : null
+
+      // Validate value type
+      if (value !== null && value !== undefined) {
+        switch (templateField.type) {
+          case 'DATE':
+            value = new Date(value)
+            if (isNaN(value.getTime())) {
+              return res.status(400).json({
+                status: 400,
+                message: `El campo "${templateField.name}" tiene un formato de fecha inválido.`
+              })
+            }
+            break
+          case 'NUMBER':
+            value = parseInt(value, 10)
+            if (isNaN(value)) {
+              return res.status(400).json({
+                status: 400,
+                message: `El campo "${templateField.name}" debe ser un número.`
+              })
+            }
+            break
+          case 'FLOAT':
+            value = parseFloat(value)
+            if (isNaN(value)) {
+              return res.status(400).json({
+                status: 400,
+                message: `El campo "${templateField.name}" debe ser un número decimal.`
+              })
+            }
+            break
+          case 'CHOICE':
+            if (!templateField.options.includes(value)) {
+              return res.status(400).json({
+                status: 400,
+                message: `El valor "${value}" no es válido para el campo "${templateField.name}".`
+              })
+            }
+            break
+          case 'TEXT':
+          case 'SHORT_TEXT':
+            if (typeof value !== 'string') {
+              return res.status(400).json({
+                status: 400,
+                message: `El campo "${templateField.name}" debe ser un texto.`
+              })
+            }
+            break
+          default:
+            return res.status(400).json({
+              status: 400,
+              message: `Tipo de campo "${templateField.type}" no reconocido.`
+            })
+        }
+      }
+
       return {
-        ...field,
-        value: validateAndFormatFieldValue(field)
+        name: templateField.name,
+        type: templateField.type,
+        options: Array.isArray(templateField.options)
+          ? templateField.options
+          : [],
+        value,
+        required: templateField.required
       }
     })
 
+    for (const field of formattedFields) {
+      if (
+        field.required &&
+        (field.value === null || field.value === undefined)
+      ) {
+        return res.status(400).json({
+          status: 400,
+          message: `El campo "${field.name}" es requerido y no tiene un valor asignado.`
+        })
+      }
+    }
+
     const record = new Record({
-      doctor: doctorId,
-      template: templateId,
+      doctor: formattedDoctorId,
+      template: formattedTemplateId,
       patient: {
-        ...patient,
+        names: patient.names,
+        lastNames: patient.lastnames,
         fields: formattedFields
       }
     })
 
     const recordSaved = await record.save()
 
-    return res.status(200).json({
+    res.status(200).json({
       status: 200,
       message: COMMON_MSG.REQUEST_SUCCESS,
       recordId: recordSaved._id
     })
   } catch (error) {
-    res.status(500).json({ status: 500, message: error.message })
+    if (!res.headersSent) {
+      res.status(500).json({ status: 500, message: error.message })
+    }
   }
 }
 
@@ -88,7 +181,7 @@ exports.editRecord = async (req, res) => {
         res,
         Record,
         recordId,
-        COMMON_MSG.TEMPLATE_NOT_FOUND
+        COMMON_MSG.RECORD_NOT_FOUND
       ))
     )
       return
@@ -233,21 +326,36 @@ exports.getRecordById = async (req, res) => {
     if (!emptyFields(res, doctorId, recordId)) return
 
     if (!validMongoId(res, doctorId, COMMON_MSG.DOCTOR_NOT_FOUND)) return
-
     if (!validMongoId(res, recordId, COMMON_MSG.RECORD_NOT_FOUND)) return
 
     const record = await Record.findById(recordId)
-
     if (!record) {
-      return res
-        .status(404)
-        .json({ status: 404, message: COMMON_MSG.RECORD_NOT_FOUND })
+      return res.status(404).json({
+        status: 404,
+        message: COMMON_MSG.RECORD_NOT_FOUND
+      })
     }
 
     const patientTemplate = await PatientTemplate.findById(record.template)
+    if (!patientTemplate) {
+      return res.status(404).json({
+        status: 404,
+        message: COMMON_MSG.TEMPLATE_NOT_FOUND
+      })
+    }
+
     const { _id, template, createdAt, patient } = record
 
-    const filteredFields = patient.fields.map(({ _id, ...rest }) => rest)
+    const filteredFields = patient.fields.map(
+      ({ _id, name, type, options, value, required }) => ({
+        _id,
+        name,
+        type,
+        options,
+        value,
+        required
+      })
+    )
 
     res.status(200).json({
       status: 200,
@@ -262,7 +370,8 @@ exports.getRecordById = async (req, res) => {
       }
     })
   } catch (error) {
-    res.status(500).json({ error: 'Error getting the record' })
+    console.error('Error fetching record:', error)
+    res.status(500).json({ status: 500, error: 'Error getting the record' })
   }
 }
 

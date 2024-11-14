@@ -5,6 +5,9 @@ const COMMON_MSG = {
   MISSING_FIELDS: 'Missing Fields.',
   RESERVED_FIELD_NAMES: 'Names as Apellidos and Nombres are reserved',
   DUPLICATE_FIELD_NAMES: 'Field names must be unique',
+  INVALID_DOCTOR_ID: 'doctorId is invalid',
+  INVALID_FILE_ID: 'fileId is invalid',
+  INVALID_RECORD_ID: 'recordId is invalid',
   // 403: Not authorized
   DOCTOR_IS_NOT_OWNER: 'Doctor is not the owner of template.',
   // 404: Resource not found
@@ -16,6 +19,7 @@ const COMMON_MSG = {
   MISSING_FIELDS_IN_TEMPLATE:
     'Missing required fields defined by the template.',
   // 405: Invalid field types
+  INVALID_TYPE: 'Specified type does not exist.',
   INVALID_FIELD_TYPE_TEXT: 'Invalid value for TEXT field.',
   INVALID_FIELD_TYPE_SHORT_TEXT: 'Invalid value for SHORT_TEXT field.',
   INVALID_FIELD_TYPE_NUMBER: 'Invalid value for NUMBER field.',
@@ -28,4 +32,4 @@ const COMMON_MSG = {
   OPERATION_REJECTED: 'Could not modify item since other resources depend on it'
 }
 
-module.exports = COMMON_MSG;
+module.exports = COMMON_MSG

@@ -6,6 +6,7 @@ const {
 const mongoose = require('mongoose')
 const File = require('../models/fileModel')
 const COMMON_MSG = require('../utils/errorMsg')
+const pdf = require('pdf-parse')
 const {
   emptyFields,
   validArrays,
@@ -23,22 +24,20 @@ const {
 const FileTemplate = require('../models/fileTemplateModel')
 const Usuario = require('../models/userModel').Usuario
 
-//create a new file and a new patient
 exports.createFile = async (req, res) => {
-  const { record, template, name, category, pages, created_at, metadata } =
-    req.body
+  const { metadata } = req.body
   const uploadfile = req.file
-  let newmetadata
+  let parsedMetadata
 
-  // Validate the request of a file in the body
   if (!uploadfile || !uploadfile.buffer) {
     return res
-      .status(400)
+      .status(403)
       .send({ status: 'error', message: 'No file provided' })
   }
 
   try {
-    newmetadata = JSON.parse(metadata)
+    parsedMetadata = JSON.parse(metadata)
+    console.log(parsedMetadata)
   } catch (error) {
     return res
       .status(400)
@@ -46,28 +45,82 @@ exports.createFile = async (req, res) => {
   }
 
   try {
-    const fileExtension = uploadfile.originalname.split('.').pop()
-    const key = `${record}/${uploadfile.originalname}.${fileExtension}`
+    const { recordId, templateId, name, category, fields } = parsedMetadata
+
+    if (
+      !mongoose.Types.ObjectId.isValid(recordId) ||
+      !mongoose.Types.ObjectId.isValid(templateId)
+    ) {
+      return res.status(400).send({
+        status: 'error',
+        message: 'Invalid recordId or templateId format'
+      })
+    }
+
+    const fileTemplate = await FileTemplate.findById(templateId)
+    if (!fileTemplate) {
+      return res.status(400).send({
+        status: 'error',
+        message: 'FileTemplate not found'
+      })
+    }
+
+    const templateFieldsMap = {}
+    for (const field of fileTemplate.fields) {
+      templateFieldsMap[field.name] = field
+    }
+
+    const metadataArray = []
+    for (const field of fields) {
+      const templateField = templateFieldsMap[field.name]
+      if (!templateField) {
+        return res.status(400).send({
+          status: 'error',
+          message: `Field ${field.name} not found in template`
+        })
+      }
+      const metadataField = {
+        name: field.name,
+        type: templateField.type,
+        options: templateField.options || [],
+        value: field.value,
+        required: templateField.required
+      }
+      metadataArray.push(metadataField)
+    }
+
+    let numberOfPages = 0
+    if (uploadfile.mimetype === 'application/pdf') {
+      try {
+        const data = await pdf(uploadfile.buffer)
+        numberOfPages = data.numpages
+      } catch (error) {
+        return res.status(400).send({
+          status: 'error',
+          message: 'Unable to read PDF pages'
+        })
+      }
+    } else {
+      numberOfPages = 0
+    }
+
+    const timestamp = Date.now()
+    const doctorId = fileTemplate.doctor
+    const key = `${doctorId}/${recordId}/${timestamp}-${uploadfile.originalname}`
+    console.log(key)
     const s3Response = await s3Upload(key, uploadfile.buffer)
     const location = s3Response.Location.split('.com/')[1]
 
-    //const isValidObjectId = mongoose.Types.ObjectId.isValid(record)
-    //const isValidtemplateId = mongoose.Types.ObjectId.isValid(template)
-    // if (!isValidObjectId || !isValidtemplateId) {
-    //   return res.status(400).send({ status: 'error', message: 'Invalid record or template ID' });
-    // }
     const fileData = {
-      record,
-      template,
+      record: new mongoose.Types.ObjectId(recordId),
+      template: new mongoose.Types.ObjectId(templateId),
       name,
       category,
       location,
-      pages,
-      created_at: created_at || new Date(),
-      newmetadata
+      pages: numberOfPages,
+      created_at: new Date(),
+      metadata: metadataArray
     }
-
-    console.log(fileData)
 
     const file = new File(fileData)
     await file.save()
@@ -75,35 +128,94 @@ exports.createFile = async (req, res) => {
     res.status(201).send({
       status: 'success',
       message: 'File created successfully',
-      data: file._id
+      filedId: file._id
     })
   } catch (error) {
-    console.error('Error during file creation:', error) // Log the full error object
-    res.status(400).send({ status: 'error', message: error.message })
+    res.status(500).send({ status: 'error', message: error.message })
   }
 }
 
-//Edit a file
 exports.updateFile = async (req, res) => {
-  const { id, record, template, name, category, location, pages, metadata } =
-    req.body
+  const { doctorId, fileId, name, category, fields } = req.body
 
-  const isValidObjectId = mongoose.Types.ObjectId.isValid(id)
-  if (!isValidObjectId) {
-    return res
-      .status(400)
-      .send({ status: 'error', message: 'Invalid ID format' })
-  }
+  try {
+    // 400 : check if is not missing data.
+    if (!emptyFields(res, doctorId, fileId, name, category, fields)) return
+    if (!validMongoId(res, doctorId, COMMON_MSG.INVALID_DOCTOR_ID)) return
+    if (!validMongoId(res, fileId, COMMON_MSG.INVALID_FILE_ID)) return
+    if (!validFields(res, fields)) return
 
-  const file = await File.findByIdAndUpdate(
-    id,
-    { record, name, category, location, pages, metadata },
-    { new: true }
-  )
-  if (!file) {
-    return res.status(404).send({ status: 'error', message: 'File not found' })
+    // 404 : check if doctor and file exist
+    const [isDoctorActive, fileExist] = await Promise.all([
+      doctorActive(res, doctorId),
+      checkExistenceId(res, File, fileId, COMMON_MSG.FILE_NOT_FOUND)
+    ])
+
+    if (!isDoctorActive) {
+      res
+        .status(404)
+        .send({ status: 404, message: COMMON_MSG.DOCTOR_NOT_FOUND })
+      return
+    }
+    if (!fileExist) {
+      res.status(404).send({ status: 404, message: COMMON_MSG.FILE_NOT_FOUND })
+      return
+    }
+
+    // 403 : Check if doctor is the owner of the file
+    const file = await File.findById(fileId)
+    const [record, fileWithNameExist] = await Promise.all([
+      Record.findById(file.record),
+      File.findOne({ name: name })
+    ])
+
+    if (record.doctor !== doctorId) {
+      res
+        .status(403)
+        .send({ status: 403, message: COMMON_MSG.DOCTOR_IS_NOT_OWNER })
+      return
+    }
+
+    // 406
+    if (fileWithNameExist) {
+      res.status(406).send({ status: 406, message: COMMON_MSG.RECORDS_USING })
+      return
+    }
+
+    // 405
+    const baseFields = file.fields
+
+    for (const baseField in baseFields) {
+      for (const newField in fields) {
+        let { type, value, options } = newField
+        if (newField.name === baseField.name) {
+          if (!checkFieldType(res, type, value, options)) return
+          else {
+            baseField.value = value
+            break
+          }
+        }
+      }
+    }
+
+    // Update the file
+    await File.updateOne(
+      { _id: fileId },
+      {
+        $set: {
+          name,
+          category,
+          fields: baseFields
+        }
+      }
+    )
+
+    // send response
+
+    res.status(200).json({ status: 500, error: COMMON_MSG.REQUEST_SUCCESS })
+  } catch (error) {
+    res.status(500).json({ status: 500, error: error.message })
   }
-  res.status(200).send({ status: 'success', data: file })
 }
 
 //Delete file
