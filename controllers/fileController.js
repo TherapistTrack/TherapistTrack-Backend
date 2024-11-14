@@ -22,7 +22,7 @@ const {
   doctorActive
 } = require('../utils/requestCheckers')
 const FileTemplate = require('../models/fileTemplateModel')
-const Usuario = require('../models/userModel').Usuario
+const Usuario = require('../models/userModel')
 
 exports.createFile = async (req, res) => {
   const { metadata } = req.body
