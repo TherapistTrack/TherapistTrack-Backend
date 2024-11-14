@@ -56,38 +56,38 @@ describe('Search Files endpoint', () => {
             name: 'A',
             type: 'TEXT',
             required: true,
-            description: 'A'
+            description: '_'
           },
           {
             name: 'B',
             type: 'SHORT_TEXT',
             required: true,
-            description: 'B'
+            description: '_'
           },
           {
             name: 'C',
             type: 'NUMBER',
             required: true,
-            description: 'C'
+            description: '_'
           },
           {
             name: 'D',
             type: 'FLOAT',
             required: true,
-            description: 'D'
+            description: '_'
           },
           {
             name: 'E',
             type: 'CHOICE',
             options: ['a', 'b'],
             required: true,
-            description: 'E'
+            description: '_'
           },
           {
             name: 'F',
             type: 'DATE',
             required: true,
-            description: 'F'
+            description: '_'
           }
         ]
       ))
@@ -101,7 +101,7 @@ describe('Search Files endpoint', () => {
       recordId,
       templateId: fileTemplateId,
       name: 'file1',
-      category: '',
+      category: 'consultas',
       fields: [
         { name: 'A', value: 'a' },
         { name: 'B', value: 'a' },
@@ -117,6 +117,7 @@ describe('Search Files endpoint', () => {
       recordId,
       templateId: fileTemplateId,
       name: 'file2',
+      category: 'consultas',
       fields: [
         { name: 'A', value: 'b' },
         { name: 'B', value: 'b' },
@@ -132,6 +133,7 @@ describe('Search Files endpoint', () => {
       recordId,
       templateId: fileTemplateId,
       name: 'file3',
+      category: 'consultas',
       fields: [
         { name: 'A', value: 'c' },
         { name: 'B', value: 'c' },
