@@ -88,7 +88,7 @@ describe('Edit Files Tests', () => {
   }
 
   beforeAll(async () => {
-    secondDoctor = createTestDoctor()
+    secondDoctor = await createTestDoctor()
     ;({ doctor, recordId, fileTemplateId } =
       await setUpEnvironmentForFilesTests(
         ['consultas', 'tests'],
@@ -133,15 +133,23 @@ describe('Edit Files Tests', () => {
           }
         ]
       ))
+
     BASE_FILE.doctorId = doctor.roleDependentInfo.id
     BASE_FILE.recordId = recordId
     BASE_FILE.templateId = fileTemplateId
-    fileId = createTestFile(BASE_FILE)
+    fileId = await createTestFile(BASE_FILE)
+    /*
+    BASE_FILE.doctorId = '67366dccef3dbf798e672b8b'
+    BASE_FILE.recordId = '67366dccef3dbf798e672b96'
+    BASE_FILE.templateId = '67366dccef3dbf798e672b92'
+    fileId = "67366dcdef3dbf798e672b9a"
+    */
     BASE_FILE.fileId = fileId
+    // console.log(JSON.stringify(BASE_FILE, "", "  "))
   })
 
   afterAll(async () => {
-    await deleteUser(doctor.id)
+    // await deleteUser(doctor.id)
   })
 
   // DONE:
@@ -254,19 +262,20 @@ describe('Edit Files Tests', () => {
   // ==================
   // DONE:
   test('should fail with 405 when passing NUMBER value for TEXT field', async () => {
-    const file = modifyFileField('Notas Adicionales', 123)
+    const file = modifyFileField('Notas adicionales', 123)
+    console.log(JSON.stringify(file, '', '  '))
     await checkFailEditRequest(file, 405, COMMON_MSG.INVALID_FIELD_TYPE_TEXT)
   })
 
   // DONE:
   test('should fail with 405 when passing BOOLEAN value for TEXT field', async () => {
-    const file = modifyFileField('Notas Adicionales', true)
+    const file = modifyFileField('Notas adicionales', true)
     await checkFailEditRequest(file, 405, COMMON_MSG.INVALID_FIELD_TYPE_TEXT)
   })
 
   // DONE:
   test('should fail with 405 when passing ARRAY value for TEXT field', async () => {
-    const file = modifyFileField('Notas Adicionales', [])
+    const file = modifyFileField('Notas adicionales', [])
     await checkFailEditRequest(file, 405, COMMON_MSG.INVALID_FIELD_TYPE_TEXT)
   })
 
@@ -275,7 +284,7 @@ describe('Edit Files Tests', () => {
   // ==================
   // DONE:
   test('should fail with 405 when passing NUMBER value for SHORT_TEXT field', async () => {
-    const file = modifyFileField('Instruccciones de administracion', 123)
+    const file = modifyFileField('Instrucciones de administracion', 123)
     await checkFailEditRequest(
       file,
       405,
@@ -285,7 +294,7 @@ describe('Edit Files Tests', () => {
 
   // DONE:
   test('should fail with 405 when passing BOOLEAN value for SHORT_TEXT field', async () => {
-    const file = modifyFileField('Instruccciones de administracion', true)
+    const file = modifyFileField('Instrucciones de administracion', true)
     await checkFailEditRequest(
       file,
       405,
@@ -295,7 +304,7 @@ describe('Edit Files Tests', () => {
 
   // DONE:
   test('should fail with 405 when passing ARRAY value for SHORT_TEXT field', async () => {
-    const file = modifyFileField('Instruccciones de administracion', true)
+    const file = modifyFileField('Instrucciones de administracion', true)
     await checkFailEditRequest(
       file,
       405,
