@@ -139,10 +139,10 @@ describe('Edit Files Tests', () => {
     BASE_FILE.templateId = fileTemplateId
     fileId = await createTestFile(BASE_FILE)
     /*
-    BASE_FILE.doctorId = '67366dccef3dbf798e672b8b'
-    BASE_FILE.recordId = '67366dccef3dbf798e672b96'
-    BASE_FILE.templateId = '67366dccef3dbf798e672b92'
-    fileId = "67366dcdef3dbf798e672b9a"
+    BASE_FILE.doctorId = '673682619176c55f7d69992a'
+    BASE_FILE.recordId = '673682619176c55f7d699935'
+    BASE_FILE.templateId = '673682619176c55f7d699931'
+    fileId = "673682629176c55f7d699939"
     */
     BASE_FILE.fileId = fileId
     // console.log(JSON.stringify(BASE_FILE, "", "  "))
@@ -153,12 +153,10 @@ describe('Edit Files Tests', () => {
   })
 
   // DONE:
-  /** 
-   * 
   test('should succeed with 200 editing a record', async () => {
     const fileEditBody = {
-      doctorId: doctor.roleDependentInfo.id,
-      fileId: fileId,
+      doctorId: BASE_FILE.doctorId,
+      fileId: BASE_FILE.fileId,
       name: 'test_file',
       category: 'consultas',
       fields: [
@@ -172,7 +170,7 @@ describe('Edit Files Tests', () => {
         },
         {
           name: 'Dosis (mg)',
-          value: 32
+          value: 334
         },
         {
           name: 'Concentracion',
@@ -188,6 +186,7 @@ describe('Edit Files Tests', () => {
         }
       ]
     }
+    // console.log(JSON.stringify(fileEditBody, '', '  '))
 
     try {
       const response = await axios.put(REQUEST_URL, fileEditBody, {
@@ -195,6 +194,7 @@ describe('Edit Files Tests', () => {
       })
 
       expect(response.status).toBe(200)
+      console.log(response.data)
       expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS)
     } catch (error) {
       console.error(
@@ -204,7 +204,6 @@ describe('Edit Files Tests', () => {
       throw error
     }
   })
-    */
 
   // DONE:
   test('should fail with 400 if doctorId is not passed', async () => {
