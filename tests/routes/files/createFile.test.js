@@ -58,7 +58,7 @@ describe('Create Files Tests', () => {
     form.append('metadata', JSON.stringify(body))
 
     // Append a test PDF file.
-    const filePath = path.join(__dirname, 'testFile.pdf')
+    const filePath = path.join(__dirname, './routes/files/testFile.pdf')
     const fileName = 'testFile.pdf'
     form.append('file', fs.createReadStream(filePath), { fileName: fileName })
 

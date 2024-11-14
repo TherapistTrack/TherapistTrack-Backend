@@ -181,7 +181,7 @@ exports.editRecord = async (req, res) => {
         res,
         Record,
         recordId,
-        COMMON_MSG.TEMPLATE_NOT_FOUND
+        COMMON_MSG.RECORD_NOT_FOUND
       ))
     )
       return
