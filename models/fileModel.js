@@ -1,16 +1,19 @@
 const mongoose = require('mongoose')
 
-const metadataSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  type: {
-    type: String,
-    enum: ['SHORT_TEXT', 'TEXT', 'DATE', 'NUMBER', 'FLOAT', 'CHOICE'],
-    required: true
+const metadataSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true },
+    type: {
+      type: String,
+      enum: ['SHORT_TEXT', 'TEXT', 'DATE', 'NUMBER', 'FLOAT', 'CHOICE'],
+      required: true
+    },
+    options: [String],
+    value: { type: mongoose.Schema.Types.Mixed, required: true },
+    required: { type: Boolean, required: true }
   },
-  options: [String],
-  value: { type: String, required: true },
-  required: { type: Boolean, required: true }
-})
+  { _id: false }
+)
 
 const fileSchema = new mongoose.Schema(
   {
