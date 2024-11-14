@@ -21,6 +21,7 @@ baseFileRoute:
       Content-Type: application/json
 
       {
+        "doctorId": "12345dvdsedf32",
         "recordId": "12345dvdsedf32",
         "templateId": "6789032vbad3295",
         "name": "Consulta 3",
