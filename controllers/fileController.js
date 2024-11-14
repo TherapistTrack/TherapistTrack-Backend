@@ -5,6 +5,7 @@ const {
 } = require('../controllers/s3ClientController')
 const mongoose = require('mongoose')
 const File = require('../models/fileModel')
+const Record = require('../models/recordModel')
 const FileTemplate = require('../models/fileTemplateModel')
 const COMMON_MSG = require('../utils/errorMsg')
 const Usuario = require('../models/userModel')
@@ -23,7 +24,6 @@ exports.createFile = async (req, res) => {
 
   try {
     parsedMetadata = JSON.parse(metadata)
-    console.log(parsedMetadata)
   } catch (error) {
     return res
       .status(400)
@@ -112,12 +112,12 @@ exports.createFile = async (req, res) => {
     await file.save()
 
     res.status(201).send({
-      status: 'success',
+      status: 200,
       message: 'File created successfully',
-      filedId: file._id
+      fileId: file._id
     })
   } catch (error) {
-    res.status(500).send({ status: 'error', message: error.message })
+    res.status(500).send({ status: 500, message: error.message })
   }
 }
 
@@ -143,40 +143,62 @@ exports.updateFile = async (req, res) => {
   res.status(200).send({ status: 'success', data: file })
 }
 
-//Delete file
 exports.deleteFile = async (req, res) => {
   try {
-    const { id } = req.body
-    const isValidObjectId = mongoose.Types.ObjectId.isValid(id)
-    if (!isValidObjectId) {
-      return res
-        .status(400)
-        .send({ status: 'error', message: 'Invalid ID format' })
+    const { doctorId, fileId } = req.body
+
+    if (!fileId || !doctorId) {
+      return res.status(400).send({
+        status: 400,
+        message: COMMON_MSG.MISSING_FIELDS
+      })
     }
-    const file = await File.findById(id)
+
+    const file = await File.findById(fileId)
     if (!file) {
-      return res
-        .status(404)
-        .send({ status: 'error', message: 'File not found' })
+      return res.status(404).send({
+        status: 404,
+        message: COMMON_MSG.FILE_NOT_FOUND
+      })
+    }
+
+    const record = await Record.findById(file.record)
+    if (!record) {
+      return res.status(404).send({
+        status: 404,
+        message: COMMON_MSG.RECORD_NOT_FOUND
+      })
+    }
+
+    if (record.doctor.toString() !== doctorId) {
+      return res.status(403).send({
+        status: 403,
+        message: COMMON_MSG.DOCTOR_IS_NOT_OWNER
+      })
     }
 
     if (file.location) {
       try {
         await s3Delete(file.location)
       } catch (s3Error) {
-        return res
-          .status(500)
-          .send({ status: 'error', message: 'Failed to delete file from S3' })
+        return res.status(500).send({
+          status: 500,
+          message: 'Failed to delete file from S3'
+        })
       }
     }
 
-    await File.findByIdAndDelete(id)
+    await File.findByIdAndDelete(fileId)
 
-    res
-      .status(200)
-      .send({ status: 'success', message: 'File deleted successfully' })
+    return res.status(200).send({
+      status: 'success',
+      message: COMMON_MSG.REQUEST_SUCCESS
+    })
   } catch (error) {
-    res.status(400).send({ status: 'error', message: error.message })
+    return res.status(500).send({
+      status: 500,
+      message: error.message
+    })
   }
 }
 
