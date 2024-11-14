@@ -476,8 +476,6 @@ async function setUpEnvironmentForFilesTests(
       fileTemplateName,
       fileTemplateFields
     )
-    console.log(`\ndoctor: ${doctor.roleDependentInfo.id}\n`)
-    console.log(`\npatientTemplate: ${patientTemplateId}\n`)
     const recordId = await createTestRecord(
       doctor.roleDependentInfo.id,
       patientTemplateId,

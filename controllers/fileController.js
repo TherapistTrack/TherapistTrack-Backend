@@ -6,24 +6,9 @@ const {
 const mongoose = require('mongoose')
 const File = require('../models/fileModel')
 const FileTemplate = require('../models/fileTemplateModel')
-const Record = require('../models/recordModel')
 const COMMON_MSG = require('../utils/errorMsg')
-const {
-  emptyFields,
-  validArrays,
-  validFields,
-  validMongoId,
-  validField,
-  checkFieldType
-} = require('../utils/fieldCheckers')
-const {
-  checkExistenceName,
-  checkExistenceId,
-  checkDoctor,
-  checkExistingField,
-  doctorActive
-} = require('../utils/requestCheckers')
-const { findUserByRoleID } = require('../models/userModel')
+const Usuario = require('../models/userModel')
+const pdf = require('pdf-parse')
 
 exports.createFile = async (req, res) => {
   const { metadata } = req.body
@@ -32,7 +17,7 @@ exports.createFile = async (req, res) => {
 
   if (!uploadfile || !uploadfile.buffer) {
     return res
-      .status(400)
+      .status(403)
       .send({ status: 'error', message: 'No file provided' })
   }
 
@@ -58,8 +43,56 @@ exports.createFile = async (req, res) => {
       })
     }
 
+    const fileTemplate = await FileTemplate.findById(templateId)
+    if (!fileTemplate) {
+      return res.status(400).send({
+        status: 'error',
+        message: 'FileTemplate not found'
+      })
+    }
+
+    const templateFieldsMap = {}
+    for (const field of fileTemplate.fields) {
+      templateFieldsMap[field.name] = field
+    }
+
+    const metadataArray = []
+    for (const field of fields) {
+      const templateField = templateFieldsMap[field.name]
+      if (!templateField) {
+        return res.status(400).send({
+          status: 'error',
+          message: `Field ${field.name} not found in template`
+        })
+      }
+      const metadataField = {
+        name: field.name,
+        type: templateField.type,
+        options: templateField.options || [],
+        value: field.value,
+        required: templateField.required
+      }
+      metadataArray.push(metadataField)
+    }
+
+    let numberOfPages = 0
+    if (uploadfile.mimetype === 'application/pdf') {
+      try {
+        const data = await pdf(uploadfile.buffer)
+        numberOfPages = data.numpages
+      } catch (error) {
+        return res.status(400).send({
+          status: 'error',
+          message: 'Unable to read PDF pages'
+        })
+      }
+    } else {
+      numberOfPages = 0
+    }
+
     const timestamp = Date.now()
-    const key = `${recordId}/${timestamp}-${uploadfile.originalname}`
+    const doctorId = fileTemplate.doctor
+    const key = `${doctorId}/${recordId}/${timestamp}-${uploadfile.originalname}`
     console.log(key)
     const s3Response = await s3Upload(key, uploadfile.buffer)
     const location = s3Response.Location.split('.com/')[1]
@@ -70,12 +103,10 @@ exports.createFile = async (req, res) => {
       name,
       category,
       location,
-      pages: fields.length,
+      pages: numberOfPages,
       created_at: new Date(),
-      metadata: fields
+      metadata: metadataArray
     }
-
-    console.log(fileData)
 
     const file = new File(fileData)
     await file.save()
@@ -83,15 +114,13 @@ exports.createFile = async (req, res) => {
     res.status(201).send({
       status: 'success',
       message: 'File created successfully',
-      data: file._id
+      filedId: file._id
     })
   } catch (error) {
-    console.error('Error during file creation:', error) // Log the full error object
-    res.status(400).send({ status: 'error', message: error.message })
+    res.status(500).send({ status: 'error', message: error.message })
   }
 }
 
-//Edit a file
 exports.updateFile = async (req, res) => {
   const { doctorId, fileId, name, category, fields } = req.body
 
