@@ -8,7 +8,6 @@ const {
   checkJwt
 } = require('../middlewares/auth0Middleware')
 
-//Crear un archivo
 router.post(
   '/',
   checkJwt,
@@ -34,8 +33,8 @@ router.get(
   requiredPermissions(['read:files']),
   fileController.listFiles
 )
-router.post(
-  '/file',
+router.get(
+  '/',
   checkJwt,
   requiredPermissions(['read:files']),
   fileController.getFileById
