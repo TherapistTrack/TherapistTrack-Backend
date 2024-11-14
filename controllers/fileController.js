@@ -1,7 +1,7 @@
 const {
   s3Upload,
   s3Delete,
-  s3Download
+  generateS3PreSignedUrl
 } = require('../controllers/s3ClientController')
 const mongoose = require('mongoose')
 const File = require('../models/fileModel')
@@ -17,37 +17,72 @@ exports.createFile = async (req, res) => {
   let parsedMetadata
 
   if (!uploadfile || !uploadfile.buffer) {
-    return res
-      .status(403)
-      .send({ status: 'error', message: 'No file provided' })
+    return res.status(400).send({
+      status: 400,
+      message: COMMON_MSG.MISSING_FIELDS
+    })
   }
 
   try {
     parsedMetadata = JSON.parse(metadata)
   } catch (error) {
-    return res
-      .status(400)
-      .json({ status: 'error', message: 'Invalid metadata format' })
+    return res.status(400).json({
+      status: 400,
+      message: 'Invalid metadata format. Please provide valid JSON.'
+    })
   }
 
   try {
-    const { recordId, templateId, name, category, fields } = parsedMetadata
+    const { doctorId, recordId, templateId, name, category, fields } =
+      parsedMetadata
+
+    if (
+      !doctorId ||
+      !recordId ||
+      !templateId ||
+      !name ||
+      !category ||
+      !fields
+    ) {
+      return res.status(400).send({
+        status: 400,
+        message: COMMON_MSG.MISSING_FIELDS
+      })
+    }
 
     if (
       !mongoose.Types.ObjectId.isValid(recordId) ||
       !mongoose.Types.ObjectId.isValid(templateId)
     ) {
       return res.status(400).send({
-        status: 'error',
-        message: 'Invalid recordId or templateId format'
+        status: 400,
+        message: COMMON_MSG.INVALID_ID_FORMAT
       })
     }
 
     const fileTemplate = await FileTemplate.findById(templateId)
     if (!fileTemplate) {
-      return res.status(400).send({
-        status: 'error',
-        message: 'FileTemplate not found'
+      return res.status(404).send({
+        status: 404,
+        message: COMMON_MSG.TEMPLATE_NOT_FOUND
+      })
+    }
+
+    const record = await Record.findById(recordId)
+    if (!record) {
+      return res.status(404).send({
+        status: 404,
+        message: COMMON_MSG.RECORD_NOT_FOUND
+      })
+    }
+
+    if (
+      fileTemplate.doctor.toString() !== doctorId ||
+      record.doctor.toString() !== doctorId
+    ) {
+      return res.status(403).send({
+        status: 403,
+        message: COMMON_MSG.DOCTOR_IS_NOT_OWNER
       })
     }
 
@@ -61,8 +96,8 @@ exports.createFile = async (req, res) => {
       const templateField = templateFieldsMap[field.name]
       if (!templateField) {
         return res.status(400).send({
-          status: 'error',
-          message: `Field ${field.name} not found in template`
+          status: 400,
+          message: `Field "${field.name}" not found in template.`
         })
       }
       const metadataField = {
@@ -82,18 +117,14 @@ exports.createFile = async (req, res) => {
         numberOfPages = data.numpages
       } catch (error) {
         return res.status(400).send({
-          status: 'error',
-          message: 'Unable to read PDF pages'
+          status: 400,
+          message: 'Unable to read PDF pages.'
         })
       }
-    } else {
-      numberOfPages = 0
     }
 
     const timestamp = Date.now()
-    const doctorId = fileTemplate.doctor
     const key = `${doctorId}/${recordId}/${timestamp}-${uploadfile.originalname}`
-    console.log(key)
     const s3Response = await s3Upload(key, uploadfile.buffer)
     const location = s3Response.Location.split('.com/')[1]
 
@@ -111,13 +142,16 @@ exports.createFile = async (req, res) => {
     const file = new File(fileData)
     await file.save()
 
-    res.status(201).send({
-      status: 200,
-      message: 'File created successfully',
+    return res.status(201).send({
+      status: 201,
+      message: COMMON_MSG.REQUEST_SUCCESS,
       fileId: file._id
     })
   } catch (error) {
-    res.status(500).send({ status: 500, message: error.message })
+    return res.status(500).send({
+      status: 500,
+      message: error.message
+    })
   }
 }
 
@@ -191,7 +225,7 @@ exports.deleteFile = async (req, res) => {
     await File.findByIdAndDelete(fileId)
 
     return res.status(200).send({
-      status: 'success',
+      status: 200,
       message: COMMON_MSG.REQUEST_SUCCESS
     })
   } catch (error) {
@@ -202,7 +236,6 @@ exports.deleteFile = async (req, res) => {
   }
 }
 
-//List of the last 10 files
 exports.listFiles = async (req, res) => {
   try {
     const { limit = 10, sortBy = 'created_at', order = 'asc' } = req.query
@@ -217,39 +250,74 @@ exports.listFiles = async (req, res) => {
   }
 }
 
-//Get file by id
 exports.getFileById = async (req, res) => {
   try {
-    const { id } = req.body
-    const file = await File.findById(id).populate('record')
-    if (!file) {
-      return res
-        .status(404)
-        .send({ status: 'error', message: 'File not found' })
+    const { doctorId, fileId } = req.query
+
+    if (!fileId || !doctorId) {
+      return res.status(400).send({
+        status: 400,
+        message: COMMON_MSG.MISSING_FIELDS
+      })
     }
-    if (file.location) {
-      try {
-        const s3Response = await s3Download(file.location)
-        const fileBuffer = s3Response.Body
 
-        res.setHeader('Content-Type', s3Response.ContentType)
-        res.setHeader(
-          'Content-Disposition',
-          `attachment; filename="${file.name}"`
-        )
+    const file = await File.findById(fileId)
+    if (!file) {
+      return res.status(404).send({
+        status: 404,
+        message: COMMON_MSG.FILE_NOT_FOUND
+      })
+    }
 
-        res
-          .status(200)
-          .json({ s3file: fileBuffer.toString('base64'), file: file })
-      } catch (s3Error) {
-        return res
-          .status(500)
-          .send({ status: 'error', message: 'Failed to download file from S3' })
-      }
-    } else {
-      res.status(200).json(file)
+    const record = await Record.findById(file.record)
+    if (!record || record.doctor.toString() !== doctorId) {
+      return res.status(403).send({
+        status: 403,
+        message: COMMON_MSG.DOCTOR_IS_NOT_OWNER
+      })
+    }
+
+    if (!file.location) {
+      return res.status(500).send({
+        status: 500,
+        message: 'File location not found in S3.'
+      })
+    }
+
+    try {
+      const preSignedUrl = await generateS3PreSignedUrl(file.location)
+
+      const fields = file.metadata.map((field) => ({
+        name: field.name,
+        type: field.type,
+        options: field.options || [],
+        value: field.value,
+        required: field.required
+      }))
+
+      return res.status(200).json({
+        status: 200,
+        message: COMMON_MSG.REQUEST_SUCCESS,
+        fileId: file._id,
+        recordId: file.record,
+        templateId: file.template,
+        name: file.name,
+        category: file.category,
+        createdAt: file.created_at,
+        pages: file.pages,
+        fields: fields,
+        fileURL: preSignedUrl
+      })
+    } catch (s3Error) {
+      return res.status(500).send({
+        status: 500,
+        message: 'Failed to generate pre-signed URL for the file'
+      })
     }
   } catch (error) {
-    res.status(400).send({ status: 'error', message: error.message })
+    return res.status(500).send({
+      status: 500,
+      message: error.message
+    })
   }
 }
