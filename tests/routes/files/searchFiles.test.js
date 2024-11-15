@@ -7,7 +7,8 @@ const {
   modifyObjectAttribute,
   buildSearchRequestBody,
   buildFilterObject,
-  iso8601Regex
+  iso8601Regex,
+  deleteObjectAttribute
 } = require('../../testHelpers')
 const COMMON_MSG = require('../../../utils/errorMsg')
 const yup = require('yup')
