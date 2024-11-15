@@ -8,7 +8,6 @@ const File = require('../models/fileModel')
 const Record = require('../models/recordModel')
 const FileTemplate = require('../models/fileTemplateModel')
 const COMMON_MSG = require('../utils/errorMsg')
-const Record = require('../models/recordModel')
 const pdf = require('pdf-parse')
 const {
   emptyFields,
@@ -24,8 +23,6 @@ const {
   checkExistingField,
   doctorActive
 } = require('../utils/requestCheckers')
-const FileTemplate = require('../models/fileTemplateModel')
-const Usuario = require('../models/userModel')
 
 exports.createFile = async (req, res) => {
   const { metadata } = req.body
