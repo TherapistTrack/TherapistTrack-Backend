@@ -6,6 +6,7 @@ const {
 const mongoose = require('mongoose')
 const File = require('../models/fileModel')
 const COMMON_MSG = require('../utils/errorMsg')
+const Record = require('../models/recordModel')
 const pdf = require('pdf-parse')
 const {
   emptyFields,
@@ -340,19 +341,17 @@ exports.getFileById = async (req, res) => {
   }
 }
 
-//Serch files by sorts, filters and fields
+//TODO: Deben implementarse los errores dados por la documentación, ahora mismo la implementación es delicada.
 exports.searchAndFilterFiles = async (req, res) => {
   const {
     doctorId,
     recordId,
     limit = 10,
-    page = 1,
+    page = 0,
+    category,
     fields,
-    sorts,
-    filters
+    sorts
   } = req.body
-
-  console.log(doctorId)
 
   try {
     if (!mongoose.Types.ObjectId.isValid(doctorId)) {
@@ -360,26 +359,28 @@ exports.searchAndFilterFiles = async (req, res) => {
     }
 
     if (!mongoose.Types.ObjectId.isValid(recordId)) {
-      return res.status(400).json({ error: 'Invalid doctor ID' })
+      return res.status(400).json({ error: 'Invalid record ID' })
     }
 
-    if (!checkDoctor(res, Record, doctorId, recordId)) return
+    // Check if the doctor has access to the record
+    if (!(await checkDoctor(res, Record, doctorId, recordId))) return
 
     const limitNum = parseInt(limit)
     const pageNum = parseInt(page) > 0 ? parseInt(page) - 1 : 0
 
     let pipeline = []
 
-    // Stage 1: Match recordId
+    // Stage 1: Match recordId and category
     pipeline.push({
       $match: {
-        record: new mongoose.Types.ObjectId(recordId)
+        record: new mongoose.Types.ObjectId(recordId),
+        category: category
       }
     })
 
-    // Stage 2: Add sort fields
-    if (sorts && sorts.length > 0) {
-      const { addFields: sortAddFields, sort } = buildSortStage(sorts)
+    // Stage 2: Add sort fields only if they are present in 'fields'
+    if (sorts && sorts.length > 0 && fields && fields.length > 0) {
+      const { addFields: sortAddFields, sort } = buildSortStage(sorts, fields)
 
       // Add fields for sorting
       if (Object.keys(sortAddFields).length > 0) {
@@ -396,18 +397,19 @@ exports.searchAndFilterFiles = async (req, res) => {
     pipeline.push({ $skip: pageNum * limitNum }, { $limit: limitNum })
 
     // Stage 4: Projection
-    const projection = buildProjection(fields, filters)
-    pipeline.push({ $project: projection })
+    pipeline.push({
+      $project: buildProjection(fields)
+    })
 
-    console.log('Pipeline:', JSON.stringify(pipeline, null, 2))
-    // Execute the query
+    // Execute the querys
     const files = await File.aggregate(pipeline)
 
-    // Count pipeline
+    // Count total documents without pagination
     const countPipeline = [
       {
         $match: {
-          record: new mongoose.Types.ObjectId(recordId)
+          record: new mongoose.Types.ObjectId(recordId),
+          category: category
         }
       },
       { $count: 'total' }
@@ -418,7 +420,7 @@ exports.searchAndFilterFiles = async (req, res) => {
 
     res.status(200).json({
       status: 200,
-      message: 'Search successful',
+      message: 'Request Successful',
       files,
       total: totalCount
     })
@@ -426,4 +428,97 @@ exports.searchAndFilterFiles = async (req, res) => {
     console.error(error)
     res.status(500).json({ error: error.message })
   }
+}
+
+//TODO: Estas funciones deberían de ir en un archivo aparte, o considerarlas unificarlas con filterUtils.js (Realizar después de 22/11/2024)
+/**
+ * Builds MongoDB sort stage for files based on specified fields
+ * @param {Array} sorts - Array of sort objects
+ * @param {Array} fields - Array of fields allowed for sorting
+ * @returns {Object} Contains addFields and sort
+ */
+function buildSortStage(sorts, fields) {
+  let addFields = {}
+  let sort = {}
+
+  sorts.forEach((sortObj, index) => {
+    const { name, type, mode } = sortObj
+
+    // Only allow sorting if the field is in the fields array
+    const fieldExists = fields.find((field) => field.name === name)
+    if (!fieldExists) return
+
+    const valueAlias = `sortValue_${index}`
+
+    // Extract the field value from metadata
+    const fieldValueExpr = {
+      $getField: {
+        field: 'value',
+        input: {
+          $arrayElemAt: [
+            {
+              $filter: {
+                input: '$metadata',
+                as: 'field',
+                cond: { $eq: ['$$field.name', name] }
+              }
+            },
+            0
+          ]
+        }
+      }
+    }
+
+    let convertedValueExpr
+
+    if (type === 'NUMBER' || type === 'FLOAT') {
+      convertedValueExpr = { $toDouble: fieldValueExpr }
+    } else if (type === 'DATE') {
+      convertedValueExpr = { $toDate: fieldValueExpr }
+    } else {
+      convertedValueExpr = { $toString: fieldValueExpr }
+    }
+
+    // Add the converted value to addFields
+    addFields[valueAlias] = convertedValueExpr
+
+    // Add to sort
+    sort[valueAlias] = mode === 'asc' ? 1 : -1
+  })
+
+  return { addFields, sort }
+}
+
+/**
+ * Builds projection stage based on fields array
+ * @param {Array} fields - Array of field objects with name and type
+ * @returns {Object} Projection configuration
+ */
+function buildProjection(fields) {
+  let projection = {
+    _id: 0,
+    fileId: { $toString: '$_id' },
+    templateId: { $toString: '$template' },
+    name: 1,
+    createdAt: {
+      $dateToString: { format: '%Y/%m/%d', date: '$created_at' }
+    },
+    pages: 1
+  }
+
+  if (fields && fields.length > 0) {
+    projection['fields'] = {
+      $filter: {
+        input: '$metadata',
+        as: 'field',
+        cond: {
+          $in: ['$$field.name', fields.map((field) => field.name)]
+        }
+      }
+    }
+  } else {
+    projection['fields'] = 1
+  }
+
+  return projection
 }
