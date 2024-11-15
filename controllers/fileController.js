@@ -352,6 +352,8 @@ exports.searchAndFilterFiles = async (req, res) => {
     filters
   } = req.body
 
+  console.log(doctorId)
+
   try {
     if (!mongoose.Types.ObjectId.isValid(doctorId)) {
       return res.status(400).json({ error: 'Invalid doctor ID' })

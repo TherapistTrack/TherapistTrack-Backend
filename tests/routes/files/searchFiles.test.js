@@ -329,7 +329,7 @@ describe('Search Files endpoint', () => {
   // ===================
 
   // DONE:
-  /*test('should fail with 400 if doctorId is not sent', async () => {
+  test('should fail with 400 if doctorId is not sent', async () => {
     const body = deleteObjectAttribute(BASE_REQUEST, 'doctorId')
     await checkFailSearchRequest(body, 400, COMMON_MSG.MISSING_FIELDS)
   })
@@ -655,5 +655,5 @@ describe('Search Files endpoint', () => {
       405,
       COMMON_MSG.INVALID_FIELD_TYPE_DATE
     )
-  })*/
+  })
 })
