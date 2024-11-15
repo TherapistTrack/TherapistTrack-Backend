@@ -8,7 +8,8 @@ const {
   buildSearchRequestBody,
   buildFilterObject,
   iso8601Regex,
-  deleteObjectAttribute
+  deleteObjectAttribute,
+  validateResponse
 } = require('../../testHelpers')
 const COMMON_MSG = require('../../../utils/errorMsg')
 const yup = require('yup')
@@ -28,7 +29,7 @@ describe('Search Files endpoint', () => {
     recordId: '',
     limit: 10,
     page: 0,
-    categories: '',
+    category: '',
     fields: [
       {
         name: 'Edad',
@@ -207,13 +208,20 @@ describe('Search Files endpoint', () => {
 
   // DONE:
   test('should suceed with 200 searching a list of files with no sorting or filtering', async () => {
+    console.log('BASE_REQUEST:', BASE_REQUEST)
     const searchRequestBody = buildSearchRequestBody({
       doctorId: doctor.roleDependentInfo.id,
+      recordId,
+      limit: 10,
+      page: 0,
+      category: 'consultas',
       fields: [
         { name: 'C', type: 'NUMBER' },
         { name: 'F', type: 'DATE' },
         { name: 'E', type: 'CHOICE' }
-      ]
+      ],
+      filters: [],
+      sorts: []
     })
 
     try {

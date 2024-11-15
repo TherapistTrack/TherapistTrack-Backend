@@ -350,10 +350,15 @@ exports.searchAndFilterFiles = async (req, res) => {
     page = 0,
     category,
     fields,
-    sorts
+    sorts,
+    filters
   } = req.body
 
   try {
+    if (!doctorId || !recordId || !category || !fields || !sorts || !filters) {
+      return res.status(400).json({ error: COMMON_MSG.MISSING_FIELDS })
+    }
+
     if (!mongoose.Types.ObjectId.isValid(doctorId)) {
       return res.status(400).json({ error: 'Invalid doctor ID' })
     }
@@ -501,7 +506,7 @@ function buildProjection(fields) {
     templateId: { $toString: '$template' },
     name: 1,
     createdAt: {
-      $dateToString: { format: '%Y/%m/%d', date: '$created_at' }
+      $dateToString: { format: '%Y-%m-%d', date: '$created_at' }
     },
     pages: 1
   }
