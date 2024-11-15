@@ -63,7 +63,6 @@ exports.createRecord = async (req, res) => {
       )
       let value = patientField ? patientField.value : null
 
-      // Validate value type
       if (value !== null && value !== undefined) {
         switch (templateField.type) {
           case 'DATE':
@@ -170,9 +169,7 @@ exports.editRecord = async (req, res) => {
 
   try {
     if (!emptyFields(res, doctorId, recordId, patient)) return
-
     if (!validArrays(res, patient.fields)) return
-
     if (!validMongoId(res, recordId, COMMON_MSG.INVALID_RECORD_ID)) return
     if (!validMongoId(res, doctorId, COMMON_MSG.INVALID_DOCTOR_ID)) return
 
@@ -185,7 +182,6 @@ exports.editRecord = async (req, res) => {
       ))
     )
       return
-
     if (!(await checkDoctor(res, Record, doctorId, recordId))) return
 
     const record = await Record.findById(recordId)
@@ -195,51 +191,68 @@ exports.editRecord = async (req, res) => {
     let updatedPatient = { ...record.patient }
 
     for (let field of patient.fields) {
-      for (let existingField of updatedPatient.fields) {
-        if (field.name === existingField.name) {
-          existingField.value = field.value
-        }
+      const existingField = updatedPatient.fields.find(
+        (f) => f.name === field.name
+      )
+      if (existingField) {
+        existingField.value = field.value
       }
     }
 
-    for (let field of updatedPatient.fields) {
-      for (let templateField of templateFields) {
-        if (field.name === templateField.name) {
-          if (
-            (templateField.type === 'TEXT' ||
-              templateField.type === 'SHORT_TEXT') &&
-            isNaN(String(field.value))
-          ) {
-            return res
-              .status(405)
-              .json({ error: `Invalid value for field ${field.name}` })
-          }
-          if (
-            (templateField.type === 'NUMBER' ||
-              templateField.type === 'FLOAT') &&
-            isNaN(Number(field.value))
-          ) {
-            return res
-              .status(405)
-              .json({ error: `Invalid value for field ${field.name}` })
-          }
-          if (templateField.type === 'CHOICE' && !field.options) {
-            return res
-              .status(405)
-              .json({ error: `Invalid value for field ${field.name}` })
-          }
-          if (
-            templateField.type === 'CHOICE' &&
-            !templateField.options.includes(field.value)
-          ) {
-            return res
-              .status(405)
-              .json({ error: `Invalid value for field ${field.name}` })
-          }
-          if (templateField.type === 'DATE' && isNaN(Date.parse(field.value))) {
-            return res
-              .status(405)
-              .json({ error: `Invalid value for field ${field.name}` })
+    for (let templateField of templateFields) {
+      const fieldInRequest = updatedPatient.fields.find(
+        (field) => field.name === templateField.name
+      )
+
+      if (templateField.required) {
+        if (
+          !fieldInRequest ||
+          fieldInRequest.value === undefined ||
+          fieldInRequest.value === null
+        ) {
+          return res.status(400).json({
+            status: 400,
+            error: `Missing required field: ${templateField.name}`
+          })
+        }
+      }
+
+      if (fieldInRequest) {
+        if (
+          (templateField.type === 'TEXT' ||
+            templateField.type === 'SHORT_TEXT') &&
+          typeof fieldInRequest.value !== 'string'
+        ) {
+          return res.status(400).json({
+            status: 400,
+            error: `Invalid value for field ${fieldInRequest.name}`
+          })
+        }
+        if (
+          (templateField.type === 'NUMBER' || templateField.type === 'FLOAT') &&
+          isNaN(Number(fieldInRequest.value))
+        ) {
+          return res.status(405).json({
+            status: 405,
+            error: `Invalid value for field ${fieldInRequest.name}`
+          })
+        }
+        if (
+          templateField.type === 'CHOICE' &&
+          !templateField.options.includes(fieldInRequest.value)
+        ) {
+          return res.status(405).json({
+            status: 405,
+            error: `Invalid value for field ${fieldInRequest.name}`
+          })
+        }
+        if (templateField.type === 'DATE') {
+          const date = new Date(fieldInRequest.value)
+          if (isNaN(date.getTime())) {
+            return res.status(405).json({
+              status: 405,
+              error: `Invalid value for field ${fieldInRequest.name}`
+            })
           }
         }
       }
@@ -247,10 +260,17 @@ exports.editRecord = async (req, res) => {
 
     await Record.findByIdAndUpdate(
       recordId,
-      { patient: updatedPatient },
+      {
+        patient: {
+          ...updatedPatient,
+          names: patient.names || updatedPatient.names,
+          lastnames: patient.lastnames || updatedPatient.lastnames
+        }
+      },
       { new: true }
     )
-    res.status(200).json({ status: 200, message: COMMON_MSG.RECORD_UPDATED })
+
+    res.status(200).json({ status: 200, message: COMMON_MSG.REQUEST_SUCCESS })
   } catch (error) {
     res.status(500).json({ status: 500, error: error.message })
   }
