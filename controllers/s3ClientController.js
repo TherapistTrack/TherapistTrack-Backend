@@ -20,6 +20,16 @@ exports.s3Upload = (key, body) => {
   return s3.upload(params).promise()
 }
 
+exports.generateS3PreSignedUrl = async (key) => {
+  const params = {
+    Bucket: bucket,
+    Key: key,
+    Expires: 3600
+  }
+
+  return s3.getSignedUrlPromise('getObject', params)
+}
+
 exports.s3Delete = (key) => {
   const params = {
     Bucket: bucket,
