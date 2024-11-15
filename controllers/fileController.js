@@ -7,9 +7,25 @@ const mongoose = require('mongoose')
 const File = require('../models/fileModel')
 const Record = require('../models/recordModel')
 const FileTemplate = require('../models/fileTemplateModel')
+const Record = require('../models/recordModel')
 const COMMON_MSG = require('../utils/errorMsg')
 const Usuario = require('../models/userModel')
 const pdf = require('pdf-parse')
+const {
+  checkExistenceName,
+  checkExistenceId,
+  checkDoctor,
+  checkExistingField,
+  doctorActive
+} = require('../utils/requestCheckers')
+const {
+  emptyFields,
+  validArrays,
+  validFields,
+  validMongoId,
+  validField,
+  checkFieldType
+} = require('../utils/fieldCheckers')
 
 exports.createFile = async (req, res) => {
   const { metadata } = req.body
@@ -157,7 +173,6 @@ exports.createFile = async (req, res) => {
 
 exports.updateFile = async (req, res) => {
   const { doctorId, fileId, name, category, fields } = req.body
-
   try {
     // 400 : check if is not missing data.
     if (!emptyFields(res, doctorId, fileId, name, category, fields)) return
@@ -184,12 +199,13 @@ exports.updateFile = async (req, res) => {
 
     // 403 : Check if doctor is the owner of the file
     const file = await File.findById(fileId)
+
     const [record, fileWithNameExist] = await Promise.all([
       Record.findById(file.record),
       File.findOne({ name: name })
     ])
 
-    if (record.doctor !== doctorId) {
+    if (record.doctor.toString() !== doctorId) {
       res
         .status(403)
         .send({ status: 403, message: COMMON_MSG.DOCTOR_IS_NOT_OWNER })
@@ -197,20 +213,29 @@ exports.updateFile = async (req, res) => {
     }
 
     // 406
-    if (fileWithNameExist) {
+    if (fileWithNameExist.name && fileWithNameExist.name !== name) {
       res.status(406).send({ status: 406, message: COMMON_MSG.RECORDS_USING })
       return
     }
 
     // 405
-    const baseFields = file.fields
+    const baseFields = file.metadata
+    // console.log(baseFields)
+    // console.log("===============")
+    // console.log(fields)
 
-    for (const baseField in baseFields) {
-      for (const newField in fields) {
-        let { type, value, options } = newField
-        if (newField.name === baseField.name) {
-          if (!checkFieldType(res, type, value, options)) return
-          else {
+    for (const baseField of baseFields) {
+      for (const newField of fields) {
+        let { name, value } = newField
+        let { type, options } = baseField
+        if (name === baseField.name) {
+          console.log(
+            `name: ${name}, type: ${type}, value :${value}, options: ${options}`
+          )
+          if (!checkFieldType(res, type, value, options)) {
+            console.log(newField.name)
+            return
+          } else {
             baseField.value = value
             break
           }
@@ -218,23 +243,17 @@ exports.updateFile = async (req, res) => {
       }
     }
 
-    // Update the file
-    await File.updateOne(
-      { _id: fileId },
-      {
-        $set: {
-          name,
-          category,
-          fields: baseFields
-        }
-      }
-    )
+    file.name = name
+    file.category = category
+    file.metadata = baseFields
+    await file.save()
 
     // send response
-
-    res.status(200).json({ status: 500, error: COMMON_MSG.REQUEST_SUCCESS })
+    res.status(200).json({ status: 200, message: COMMON_MSG.REQUEST_SUCCESS })
   } catch (error) {
-    res.status(500).json({ status: 500, error: error.message })
+    if (!res.headersSent) {
+      res.status(500).json({ status: 500, message: error.message })
+    }
   }
 }
 
