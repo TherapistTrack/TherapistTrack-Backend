@@ -38,7 +38,6 @@ const validFields = (res, fields) => {
   }
 
   // Check for reserved field names and missing options on CHOICE fields
-  const reservedNames = ['Nombres', 'Apellidos']
   for (const field of fields) {
     validField(res, field)
   }
@@ -88,11 +87,7 @@ const checkFieldType = (res, type, value, options) => {
 
   switch (type) {
     case 'NUMBER':
-      if (
-        typeof value === 'number' &&
-        !isNaN(value) &&
-        !Number.isInteger(value)
-      )
+      if (typeof value === 'number' && !isNaN(value) && Number.isInteger(value))
         return true
       res
         .status(405)
