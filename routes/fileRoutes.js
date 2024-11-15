@@ -28,7 +28,7 @@ router.delete(
   fileController.deleteFile
 )
 router.get(
-  '/listFiles',
+  '/search',
   checkJwt,
   requiredPermissions(['read:files']),
   fileController.listFiles
@@ -38,6 +38,11 @@ router.get(
   checkJwt,
   requiredPermissions(['read:files']),
   fileController.getFileById
+)
+router.post(
+  '/search',
+  requiredPermissions(['read:files']),
+  fileController.searchAndFilterFiles
 )
 
 module.exports = router

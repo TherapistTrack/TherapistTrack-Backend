@@ -316,16 +316,49 @@ exports.deleteFile = async (req, res) => {
 }
 
 exports.listFiles = async (req, res) => {
-  try {
-    const { limit = 10, sortBy = 'created_at', order = 'asc' } = req.query
-    const files = await File.find()
-      .populate('record')
-      .sort({ [sortBy]: order === 'desc' ? -1 : 1 })
-      .limit(parseInt(limit, 10))
+  const { doctorId } = req.query
 
-    res.status(200).json(files)
+  try {
+    if (!emptyFields(res, doctorId)) return
+    if (!validMongoId(res, doctorId, COMMON_MSG.DOCTOR_NOT_FOUND)) return
+    if (!(await doctorActive(res, doctorId))) return
+
+    const fileTemplates = await FileTemplate.find(
+      { doctor: doctorId },
+      'fields'
+    )
+
+    if (!fileTemplates.length) {
+      return res.status(404).json({
+        status: 404,
+        message: COMMON_MSG.DOCTOR_NOT_FOUND
+      })
+    }
+
+    const fieldsSet = new Set()
+
+    fileTemplates.forEach((template) => {
+      template.fields.forEach((field) => {
+        const fieldKey = `${field.name}-${field.type}`
+        fieldsSet.add(fieldKey)
+      })
+    })
+
+    const fields = Array.from(fieldsSet).map((fieldKey) => {
+      const [name, type] = fieldKey.split('-')
+      return { name, type }
+    })
+
+    res.status(200).json({
+      status: 200,
+      message: COMMON_MSG.REQUEST_SUCCESS,
+      fields
+    })
   } catch (error) {
-    res.status(400).send({ status: 'error', message: error.message })
+    res.status(500).json({
+      status: 500,
+      message: COMMON_MSG.SERVER_ERROR + ': ' + error.message
+    })
   }
 }
 
@@ -399,4 +432,191 @@ exports.getFileById = async (req, res) => {
       message: error.message
     })
   }
+}
+
+//TODO: Deben implementarse los errores dados por la documentación, ahora mismo la implementación es delicada.
+exports.searchAndFilterFiles = async (req, res) => {
+  const {
+    doctorId,
+    recordId,
+    limit = 10,
+    page = 0,
+    category,
+    fields,
+    sorts,
+    filters
+  } = req.body
+
+  try {
+    if (!doctorId || !recordId || !category || !fields || !sorts || !filters) {
+      return res.status(400).json({ error: COMMON_MSG.MISSING_FIELDS })
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(doctorId)) {
+      return res.status(400).json({ error: 'Invalid doctor ID' })
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(recordId)) {
+      return res.status(400).json({ error: 'Invalid record ID' })
+    }
+
+    // Check if the doctor has access to the record
+    if (!(await checkDoctor(res, Record, doctorId, recordId))) return
+
+    const limitNum = parseInt(limit)
+    const pageNum = parseInt(page) > 0 ? parseInt(page) - 1 : 0
+
+    let pipeline = []
+
+    // Stage 1: Match recordId and category
+    pipeline.push({
+      $match: {
+        record: new mongoose.Types.ObjectId(recordId),
+        category: category
+      }
+    })
+
+    // Stage 2: Add sort fields only if they are present in 'fields'
+    if (sorts && sorts.length > 0 && fields && fields.length > 0) {
+      const { addFields: sortAddFields, sort } = buildSortStage(sorts, fields)
+
+      // Add fields for sorting
+      if (Object.keys(sortAddFields).length > 0) {
+        pipeline.push({ $addFields: sortAddFields })
+      }
+
+      // Add sort stage
+      if (Object.keys(sort).length > 0) {
+        pipeline.push({ $sort: sort })
+      }
+    }
+
+    // Stage 3: Pagination
+    pipeline.push({ $skip: pageNum * limitNum }, { $limit: limitNum })
+
+    // Stage 4: Projection
+    pipeline.push({
+      $project: buildProjection(fields)
+    })
+
+    // Execute the querys
+    const files = await File.aggregate(pipeline)
+
+    // Count total documents without pagination
+    const countPipeline = [
+      {
+        $match: {
+          record: new mongoose.Types.ObjectId(recordId),
+          category: category
+        }
+      },
+      { $count: 'total' }
+    ]
+
+    const totalResult = await File.aggregate(countPipeline)
+    const totalCount = totalResult.length > 0 ? totalResult[0].total : 0
+
+    res.status(200).json({
+      status: 200,
+      message: 'Request Successful',
+      files,
+      total: totalCount
+    })
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ error: error.message })
+  }
+}
+
+//TODO: Estas funciones deberían de ir en un archivo aparte, o considerarlas unificarlas con filterUtils.js (Realizar después de 22/11/2024)
+/**
+ * Builds MongoDB sort stage for files based on specified fields
+ * @param {Array} sorts - Array of sort objects
+ * @param {Array} fields - Array of fields allowed for sorting
+ * @returns {Object} Contains addFields and sort
+ */
+function buildSortStage(sorts, fields) {
+  let addFields = {}
+  let sort = {}
+
+  sorts.forEach((sortObj, index) => {
+    const { name, type, mode } = sortObj
+
+    // Only allow sorting if the field is in the fields array
+    const fieldExists = fields.find((field) => field.name === name)
+    if (!fieldExists) return
+
+    const valueAlias = `sortValue_${index}`
+
+    // Extract the field value from metadata
+    const fieldValueExpr = {
+      $getField: {
+        field: 'value',
+        input: {
+          $arrayElemAt: [
+            {
+              $filter: {
+                input: '$metadata',
+                as: 'field',
+                cond: { $eq: ['$$field.name', name] }
+              }
+            },
+            0
+          ]
+        }
+      }
+    }
+
+    let convertedValueExpr
+
+    if (type === 'NUMBER' || type === 'FLOAT') {
+      convertedValueExpr = { $toDouble: fieldValueExpr }
+    } else if (type === 'DATE') {
+      convertedValueExpr = { $toDate: fieldValueExpr }
+    } else {
+      convertedValueExpr = { $toString: fieldValueExpr }
+    }
+
+    // Add the converted value to addFields
+    addFields[valueAlias] = convertedValueExpr
+
+    // Add to sort
+    sort[valueAlias] = mode === 'asc' ? 1 : -1
+  })
+
+  return { addFields, sort }
+}
+
+/**
+ * Builds projection stage based on fields array
+ * @param {Array} fields - Array of field objects with name and type
+ * @returns {Object} Projection configuration
+ */
+function buildProjection(fields) {
+  let projection = {
+    _id: 0,
+    fileId: { $toString: '$_id' },
+    templateId: { $toString: '$template' },
+    name: 1,
+    createdAt: {
+      $dateToString: { format: '%Y-%m-%d', date: '$created_at' }
+    },
+    pages: 1
+  }
+
+  if (fields && fields.length > 0) {
+    projection['fields'] = {
+      $filter: {
+        input: '$metadata',
+        as: 'field',
+        cond: {
+          $in: ['$$field.name', fields.map((field) => field.name)]
+        }
+      }
+    }
+  } else {
+    projection['fields'] = 1
+  }
+
+  return projection
 }

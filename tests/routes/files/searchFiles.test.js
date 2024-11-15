@@ -7,7 +7,9 @@ const {
   modifyObjectAttribute,
   buildSearchRequestBody,
   buildFilterObject,
-  iso8601Regex
+  iso8601Regex,
+  deleteObjectAttribute,
+  validateResponse
 } = require('../../testHelpers')
 const COMMON_MSG = require('../../../utils/errorMsg')
 const yup = require('yup')
@@ -27,7 +29,7 @@ describe('Search Files endpoint', () => {
     recordId: '',
     limit: 10,
     page: 0,
-    categories: '',
+    category: '',
     fields: [
       {
         name: 'Edad',
@@ -55,33 +57,39 @@ describe('Search Files endpoint', () => {
           {
             name: 'A',
             type: 'TEXT',
-            required: true
+            required: true,
+            description: '_'
           },
           {
             name: 'B',
             type: 'SHORT_TEXT',
-            required: true
+            required: true,
+            description: '_'
           },
           {
             name: 'C',
             type: 'NUMBER',
-            required: true
+            required: true,
+            description: '_'
           },
           {
             name: 'D',
             type: 'FLOAT',
-            required: true
+            required: true,
+            description: '_'
           },
           {
             name: 'E',
             type: 'CHOICE',
             options: ['a', 'b'],
-            required: true
+            required: true,
+            description: '_'
           },
           {
             name: 'F',
             type: 'DATE',
-            required: true
+            required: true,
+            description: '_'
           }
         ]
       ))
@@ -93,9 +101,9 @@ describe('Search Files endpoint', () => {
     await createTestFile({
       doctorId: doctor.roleDependentInfo.id,
       recordId,
-      templateId,
+      templateId: fileTemplateId,
       name: 'file1',
-      category: '',
+      category: 'consultas',
       fields: [
         { name: 'A', value: 'a' },
         { name: 'B', value: 'a' },
@@ -109,8 +117,9 @@ describe('Search Files endpoint', () => {
     await createTestFile({
       doctorId: doctor.roleDependentInfo.id,
       recordId,
-      templateId,
+      templateId: fileTemplateId,
       name: 'file2',
+      category: 'consultas',
       fields: [
         { name: 'A', value: 'b' },
         { name: 'B', value: 'b' },
@@ -124,8 +133,9 @@ describe('Search Files endpoint', () => {
     await createTestFile({
       doctorId: doctor.roleDependentInfo.id,
       recordId,
-      templateId,
+      templateId: fileTemplateId,
       name: 'file3',
+      category: 'consultas',
       fields: [
         { name: 'A', value: 'c' },
         { name: 'B', value: 'c' },
@@ -198,13 +208,20 @@ describe('Search Files endpoint', () => {
 
   // DONE:
   test('should suceed with 200 searching a list of files with no sorting or filtering', async () => {
+    console.log('BASE_REQUEST:', BASE_REQUEST)
     const searchRequestBody = buildSearchRequestBody({
       doctorId: doctor.roleDependentInfo.id,
+      recordId,
+      limit: 10,
+      page: 0,
+      category: 'consultas',
       fields: [
         { name: 'C', type: 'NUMBER' },
         { name: 'F', type: 'DATE' },
         { name: 'E', type: 'CHOICE' }
-      ]
+      ],
+      filters: [],
+      sorts: []
     })
 
     try {

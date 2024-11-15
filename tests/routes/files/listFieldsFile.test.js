@@ -1,17 +1,20 @@
 const axios = require('axios')
-const { BASE_URL } = require('../../jest.setup')
+const { BASE_URL, getAuthToken } = require('../../jest.setup')
 const {
   generateObjectId,
   createTestDoctor,
   deleteUser,
   createTestFileTemplate,
-  checkFailRequest
+  checkFailRequest,
+  validateResponse
 } = require('../../testHelpers')
 const yup = require('yup')
 const COMMON_MSG = require('../../../utils/errorMsg')
 
 describe('Quet available fields for files Tests', () => {
   let doctor
+
+  const REQUEST_URL = `${BASE_URL}/files/search`
 
   const HEADERS = {
     'Content-Type': 'application/json',
@@ -79,7 +82,6 @@ describe('Quet available fields for files Tests', () => {
       const response = await axios.get(REQUEST_URL, {
         headers: HEADERS,
         params: {
-          recordId: recordId,
           doctorId: doctor.roleDependentInfo.id
         }
       })
