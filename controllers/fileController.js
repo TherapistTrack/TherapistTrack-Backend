@@ -139,7 +139,8 @@ exports.createFile = async (req, res) => {
     }
 
     const timestamp = Date.now()
-    const key = `${doctorId}/${recordId}/${timestamp}-${uploadfile.originalname}`
+    const sanitizedFilename = uploadfile.originalname.replace(/\s+/g, '_')
+    const key = `${doctorId}/${recordId}/${timestamp}-${sanitizedFilename}`
     const s3Response = await s3Upload(key, uploadfile.buffer)
     const location = s3Response.Location.split('.com/')[1]
 
