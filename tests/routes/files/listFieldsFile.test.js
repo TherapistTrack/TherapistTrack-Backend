@@ -36,23 +36,31 @@ describe('Quet available fields for files Tests', () => {
 
   beforeAll(async () => {
     doctor = await createTestDoctor()
-    await createTestFileTemplate(doctor.roleDependentInfo.id, 'template1', [
-      {
-        name: 'Estado',
-        type: 'CHOICE',
-        options: ['option1', 'option2'],
-        required: true,
-        description: ' '
-      }
-    ])
-    await createTestFileTemplate(doctor.roleDependentInfo.id, 'template2', [
-      {
-        name: 'Edad',
-        type: 'NUMBER',
-        required: true,
-        description: ' '
-      }
-    ])
+    await createTestFileTemplate(
+      doctor.roleDependentInfo.id,
+      `template_test_${Date.now()}`,
+      [
+        {
+          name: 'Estado',
+          type: 'CHOICE',
+          options: ['option1', 'option2'],
+          required: true,
+          description: ' '
+        }
+      ]
+    )
+    await createTestFileTemplate(
+      doctor.roleDependentInfo.id,
+      `template_test_2_${Date.now()}`,
+      [
+        {
+          name: 'Edad',
+          type: 'NUMBER',
+          required: true,
+          description: ' '
+        }
+      ]
+    )
   })
 
   afterAll(async () => {

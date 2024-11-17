@@ -69,42 +69,48 @@ describe('Delete Files Tests', () => {
   }
 
   beforeAll(async () => {
-    secondDoctor = createTestDoctor()
+    secondDoctor = await createTestDoctor()
     ;({ doctor, recordId, fileTemplateId } =
       await setUpEnvironmentForFilesTests(
         ['consultas', 'tests'],
-        'template_test',
+        `template_test_${Date.now()}`,
         [
           {
             name: 'Notas adicionales',
             type: 'TEXT',
-            required: true
+            required: true,
+            description: '_'
           },
           {
             name: 'Instrucciones de administracion',
             type: 'SHORT_TEXT',
-            required: true
+            required: true,
+            description: '_'
           },
           {
             name: 'Dosis (mg)',
             type: 'NUMBER',
-            required: true
+            required: true,
+            description: '_'
           },
           {
             name: 'Concentracion',
             type: 'FLOAT',
-            required: true
+            required: true,
+            description: '_'
           },
           {
             name: 'Forma de dosis',
             type: 'CHOICE',
             options: ['Oral', 'Capsula'],
-            required: true
+            required: true,
+            description: '_'
           },
           {
             name: 'Fecha de preescripcion',
             type: 'DATE',
-            required: true
+            required: true,
+            description: '_'
           }
         ]
       ))
@@ -112,14 +118,14 @@ describe('Delete Files Tests', () => {
     BASE_FILE.recordId = recordId
     BASE_FILE.templateId = fileTemplateId
 
-    fileId = createTestFile(BASE_FILE)
+    fileId = await createTestFile(BASE_FILE)
   })
 
   afterAll(async () => {
-    await deleteUser(doctor.id)
+    await Promise.all([deleteUser(doctor.id), deleteUser(secondDoctor.id)])
   })
 
-  // DONE:
+  // TODO:
   test('should succeed with 200 deleting a record', async () => {
     const deleteBody = {
       fileId: fileId,
@@ -142,7 +148,7 @@ describe('Delete Files Tests', () => {
     }
   })
 
-  // DONE:
+  // TODO:
   test('should fail with 400 if fileId is not passed', async () => {
     await checkFailDeleteRequest(
       {
@@ -153,7 +159,7 @@ describe('Delete Files Tests', () => {
     )
   })
 
-  // DONE:
+  // TODO:
   test('should fail with 400 if doctorId is not passed', async () => {
     await checkFailDeleteRequest(
       {
@@ -164,7 +170,7 @@ describe('Delete Files Tests', () => {
     )
   })
 
-  // DONE:
+  // TODO:
   test('should fail with 403 if doctor is not owner of file', async () => {
     await checkFailDeleteRequest(
       {
@@ -176,7 +182,7 @@ describe('Delete Files Tests', () => {
     )
   })
 
-  // DONE:
+  // TODO:
   test('should fail with 404 if doctorId is from a non-existent/active user', async () => {
     await checkFailDeleteRequest(
       {
@@ -188,7 +194,7 @@ describe('Delete Files Tests', () => {
     )
   })
 
-  // DONE:
+  // TODO:
   test('should fail with 404 if fileId is from a non-existent file', async () => {
     await checkFailDeleteRequest(
       {

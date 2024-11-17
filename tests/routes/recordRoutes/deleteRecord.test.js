@@ -41,7 +41,7 @@ describe('Delete Records Tests', () => {
 
     templateId = await createTestPatientTemplate(
       doctorId,
-      'Plantilla de Identificación',
+      `Plantilla de Identificación_${Date.now()}`,
       ['General', 'Consultas'],
       [
         {
@@ -71,7 +71,7 @@ describe('Delete Records Tests', () => {
     await Promise.all([deleteUser(userId), deleteUser(secondDoctor.id)])
   })
 
-  // DONE:
+  // TODO:
   test('should succeed with 200 deleting a record', async () => {
     const deleteBody = {
       recordId: recordId,
@@ -94,7 +94,7 @@ describe('Delete Records Tests', () => {
     }
   })
 
-  // DONE:
+  // TODO:
   test('should fail with 400 if recordId is not passed', async () => {
     await checkFailDeleteRequest(
       {
@@ -105,7 +105,7 @@ describe('Delete Records Tests', () => {
     )
   })
 
-  // DONE:
+  // TODO:
   test('should fail with 400 if doctorId is not passed', async () => {
     await checkFailDeleteRequest(
       {
@@ -116,7 +116,7 @@ describe('Delete Records Tests', () => {
     )
   })
 
-  // DONE:
+  // TODO:
   test('should fail with 403 if doctor is not owner of record', async () => {
     await checkFailDeleteRequest(
       {
@@ -128,7 +128,7 @@ describe('Delete Records Tests', () => {
     )
   })
 
-  // DONE:
+  // TODO:
   test('should fail with 404 if doctorId is from a non-existent/active user', async () => {
     await checkFailDeleteRequest(
       {
@@ -140,7 +140,7 @@ describe('Delete Records Tests', () => {
     )
   })
 
-  // DONE:
+  // TODO:
   test('should fail with 404 if recordId is from a non-existent record', async () => {
     await checkFailDeleteRequest(
       {
@@ -152,7 +152,7 @@ describe('Delete Records Tests', () => {
     )
   })
 
-  // DONE:
+  // TODO:
   test('should fail with 409 if recordId has files stored within', async () => {
     // can only be implemented when endpoints for file managemente are created.
     await checkFailDeleteRequest(

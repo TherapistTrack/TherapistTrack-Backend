@@ -104,5 +104,3 @@ paths:
     $ref: './paths/file_operations.yaml#/baseFileRoute'
   /files/search:
     $ref: './paths/file_operations.yaml#/searchFiles'
-  /files/metadata:
-    $ref: './paths/file_operations.yaml#/metadataFileRoute'
