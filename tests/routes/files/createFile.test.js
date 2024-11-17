@@ -1,6 +1,9 @@
 const axios = require('axios')
 const { BASE_URL, getAuthToken } = require('../../jest.setup')
 const COMMON_MSG = require('../../../utils/errorMsg')
+const path = require('path')
+const fs = require('fs')
+const FormData = require('form-data')
 
 const {
   deleteUser,
@@ -54,13 +57,11 @@ describe('Create Files Tests', () => {
   async function checkFailCreateRequest(body, expectedCode, expectedMsg) {
     const form = new FormData()
 
-    // Append the metadata first.
     form.append('metadata', JSON.stringify(body))
 
-    // Append a test PDF file.
-    const filePath = path.join(__dirname, './routes/files/testFile.pdf')
+    const filePath = path.join(__dirname, './testFile.pdf')
     const fileName = 'testFile.pdf'
-    form.append('file', fs.createReadStream(filePath), { fileName: fileName })
+    form.append('file', fs.createReadStream(filePath), fileName) // Modify this line
 
     return checkFailRequest(
       'post',
@@ -86,33 +87,39 @@ describe('Create Files Tests', () => {
           {
             name: 'Notas adicionales',
             type: 'TEXT',
-            required: true
+            required: true,
+            description: 'Additional notes for the file'
           },
           {
             name: 'Instrucciones de administracion',
             type: 'SHORT_TEXT',
-            required: true
+            required: true,
+            description: 'Instructions for administration'
           },
           {
             name: 'Dosis (mg)',
             type: 'NUMBER',
-            required: true
+            required: true,
+            description: 'Dosage in milligrams'
           },
           {
             name: 'Concentracion',
             type: 'FLOAT',
-            required: true
+            required: true,
+            description: 'Concentration of the medication'
           },
           {
             name: 'Forma de dosis',
             type: 'CHOICE',
             options: ['Oral', 'Capsula'],
-            required: true
+            required: true,
+            description: 'Form of dosage'
           },
           {
             name: 'Fecha de preescripcion',
             type: 'DATE',
-            required: true
+            required: true,
+            description: 'Prescription date'
           }
         ]
       ))
@@ -150,7 +157,7 @@ describe('Create Files Tests', () => {
     // Append a test PDF file.
     const filePath = path.join(__dirname, 'testFile.pdf')
     const fileName = 'testFile.pdf'
-    form.append('file', fs.createReadStream(filePath), { fileName: fileName })
+    form.append('file', fs.createReadStream(filePath), fileName) // Modify this line
 
     try {
       const response = await axios.post(REQUEST_URL, form, {
@@ -215,7 +222,7 @@ describe('Create Files Tests', () => {
   // TODO:
   test('should fail with 404 if record with given id do not exist', async () => {
     const file = modifyFileAttribute('recordId', generateObjectId())
-    await checkFailCreateRequest(file, 404, COMMON_MSG.DOCTOR_NOT_FOUND)
+    await checkFailCreateRequest(file, 404, COMMON_MSG.RECORD_NOT_FOUND)
   })
 
   // TODO: HACER ESTE
@@ -324,7 +331,7 @@ describe('Create Files Tests', () => {
 
   // TODO:
   test.skip('should fail with 405 when passing BOOLEAN value for NUMBER field', async () => {
-    const record = modifyFileField('Dosis (mg)', false)
+    const record = modifyFileField('Dosis (mg)', true)
     await checkFailCreateRequest(
       record,
       405,

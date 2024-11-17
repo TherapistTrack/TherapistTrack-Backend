@@ -4,11 +4,11 @@ const {
   generateS3PreSignedUrl
 } = require('../controllers/s3ClientController')
 const mongoose = require('mongoose')
+const { isValidValue } = require('../utils/validatorConfig')
 const File = require('../models/fileModel')
 const Record = require('../models/recordModel')
 const FileTemplate = require('../models/fileTemplateModel')
 const COMMON_MSG = require('../utils/errorMsg')
-const Usuario = require('../models/userModel')
 const pdf = require('pdf-parse')
 const {
   checkExistenceName,
@@ -71,7 +71,7 @@ exports.createFile = async (req, res) => {
     ) {
       return res.status(400).send({
         status: 400,
-        message: COMMON_MSG.INVALID_ID_FORMAT
+        message: COMMON_MSG.INVALID_DOCTOR_ID
       })
     }
 
@@ -95,9 +95,9 @@ exports.createFile = async (req, res) => {
       fileTemplate.doctor.toString() !== doctorId ||
       record.doctor.toString() !== doctorId
     ) {
-      return res.status(403).send({
-        status: 403,
-        message: COMMON_MSG.DOCTOR_IS_NOT_OWNER
+      return res.status(404).send({
+        status: 404,
+        message: COMMON_MSG.DOCTOR_NOT_FOUND
       })
     }
 
@@ -107,14 +107,45 @@ exports.createFile = async (req, res) => {
     }
 
     const metadataArray = []
+    const receivedFieldsMap = new Map(
+      fields.map((field) => [field.name, field.value])
+    )
+
+    for (const templateField of fileTemplate.fields) {
+      const receivedValue = receivedFieldsMap.get(templateField.name)
+
+      if (
+        templateField.required &&
+        (receivedValue === undefined ||
+          receivedValue === null ||
+          receivedValue === '')
+      ) {
+        return res.status(404).send({
+          status: 404,
+          message: COMMON_MSG.MISSING_FIELDS_IN_TEMPLATE
+        })
+      }
+    }
+
     for (const field of fields) {
       const templateField = templateFieldsMap[field.name]
       if (!templateField) {
-        return res.status(400).send({
-          status: 400,
+        return res.status(404).send({
+          status: 404,
           message: `Field "${field.name}" not found in template.`
         })
       }
+
+      const isValid = checkFieldType(
+        res,
+        templateField.type,
+        field.value,
+        templateField.options
+      )
+      if (!isValid) {
+        return
+      }
+
       const metadataField = {
         name: field.name,
         type: templateField.type,
@@ -158,8 +189,8 @@ exports.createFile = async (req, res) => {
     const file = new File(fileData)
     await file.save()
 
-    return res.status(201).send({
-      status: 201,
+    return res.status(200).send({
+      status: 200,
       message: COMMON_MSG.REQUEST_SUCCESS,
       fileId: file._id
     })
