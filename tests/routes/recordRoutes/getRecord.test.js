@@ -43,7 +43,7 @@ describe('Get Record by ID', () => {
 
     templateId = await createTestPatientTemplate(
       doctorId,
-      'Plantilla de Identificación',
+      `Plantilla de Identificación_${Date.now()}`,
       ['General', 'Consultas'],
       [
         {
@@ -163,7 +163,7 @@ describe('Get Record by ID', () => {
     await Promise.all([deleteUser(userId), deleteUser(secondDoctor.id)])
   })
 
-  // DONE:
+  // TODO:
   test('should succeed with 200 fetching a valid record', async () => {
     try {
       const response = await axios.get(REQUEST_URL, {
@@ -186,17 +186,17 @@ describe('Get Record by ID', () => {
     }
   })
 
-  // DONE:
+  // TODO:
   test('should fail with 400 if doctorId is not sent', async () => {
     await checkFailGetRequest({ recordId }, 400, COMMON_MSG.MISSING_FIELDS)
   })
 
-  // DONE:
+  // TODO:
   test('should fail with 400 if recordId is not sent', async () => {
     await checkFailGetRequest({ doctorId }, 400, COMMON_MSG.MISSING_FIELDS)
   })
 
-  // DONE:
+  // TODO:
   test('should fail with 403 if doctor is not the owner of the record', async () => {
     await checkFailGetRequest(
       {
@@ -208,7 +208,7 @@ describe('Get Record by ID', () => {
     )
   })
 
-  // DONE:
+  // TODO:
   test('should fail with 404 if doctorId is from a non-existent/disable user', async () => {
     const nonExistentDoctorId = generateObjectId()
 
@@ -222,7 +222,7 @@ describe('Get Record by ID', () => {
     )
   })
 
-  // DONE:
+  // TODO:
   test('should fail with 404 if recordId is from a non-existent record', async () => {
     const nonExistentRecordId = generateObjectId()
 
