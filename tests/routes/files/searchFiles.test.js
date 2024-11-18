@@ -232,31 +232,40 @@ describe('Search Files endpoint', () => {
       expect(response.status).toBe(200)
       validateResponse(response.data, SEARCH_RESPONSE_SCHEMA)
       expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS)
-      console.log(response.data)
       expect(response.data.files.length).toBeGreaterThan(0)
       expect(response.data.total).toBe(response.data.files.length)
-      response.data.files.forEach((record) => {
-        expect(record).toEqual(
+      response.data.files.forEach((file) => {
+        expect(file).toEqual(
           expect.objectContaining({
-            patient: expect.objectContaining({
-              fields: expect.arrayContaining([
-                expect.objectContaining({
-                  name: 'C',
-                  type: 'NUMBER',
-                  value: expect.any(Number)
-                }),
-                expect.objectContaining({
-                  name: 'F',
-                  type: 'DATE',
-                  value: expect.any(String)
-                }),
-                expect.objectContaining({
-                  name: 'E',
-                  type: 'CHOICE',
-                  value: expect.any(String)
-                })
-              ])
-            })
+            fileId: expect.any(String),
+            templateId: expect.any(String),
+            name: expect.any(String),
+            createdAt: expect.any(String),
+            pages: expect.any(Number),
+            fields: expect.arrayContaining([
+              // Check for field "C"
+              expect.objectContaining({
+                name: 'C',
+                type: 'NUMBER',
+                value: expect.any(Number),
+                required: expect.any(Boolean)
+              }),
+              // Check for field "F"
+              expect.objectContaining({
+                name: 'F',
+                type: 'DATE',
+                value: expect.any(String),
+                required: expect.any(Boolean)
+              }),
+              // Check for field "E"
+              expect.objectContaining({
+                name: 'E',
+                type: 'CHOICE',
+                value: expect.any(String),
+                options: expect.any(Array),
+                required: expect.any(Boolean)
+              })
+            ])
           })
         )
       })
@@ -347,6 +356,7 @@ describe('Search Files endpoint', () => {
   // TODO:
   test('should fail with 400 if recordId is not sent', async () => {
     const body = deleteObjectAttribute(BASE_REQUEST, 'recordId')
+    console.log(body)
     await checkFailSearchRequest(body, 400, COMMON_MSG.MISSING_FIELDS)
   })
 

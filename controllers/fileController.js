@@ -488,15 +488,15 @@ exports.searchAndFilterFiles = async (req, res) => {
     if (!doctorId || !recordId || !category || !fields || !sorts || !filters) {
       return res
         .status(400)
-        .json({ status: 400, error: COMMON_MSG.MISSING_FIELDS })
+        .json({ status: 400, message: COMMON_MSG.MISSING_FIELDS })
     }
 
     if (!mongoose.Types.ObjectId.isValid(doctorId)) {
-      return res.status(400).json({ error: 'Invalid doctor ID' })
+      return res.status(400).json({ message: 'Invalid doctor ID' })
     }
 
     if (!mongoose.Types.ObjectId.isValid(recordId)) {
-      return res.status(400).json({ error: 'Invalid record ID' })
+      return res.status(400).json({ message: 'Invalid record ID' })
     }
 
     // Check if the doctor has access to the record
