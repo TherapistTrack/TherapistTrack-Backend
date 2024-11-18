@@ -299,6 +299,8 @@ exports.deleteFile = async (req, res) => {
       })
     }
 
+    if (!(await doctorActive(res, doctorId))) return
+
     const file = await File.findById(fileId)
     if (!file) {
       return res.status(404).send({
@@ -309,6 +311,7 @@ exports.deleteFile = async (req, res) => {
 
     const record = await Record.findById(file.record)
     if (!record) {
+      console.log('RECORD IS NOT GIVING')
       return res.status(404).send({
         status: 404,
         message: COMMON_MSG.RECORD_NOT_FOUND
@@ -405,6 +408,8 @@ exports.getFileById = async (req, res) => {
       })
     }
 
+    if (!(await doctorActive(res, doctorId))) return
+
     const file = await File.findById(fileId)
     if (!file) {
       return res.status(404).send({
@@ -481,7 +486,9 @@ exports.searchAndFilterFiles = async (req, res) => {
 
   try {
     if (!doctorId || !recordId || !category || !fields || !sorts || !filters) {
-      return res.status(400).json({ error: COMMON_MSG.MISSING_FIELDS })
+      return res
+        .status(400)
+        .json({ status: 400, error: COMMON_MSG.MISSING_FIELDS })
     }
 
     if (!mongoose.Types.ObjectId.isValid(doctorId)) {
@@ -550,7 +557,7 @@ exports.searchAndFilterFiles = async (req, res) => {
 
     res.status(200).json({
       status: 200,
-      message: 'Request Successful',
+      message: COMMON_MSG.REQUEST_SUCCESS,
       files,
       total: totalCount
     })

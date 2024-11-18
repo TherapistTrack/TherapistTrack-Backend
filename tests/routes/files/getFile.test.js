@@ -6,7 +6,9 @@ const {
   checkFailRequest,
   validateResponse,
   createTestFile,
-  iso8601Regex
+  iso8601Regex,
+  setUpEnvironmentForFilesTests,
+  generateObjectId
 } = require('../../testHelpers')
 const COMMON_MSG = require('../../../utils/errorMsg')
 const yup = require('yup')
@@ -70,44 +72,51 @@ describe('Get Record by ID', () => {
 
   beforeAll(async () => {
     secondDoctor = await createTestDoctor()
-    ;({ doctor, patientTemplateId, recordId, fileTemplateId } =
+    ;({ doctor, recordId, fileTemplateId } =
       await setUpEnvironmentForFilesTests(
         ['consultas', 'tests'],
-        `template_test_${Date.now()}`,
+        `template_${Date.now()}`,
         [
           {
             name: 'Notas adicionales',
             type: 'TEXT',
-            required: true
+            required: true,
+            description: '_'
           },
           {
             name: 'Instrucciones de administracion',
             type: 'SHORT_TEXT',
-            required: true
+            required: true,
+            description: '_'
           },
           {
             name: 'Dosis (mg)',
             type: 'NUMBER',
-            required: true
+            required: true,
+            description: '_'
           },
           {
             name: 'Concentracion',
             type: 'FLOAT',
-            required: true
+            required: true,
+            description: '_'
           },
           {
             name: 'Forma de dosis',
             type: 'CHOICE',
             options: ['Oral', 'Capsula'],
-            required: true
+            required: true,
+            description: '_'
           },
           {
             name: 'Fecha de preescripcion',
             type: 'DATE',
-            required: true
+            required: true,
+            description: '_'
           }
         ]
       ))
+
     BASE_FILE.doctorId = doctor.roleDependentInfo.id
     BASE_FILE.recordId = recordId
     BASE_FILE.templateId = fileTemplateId
@@ -154,7 +163,7 @@ describe('Get Record by ID', () => {
       const response = await axios.get(REQUEST_URL, {
         headers: HEADERS,
         params: {
-          recordId: recordId,
+          fileId: fileId,
           doctorId: doctor.roleDependentInfo.id
         }
       })
