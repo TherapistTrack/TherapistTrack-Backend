@@ -126,29 +126,6 @@ describe('Delete Files Tests', () => {
   })
 
   // TODO:
-  test('should succeed with 200 deleting a record', async () => {
-    const deleteBody = {
-      fileId: fileId,
-      doctorId: doctor.roleDependentInfo.id
-    }
-
-    try {
-      const response = await axios.delete(REQUEST_URL, {
-        headers: HEADERS,
-        data: deleteBody
-      })
-      expect(response.status).toBe(200)
-      expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS)
-    } catch (error) {
-      console.error(
-        'Error deleting file:',
-        error.response ? error.response.data : error.message
-      )
-      throw error
-    }
-  })
-
-  // TODO:
   test('should fail with 400 if fileId is not passed', async () => {
     await checkFailDeleteRequest(
       {
@@ -198,11 +175,33 @@ describe('Delete Files Tests', () => {
   test('should fail with 404 if fileId is from a non-existent file', async () => {
     await checkFailDeleteRequest(
       {
-        doctor: doctor.roleDependentInfo.id,
-        doctorId: generateObjectId()
+        doctorId: doctor.roleDependentInfo.id,
+        fileId: generateObjectId()
       },
       404,
       COMMON_MSG.FILE_NOT_FOUND
     )
+  })
+
+  test('should succeed with 200 deleting a file', async () => {
+    const deleteBody = {
+      fileId: fileId,
+      doctorId: doctor.roleDependentInfo.id
+    }
+
+    try {
+      const response = await axios.delete(REQUEST_URL, {
+        headers: HEADERS,
+        data: deleteBody
+      })
+      expect(response.status).toBe(200)
+      expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS)
+    } catch (error) {
+      console.error(
+        'Error deleting file:',
+        error.response ? error.response.data : error.message
+      )
+      throw error
+    }
   })
 })

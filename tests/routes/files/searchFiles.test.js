@@ -108,10 +108,10 @@ describe('Search Files endpoint', () => {
       fields: [
         { name: 'A', value: 'a' },
         { name: 'B', value: 'a' },
-        { name: 'C', value: 1.2 },
-        { name: 'D', value: 100 },
-        { name: 'E', value: '1993-07-15T00:00:00Z' },
-        { name: 'F', value: 'Soltero' }
+        { name: 'C', value: 12 },
+        { name: 'D', value: 100.1 },
+        { name: 'E', value: 'a' },
+        { name: 'F', value: '1993-07-15T00:00:00Z' }
       ]
     })
 
@@ -124,10 +124,10 @@ describe('Search Files endpoint', () => {
       fields: [
         { name: 'A', value: 'b' },
         { name: 'B', value: 'b' },
-        { name: 'C', value: 1.3 },
-        { name: 'D', value: 25 },
-        { name: 'E', value: '1998-03-22T00:00:00Z' },
-        { name: 'F', value: 'Casado' }
+        { name: 'C', value: 13 },
+        { name: 'D', value: 25.2 },
+        { name: 'E', value: 'a' },
+        { name: 'F', value: '1998-03-22T00:00:00Z' }
       ]
     })
 
@@ -140,10 +140,10 @@ describe('Search Files endpoint', () => {
       fields: [
         { name: 'A', value: 'c' },
         { name: 'B', value: 'c' },
-        { name: 'C', value: 1.4 },
-        { name: 'D', value: 40 },
-        { name: 'E', value: '1982-11-01T00:00:00Z' },
-        { name: 'F', value: 'Soltero' }
+        { name: 'C', value: 14 },
+        { name: 'D', value: 40.3 },
+        { name: 'E', value: 'b' },
+        { name: 'F', value: '1982-11-01T00:00:00Z' }
       ]
     })
   })
@@ -209,7 +209,6 @@ describe('Search Files endpoint', () => {
 
   // TODO:
   test('should suceed with 200 searching a list of files with no sorting or filtering', async () => {
-    // console.log('BASE_REQUEST:', BASE_REQUEST)
     const searchRequestBody = buildSearchRequestBody({
       doctorId: doctor.roleDependentInfo.id,
       recordId: recordId,
@@ -233,30 +232,40 @@ describe('Search Files endpoint', () => {
       expect(response.status).toBe(200)
       validateResponse(response.data, SEARCH_RESPONSE_SCHEMA)
       expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS)
-      expect(response.data.records.length).toBeGreaterThan(0)
-      expect(response.data.total).toBe(response.data.records.length)
-      response.data.records.forEach((record) => {
-        expect(record).toEqual(
+      expect(response.data.files.length).toBeGreaterThan(0)
+      expect(response.data.total).toBe(response.data.files.length)
+      response.data.files.forEach((file) => {
+        expect(file).toEqual(
           expect.objectContaining({
-            patient: expect.objectContaining({
-              fields: expect.arrayContaining([
-                expect.objectContaining({
-                  name: 'C',
-                  type: 'NUMBER',
-                  value: expect.any(Number)
-                }),
-                expect.objectContaining({
-                  name: 'F',
-                  type: 'DATE',
-                  value: expect.any(String)
-                }),
-                expect.objectContaining({
-                  name: 'E',
-                  type: 'CHOICE',
-                  value: expect.any(String)
-                })
-              ])
-            })
+            fileId: expect.any(String),
+            templateId: expect.any(String),
+            name: expect.any(String),
+            createdAt: expect.any(String),
+            pages: expect.any(Number),
+            fields: expect.arrayContaining([
+              // Check for field "C"
+              expect.objectContaining({
+                name: 'C',
+                type: 'NUMBER',
+                value: expect.any(Number),
+                required: expect.any(Boolean)
+              }),
+              // Check for field "F"
+              expect.objectContaining({
+                name: 'F',
+                type: 'DATE',
+                value: expect.any(String),
+                required: expect.any(Boolean)
+              }),
+              // Check for field "E"
+              expect.objectContaining({
+                name: 'E',
+                type: 'CHOICE',
+                value: expect.any(String),
+                options: expect.any(Array),
+                required: expect.any(Boolean)
+              })
+            ])
           })
         )
       })
@@ -347,6 +356,7 @@ describe('Search Files endpoint', () => {
   // TODO:
   test('should fail with 400 if recordId is not sent', async () => {
     const body = deleteObjectAttribute(BASE_REQUEST, 'recordId')
+    console.log(body)
     await checkFailSearchRequest(body, 400, COMMON_MSG.MISSING_FIELDS)
   })
 

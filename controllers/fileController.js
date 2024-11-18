@@ -251,20 +251,13 @@ exports.updateFile = async (req, res) => {
 
     // 405
     const baseFields = file.metadata
-    // console.log(baseFields)
-    // console.log("===============")
-    // console.log(fields)
 
     for (const baseField of baseFields) {
       for (const newField of fields) {
         let { name, value } = newField
         let { type, options } = baseField
         if (name === baseField.name) {
-          console.log(
-            `name: ${name}, type: ${type}, value :${value}, options: ${options}`
-          )
           if (!checkFieldType(res, type, value, options)) {
-            console.log(newField.name)
             return
           } else {
             baseField.value = value
@@ -298,6 +291,8 @@ exports.deleteFile = async (req, res) => {
         message: COMMON_MSG.MISSING_FIELDS
       })
     }
+
+    if (!(await doctorActive(res, doctorId))) return
 
     const file = await File.findById(fileId)
     if (!file) {
@@ -405,6 +400,8 @@ exports.getFileById = async (req, res) => {
       })
     }
 
+    if (!(await doctorActive(res, doctorId))) return
+
     const file = await File.findById(fileId)
     if (!file) {
       return res.status(404).send({
@@ -481,15 +478,17 @@ exports.searchAndFilterFiles = async (req, res) => {
 
   try {
     if (!doctorId || !recordId || !category || !fields || !sorts || !filters) {
-      return res.status(400).json({ error: COMMON_MSG.MISSING_FIELDS })
+      return res
+        .status(400)
+        .json({ status: 400, message: COMMON_MSG.MISSING_FIELDS })
     }
 
     if (!mongoose.Types.ObjectId.isValid(doctorId)) {
-      return res.status(400).json({ error: 'Invalid doctor ID' })
+      return res.status(400).json({ message: 'Invalid doctor ID' })
     }
 
     if (!mongoose.Types.ObjectId.isValid(recordId)) {
-      return res.status(400).json({ error: 'Invalid record ID' })
+      return res.status(400).json({ message: 'Invalid record ID' })
     }
 
     // Check if the doctor has access to the record
@@ -550,7 +549,7 @@ exports.searchAndFilterFiles = async (req, res) => {
 
     res.status(200).json({
       status: 200,
-      message: 'Request Successful',
+      message: COMMON_MSG.REQUEST_SUCCESS,
       files,
       total: totalCount
     })
