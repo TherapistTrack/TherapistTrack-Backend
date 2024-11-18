@@ -7,6 +7,7 @@ const {
   createTestRecord,
   checkFailRequest,
   validateResponse,
+  generateObjectId,
   iso8601Regex
 } = require('../../testHelpers')
 const COMMON_MSG = require('../../../utils/errorMsg')

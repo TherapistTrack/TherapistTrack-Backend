@@ -355,10 +355,24 @@ exports.getRecordById = async (req, res) => {
   const { doctorId, recordId } = req.query
 
   try {
-    if (!emptyFields(res, doctorId, recordId)) return
+    if (!emptyFields(res, doctorId, recordId)) {
+      return
+    }
 
     if (!validMongoId(res, doctorId, COMMON_MSG.DOCTOR_NOT_FOUND)) return
     if (!validMongoId(res, recordId, COMMON_MSG.RECORD_NOT_FOUND)) return
+
+    if (!(await doctorActive(res, doctorId))) return
+
+    if (
+      !(await checkExistenceId(
+        res,
+        Record,
+        recordId,
+        COMMON_MSG.RECORD_NOT_FOUND
+      ))
+    )
+      if (!(await checkDoctor(res, Record, doctorId, recordId))) return
 
     const record = await Record.findById(recordId)
     if (!record) {
@@ -397,7 +411,8 @@ exports.getRecordById = async (req, res) => {
       categories: patientTemplate.categories,
       createdAt,
       patient: {
-        ...patient,
+        names: patient.names,
+        lastnames: patient.lastNames,
         fields: filteredFields
       }
     })
