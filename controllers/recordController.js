@@ -172,7 +172,7 @@ exports.editRecord = async (req, res) => {
     if (!emptyFields(res, doctorId, recordId, patient)) return
     if (!validArrays(res, patient.fields)) return
     if (!validMongoId(res, recordId, COMMON_MSG.INVALID_RECORD_ID)) return
-    if (!validMongoId(res, doctorId, COMMON_MSG.INVALID_DOCTOR_ID)) return
+    if (!validMongoId(res, doctorId, COMMON_MSG.DOCTOR_NOT_FOUND)) return
 
     if (
       !(await checkExistenceId(
@@ -201,6 +201,17 @@ exports.editRecord = async (req, res) => {
     }
 
     for (let templateField of templateFields) {
+      const patientField = patient.fields.find(
+        (field) => field.name === templateField.name
+      )
+
+      if (!patientField) {
+        return res.status(404).json({
+          status: 404,
+          message: COMMON_MSG.MISSING_FIELDS_IN_TEMPLATE
+        })
+      }
+
       const fieldInRequest = updatedPatient.fields.find(
         (field) => field.name === templateField.name
       )

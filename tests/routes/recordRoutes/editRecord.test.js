@@ -248,14 +248,14 @@ describe('Edit Records Tests', () => {
 
   // DONE:
   test('should fail with 404 if doctorId is from a non-existent/active user', async () => {
-    const record = modifyRecordAttribute('doctorId', generateObjectId())
+    const record = modifyRecordAttribute('doctorId', 'nonExistentDoctorId')
     await checkFailEditRequest(record, 404, COMMON_MSG.DOCTOR_NOT_FOUND)
   })
 
   // DONE:
   test('should fail with 404 if recordId is from a non-existent record', async () => {
     const record = modifyRecordAttribute('recordId', generateObjectId())
-    await checkFailEditRequest(record, 404, COMMON_MSG.TEMPLATE_NOT_FOUND)
+    await checkFailEditRequest(record, 404, COMMON_MSG.RECORD_NOT_FOUND)
   })
 
   // DONE:
