@@ -251,20 +251,13 @@ exports.updateFile = async (req, res) => {
 
     // 405
     const baseFields = file.metadata
-    // console.log(baseFields)
-    // console.log("===============")
-    // console.log(fields)
 
     for (const baseField of baseFields) {
       for (const newField of fields) {
         let { name, value } = newField
         let { type, options } = baseField
         if (name === baseField.name) {
-          console.log(
-            `name: ${name}, type: ${type}, value :${value}, options: ${options}`
-          )
           if (!checkFieldType(res, type, value, options)) {
-            console.log(newField.name)
             return
           } else {
             baseField.value = value
@@ -311,7 +304,6 @@ exports.deleteFile = async (req, res) => {
 
     const record = await Record.findById(file.record)
     if (!record) {
-      console.log('RECORD IS NOT GIVING')
       return res.status(404).send({
         status: 404,
         message: COMMON_MSG.RECORD_NOT_FOUND
