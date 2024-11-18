@@ -9,7 +9,8 @@ const {
   buildFilterObject,
   iso8601Regex,
   deleteObjectAttribute,
-  validateResponse
+  validateResponse,
+  deleteUser
 } = require('../../testHelpers')
 const COMMON_MSG = require('../../../utils/errorMsg')
 const yup = require('yup')
@@ -148,7 +149,7 @@ describe('Search Files endpoint', () => {
   })
 
   afterAll(async () => {
-    await deleteUser(userId)
+    await deleteUser(doctorId)
   })
 
   const SEARCH_RESPONSE_SCHEMA = yup
@@ -208,10 +209,10 @@ describe('Search Files endpoint', () => {
 
   // TODO:
   test('should suceed with 200 searching a list of files with no sorting or filtering', async () => {
-    console.log('BASE_REQUEST:', BASE_REQUEST)
+    // console.log('BASE_REQUEST:', BASE_REQUEST)
     const searchRequestBody = buildSearchRequestBody({
       doctorId: doctor.roleDependentInfo.id,
-      recordId,
+      recordId: recordId,
       limit: 10,
       page: 0,
       category: 'consultas',
@@ -261,7 +262,7 @@ describe('Search Files endpoint', () => {
       })
     } catch (error) {
       console.error(
-        'Error searching for list of patients:',
+        'Error searching for list of files:',
         error.response ? error.response.data : error.message
       )
       throw error
@@ -555,22 +556,19 @@ describe('Search Files endpoint', () => {
   // === CHOICE =======
   // ==================
   // DONE:
-  tests.skip(
-    'should fail with 405 when passing NUMBER values to CHOICE',
-    async () => {
-      const searchRequestBody = buildSearchRequestBody({
-        doctorId: doctorId,
-        fields: [{ name: 'E', type: 'CHOICE' }],
-        filters: [buildFilterObject('E', 'CHOICE', 'is', [1])]
-      })
+  test.skip('should fail with 405 when passing NUMBER values to CHOICE', async () => {
+    const searchRequestBody = buildSearchRequestBody({
+      doctorId: doctorId,
+      fields: [{ name: 'E', type: 'CHOICE' }],
+      filters: [buildFilterObject('E', 'CHOICE', 'is', [1])]
+    })
 
-      await checkFailSearchRequest(
-        searchRequestBody,
-        405,
-        COMMON_MSG.INVALID_FIELD_TYPE_CHOICE
-      )
-    }
-  )
+    await checkFailSearchRequest(
+      searchRequestBody,
+      405,
+      COMMON_MSG.INVALID_FIELD_TYPE_CHOICE
+    )
+  })
 
   // DONE:
   test.skip('should fail with 405 when passing BOOLEAN values to CHOICE', async () => {
