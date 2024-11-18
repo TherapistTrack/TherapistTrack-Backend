@@ -1,19 +1,20 @@
 const axios = require('axios')
 const { BASE_URL, getAuthToken } = require('../../jest.setup')
 const {
+  generateObjectId,
   createTestDoctor,
-  createTestPatientTemplate,
   deleteUser,
+  createTestFileTemplate,
   checkFailRequest,
   validateResponse
 } = require('../../testHelpers')
-const COMMON_MSG = require('../../../utils/errorMsg')
 const yup = require('yup')
+const COMMON_MSG = require('../../../utils/errorMsg')
 
-describe('List possible fields', () => {
-  let doctorId, userId
+describe('Quet available fields for files Tests', () => {
+  let doctor
 
-  const REQUEST_URL = `${BASE_URL}/records/search`
+  const REQUEST_URL = `${BASE_URL}/files/search`
 
   const HEADERS = {
     'Content-Type': 'application/json',
@@ -21,53 +22,49 @@ describe('List possible fields', () => {
     Origin: 'http://localhost'
   }
 
-  async function checkFailListRequest(body, expectedCode, expectedMsg) {
+  async function checkFailGetRequest(params, expectedCode, expectedMsg) {
     return checkFailRequest(
       'get',
       REQUEST_URL,
       HEADERS,
+      params,
       {},
-      body,
       expectedCode,
       expectedMsg
     )
   }
 
   beforeAll(async () => {
-    const doctor = await createTestDoctor()
-    userId = doctor.id
-    doctorId = doctor.roleDependentInfo.id
-
-    await createTestPatientTemplate(
-      doctorId,
-      `Plantilla de Prueba_${Date.now()}`,
-      ['General'],
+    doctor = await createTestDoctor()
+    await createTestFileTemplate(
+      doctor.roleDependentInfo.id,
+      `template_test_${Date.now()}`,
       [
         {
-          name: 'Age',
-          type: 'NUMBER',
+          name: 'Estado',
+          type: 'CHOICE',
+          options: ['option1', 'option2'],
           required: true,
-          description: 'Edad del paciente'
+          description: ' '
         }
       ]
     )
-    await createTestPatientTemplate(
-      doctorId,
-      `Plantilla de Prueba 2_${Date.now()}`,
-      ['General'],
+    await createTestFileTemplate(
+      doctor.roleDependentInfo.id,
+      `template_test_2_${Date.now()}`,
       [
         {
-          name: 'Height',
-          type: 180.0,
+          name: 'Edad',
+          type: 'NUMBER',
           required: true,
-          description: 'Altura del paciente'
+          description: ' '
         }
       ]
     )
   })
 
   afterAll(async () => {
-    await deleteUser(userId)
+    await deleteUser(doctor.id)
   })
 
   const LIST_FIELDS_SCHEMA = yup.object().shape({
@@ -88,39 +85,37 @@ describe('List possible fields', () => {
   })
 
   // TODO:
-  test('Should succeed with 200 in retreiving available record fields', async () => {
+  test('Should succeed with 200 in retreiving available file fields', async () => {
     try {
       const response = await axios.get(REQUEST_URL, {
         headers: HEADERS,
         params: {
-          doctorId: doctorId
+          doctorId: doctor.roleDependentInfo.id
         }
       })
-
-      await validateResponse(response.data, LIST_FIELDS_SCHEMA)
       expect(response.status).toBe(200)
       expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS)
       expect(response.data.fields.length).toBe(2)
+      await validateResponse(response.data, LIST_FIELDS_SCHEMA)
     } catch (error) {
       console.error(
-        'Error retrieving available record fields:',
+        'Error fetching metadata:',
         error.response ? error.response.data : error.message
       )
-      throw error
     }
   })
 
   // TODO:
   test('Should fail with 400 if doctorId is not sent', async () => {
-    await checkFailListRequest({}, 400, COMMON_MSG.MISSING_FIELDS)
+    checkFailGetRequest({}, 400, COMMON_MSG.MISSING_FIELDS)
   })
 
   // TODO:
   test('Should fail with 404 if doctorId not correspond to and existent/valid user', async () => {
-    const nonExistentDoctorId = 'nonExistentDoctorId12345'
-
-    await checkFailListRequest(
-      { doctorId: nonExistentDoctorId },
+    checkFailGetRequest(
+      {
+        doctorId: generateObjectId()
+      },
       404,
       COMMON_MSG.DOCTOR_NOT_FOUND
     )

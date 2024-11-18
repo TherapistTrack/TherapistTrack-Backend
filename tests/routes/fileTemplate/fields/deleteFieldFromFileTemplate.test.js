@@ -3,14 +3,15 @@ const { BASE_URL, getAuthToken } = require('../../../jest.setup')
 const {
   createTestDoctor,
   deleteUser,
+  createTestFileTemplate,
   checkFailRequest
 } = require('../../../testHelpers')
 const COMMON_MSG = require('../../../../utils/errorMsg')
 
-describe('Delete Field from Patient Template Tests', () => {
+describe('Delete Field from File Template Tests', () => {
   let doctor, secondDoctor, templateId
 
-  const REQUEST_URL = `${BASE_URL}/doctor/PatientTemplate/fields`
+  const REQUEST_URL = `${BASE_URL}/doctor/FileTemplate/fields`
 
   const HEADERS = {
     'Content-Type': 'application/json',
@@ -34,7 +35,7 @@ describe('Delete Field from Patient Template Tests', () => {
     doctor = await createTestDoctor()
     secondDoctor = await createTestDoctor()
 
-    templateId = await createTestPatientTemplate(
+    templateId = await createTestFileTemplate(
       doctor.roleDependentInfo.id,
       `testTemplate_${Date.now()}`,
       [
@@ -60,7 +61,7 @@ describe('Delete Field from Patient Template Tests', () => {
   })
 
   // DONE:
-  test('should suceed with 200 delete an existing field from the patient template', async () => {
+  test('should suceed with 200 delete an existing field from the file template', async () => {
     const fieldToDelete = {
       doctorId: doctor.roleDependentInfo.id,
       templateId: templateId,
@@ -73,7 +74,7 @@ describe('Delete Field from Patient Template Tests', () => {
         headers: HEADERS
       })
       expect(response.status).toBe(200)
-      expect(response.data.message).toBe('Field successfully deleted')
+      expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS)
     } catch (error) {
       console.error(
         'Error deleting field:',
@@ -163,7 +164,7 @@ describe('Delete Field from Patient Template Tests', () => {
     await checkFailDeleteRequest(
       {
         doctorId: doctor.roleDependentInfo.id,
-        templateId: 'nonExistentTemplate',
+        templateId: templateId,
         name: 'doesNotExist'
       },
       404,
