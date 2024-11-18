@@ -27,30 +27,23 @@ exports.createRecord = async (req, res) => {
   const { doctorId, templateId, patient } = req.body
 
   try {
-    if (
-      !emptyFields(
-        res,
-        doctorId,
-        templateId,
-        patient,
-        patient.names,
-        patient.lastnames
-      )
-    ) {
+    if (!emptyFields(res, doctorId, templateId, patient)) {
       return
     }
 
-    const formattedDoctorId = new mongoose.Types.ObjectId(doctorId)
-    const formattedTemplateId = new mongoose.Types.ObjectId(templateId)
+    if (!emptyFields(res, patient.fields)) return
 
-    if (!validMongoId(res, formattedDoctorId, COMMON_MSG.DOCTOR_NOT_FOUND))
-      return
-    if (!validMongoId(res, formattedTemplateId, COMMON_MSG.TEMPLATE_NOT_FOUND))
-      return
+    if (!emptyFields(res, patient.names, patient.lastnames)) return
 
-    if (!(await doctorActive(res, formattedDoctorId))) return
+    /*const formattedDoctorId = new mongoose.Types.ObjectId(doctorId)
+    const formattedTemplateId = new mongoose.Types.ObjectId(templateId)*/
 
-    const template = await PatientTemplate.findById(formattedTemplateId)
+    if (!validMongoId(res, doctorId, COMMON_MSG.DOCTOR_NOT_FOUND)) return
+    if (!validMongoId(res, templateId, COMMON_MSG.TEMPLATE_NOT_FOUND)) return
+
+    if (!(await doctorActive(res, doctorId))) return
+
+    const template = await PatientTemplate.findById(templateId)
     if (!template) {
       return res
         .status(404)
@@ -61,6 +54,14 @@ exports.createRecord = async (req, res) => {
       const patientField = patient.fields.find(
         (field) => field.name === templateField.name
       )
+
+      if (!patientField) {
+        return res.status(404).json({
+          status: 404,
+          message: COMMON_MSG.MISSING_FIELDS_IN_TEMPLATE
+        })
+      }
+
       let value = patientField ? patientField.value : null
 
       if (value !== null && value !== undefined) {
@@ -141,8 +142,8 @@ exports.createRecord = async (req, res) => {
     }
 
     const record = new Record({
-      doctor: formattedDoctorId,
-      template: formattedTemplateId,
+      doctor: doctorId,
+      template: templateId,
       patient: {
         names: patient.names,
         lastNames: patient.lastnames,
