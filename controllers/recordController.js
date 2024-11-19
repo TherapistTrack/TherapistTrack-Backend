@@ -277,8 +277,17 @@ exports.editRecord = async (req, res) => {
         switch (templateField.type) {
           case 'TEXT':
           case 'SHORT_TEXT': {
+            if (typeof value !== 'string') {
+              return res.status(405).json({
+                status: 405,
+                message:
+                  templateField.type === 'TEXT'
+                    ? COMMON_MSG.INVALID_FIELD_TYPE_TEXT
+                    : COMMON_MSG.INVALID_FIELD_TYPE_SHORT_TEXT
+              })
+            }
             if (
-              !isNaN(parseInt(value)) ||
+              typeof value === 'number' ||
               typeof value === 'boolean' ||
               Array.isArray(value)
             ) {
@@ -329,6 +338,12 @@ exports.editRecord = async (req, res) => {
               typeof value !== 'string' &&
               typeof value !== 'number' // Solo permite cadenas o números
             ) {
+              return res.status(405).json({
+                status: 405,
+                message: COMMON_MSG.INVALID_FIELD_TYPE_CHOICE
+              })
+            }
+            if (typeof value === 'number') {
               return res.status(405).json({
                 status: 405,
                 message: COMMON_MSG.INVALID_FIELD_TYPE_CHOICE
