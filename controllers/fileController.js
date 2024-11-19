@@ -233,7 +233,7 @@ exports.updateFile = async (req, res) => {
 
     const [record, fileWithNameExist] = await Promise.all([
       Record.findById(file.record),
-      File.findOne({ name: name })
+      File.findOne({ name: name, record: file.record })
     ])
 
     if (record.doctor.toString() !== doctorId) {
