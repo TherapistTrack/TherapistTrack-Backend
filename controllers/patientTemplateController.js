@@ -93,13 +93,17 @@ exports.renameTemplate = async (req, res) => {
       { new: true }
     )
 
-    res.status(200).json({
-      status: 200,
-      message: COMMON_MSG.REQUEST_SUCCESS,
-      data: [updatedTemplate.doctor, updatedTemplate._id]
-    })
+    if (!res.headersSent) {
+      res.status(200).json({
+        status: 200,
+        message: COMMON_MSG.REQUEST_SUCCESS,
+        data: [updatedTemplate.doctor, updatedTemplate._id]
+      })
+    }
   } catch (error) {
-    res.status(500).json({ error: COMMON_MSG.INTERNAL_SERVER_ERROR })
+    if (!res.headersSent) {
+      res.status(500).json({ error: COMMON_MSG.INTERNAL_SERVER_ERROR })
+    }
   }
 }
 
@@ -136,12 +140,16 @@ exports.deleteTemplate = async (req, res) => {
 
     await PatientTemplate.findByIdAndDelete(templateId)
 
-    res.status(200).json({
-      status: 200,
-      message: COMMON_MSG.REQUEST_SUCCESS
-    })
+    if (!res.headersSent) {
+      res.status(200).json({
+        status: 200,
+        message: COMMON_MSG.REQUEST_SUCCESS
+      })
+    }
   } catch (error) {
-    res.status(500).json({ error: COMMON_MSG.INTERNAL_SERVER_ERROR })
+    if (!res.headersSent) {
+      res.status(500).json({ error: COMMON_MSG.INTERNAL_SERVER_ERROR })
+    }
   }
 }
 
@@ -173,13 +181,17 @@ exports.getTemplate = async (req, res) => {
 
     const { _id, doctor, __v, ...filteredTemplate } = patientemplate
 
-    res.status(200).json({
-      status: 200,
-      message: COMMON_MSG.REQUEST_SUCCESS,
-      data: filteredTemplate
-    })
+    if (!res.headersSent) {
+      res.status(200).json({
+        status: 200,
+        message: COMMON_MSG.REQUEST_SUCCESS,
+        data: filteredTemplate
+      })
+    }
   } catch (error) {
-    res.status(500).json({ error: COMMON_MSG.INTERNAL_SERVER_ERROR })
+    if (!res.headersSent) {
+      res.status(500).json({ error: COMMON_MSG.INTERNAL_SERVER_ERROR })
+    }
   }
 }
 
