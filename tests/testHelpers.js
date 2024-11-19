@@ -158,6 +158,7 @@ async function createTestPatientTemplate(
     categories: categories,
     fields: fields
   }
+  // console.log(testTemplate)
 
   try {
     const response = await axios.post(
@@ -167,10 +168,9 @@ async function createTestPatientTemplate(
     )
     return response.data.data.patientTemplateId // Guardar el ID de la plantilla creada
   } catch (error) {
-    console.error(
-      'Error creating template:',
-      error.response ? error.response.data : error.message
-    )
+    if (error.response) {
+      console.log(`Error creating template: ${JSON.stringify(error.response)}`)
+    } else console.log(JSON.stringify(error, '', '  '))
     throw error
   }
 }

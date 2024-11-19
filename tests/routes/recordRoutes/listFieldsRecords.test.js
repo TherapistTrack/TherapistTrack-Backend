@@ -40,7 +40,7 @@ describe('List possible fields', () => {
 
     await createTestPatientTemplate(
       doctorId,
-      'Plantilla de Prueba',
+      `Plantilla de Prueba_1`,
       ['General'],
       [
         {
@@ -53,14 +53,14 @@ describe('List possible fields', () => {
     )
     await createTestPatientTemplate(
       doctorId,
-      'Plantilla de Prueba 2',
+      `Plantilla de Prueba_2`,
       ['General'],
       [
         {
-          name: 'Height',
-          type: 180.0,
+          name: 'Tests',
+          type: 'NUMBER',
           required: true,
-          description: 'Altura del paciente'
+          description: 'Edad del paciente'
         }
       ]
     )
