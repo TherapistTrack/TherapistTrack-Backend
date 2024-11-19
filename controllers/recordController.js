@@ -506,13 +506,6 @@ exports.getRecordById = async (req, res) => {
       return
     }
 
-    if (!doctorId || !recordId) {
-      return res.status(400).json({
-        status: 400,
-        message: COMMON_MSG.MISSING_FIELDS
-      })
-    }
-
     if (!validMongoId(res, doctorId, COMMON_MSG.DOCTOR_NOT_FOUND)) return
     if (!validMongoId(res, recordId, COMMON_MSG.RECORD_NOT_FOUND)) return
 
@@ -526,7 +519,9 @@ exports.getRecordById = async (req, res) => {
         COMMON_MSG.RECORD_NOT_FOUND
       ))
     )
-      if (!(await checkDoctor(res, Record, doctorId, recordId))) return
+      return
+
+    if (!(await checkDoctor(res, Record, doctorId, recordId))) return
 
     const record = await Record.findById(recordId)
     if (!record) {

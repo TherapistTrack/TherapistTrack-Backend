@@ -30,7 +30,7 @@ describe('Get Record by ID', () => {
       REQUEST_URL,
       HEADERS,
       params,
-      null,
+      {},
       expectedCode,
       expectedMsg
     )
