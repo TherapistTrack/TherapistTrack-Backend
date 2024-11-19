@@ -12,8 +12,8 @@ const {
   checkExistenceName,
   checkExistenceId,
   checkDoctor,
-  checkExistingField
-  // doctorActive
+  checkExistingField,
+  doctorActive
 } = require('../utils/requestCheckers')
 const mongoose = require('mongoose')
 
@@ -27,17 +27,20 @@ exports.createTemplate = async (req, res) => {
 
     if (!validFields(res, fields)) return
 
+    if (!validMongoId(res, doctorId, COMMON_MSG.DOCTOR_NOT_FOUND)) return
+
+    if (!(await doctorActive(res, doctorId))) return
+
     if (
       !(await checkExistenceName(
         res,
         PatientTemplate,
         name,
+        doctorId,
         COMMON_MSG.RECORDS_USING
       ))
     )
       return
-
-    if (!validMongoId(res, doctorId, COMMON_MSG.DOCTOR_NOT_FOUND)) return
 
     const template = new PatientTemplate({
       doctor: doctorId,
@@ -81,7 +84,13 @@ exports.renameTemplate = async (req, res) => {
         COMMON_MSG.TEMPLATE_NOT_FOUND
       ),
       checkDoctor(res, PatientTemplate, doctorId, templateId),
-      checkExistenceName(res, PatientTemplate, name, COMMON_MSG.RECORDS_USING)
+      checkExistenceName(
+        res,
+        PatientTemplate,
+        name,
+        doctorId,
+        COMMON_MSG.RECORDS_USING
+      )
     ])
 
     // Verificar si alguna validación ha fallado
