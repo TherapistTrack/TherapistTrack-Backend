@@ -124,6 +124,12 @@ exports.createRecord = async (req, res) => {
                 message: COMMON_MSG.INVALID_FIELD_TYPE_CHOICE
               })
             }
+            if (typeof value === 'number') {
+              return res.status(405).json({
+                status: 405,
+                message: COMMON_MSG.INVALID_FIELD_TYPE_CHOICE
+              })
+            }
             if (!templateField.options.includes(value)) {
               return res.status(405).json({
                 status: 405,
