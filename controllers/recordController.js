@@ -8,7 +8,8 @@ const {
   validArrays,
   validFields,
   validMongoId,
-  validField
+  validField,
+  checkFieldType
 } = require('../utils/fieldCheckers')
 const {
   checkExistenceName,
@@ -62,6 +63,11 @@ exports.createRecord = async (req, res) => {
       }
 
       let value = patientField ? patientField.value : null
+
+      if (
+        !checkFieldType(res, templateField.type, value, templateField.options)
+      )
+        return
 
       if (value !== null && value !== undefined) {
         switch (templateField.type) {
