@@ -22,6 +22,7 @@ const {
   buildSortStage,
   buildProjection
 } = require('../utils/filterUtils')
+const File = require('../models/fileModel')
 
 exports.createRecord = async (req, res) => {
   const { doctorId, templateId, patient } = req.body
@@ -35,9 +36,6 @@ exports.createRecord = async (req, res) => {
 
     if (!emptyFields(res, patient.names, patient.lastnames)) return
 
-    /*const formattedDoctorId = new mongoose.Types.ObjectId(doctorId)
-    const formattedTemplateId = new mongoose.Types.ObjectId(templateId)*/
-
     if (!validMongoId(res, doctorId, COMMON_MSG.DOCTOR_NOT_FOUND)) return
     if (!validMongoId(res, templateId, COMMON_MSG.TEMPLATE_NOT_FOUND)) return
 
@@ -45,9 +43,10 @@ exports.createRecord = async (req, res) => {
 
     const template = await PatientTemplate.findById(templateId)
     if (!template) {
-      return res
-        .status(404)
-        .json({ status: 404, message: COMMON_MSG.TEMPLATE_NOT_FOUND })
+      return res.status(404).json({
+        status: 404,
+        message: COMMON_MSG.TEMPLATE_NOT_FOUND
+      })
     }
 
     const formattedFields = template.fields.map((templateField) => {
@@ -67,52 +66,83 @@ exports.createRecord = async (req, res) => {
       if (value !== null && value !== undefined) {
         switch (templateField.type) {
           case 'DATE':
+            if (
+              typeof value === 'number' ||
+              typeof value === 'boolean' ||
+              Array.isArray(value)
+            ) {
+              return res.status(405).json({
+                status: 405,
+                message: COMMON_MSG.INVALID_FIELD_TYPE_DATE
+              })
+            }
+
             value = new Date(value)
             if (isNaN(value.getTime())) {
-              return res.status(400).json({
-                status: 400,
-                message: `El campo "${templateField.name}" tiene un formato de fecha inválido.`
+              return res.status(405).json({
+                status: 405,
+                message: COMMON_MSG.INVALID_FIELD_TYPE_DATE
               })
             }
             break
           case 'NUMBER':
-            value = parseInt(value, 10)
-            if (isNaN(value)) {
-              return res.status(400).json({
-                status: 400,
-                message: `El campo "${templateField.name}" debe ser un número.`
+            if (
+              typeof value === 'string' ||
+              typeof value === 'boolean' ||
+              Array.isArray(value) ||
+              isNaN(parseFloat(value)) ||
+              !Number.isInteger(parseFloat(value))
+            ) {
+              return res.status(405).json({
+                status: 405,
+                message: COMMON_MSG.INVALID_FIELD_TYPE_NUMBER
               })
             }
+            value = parseInt(value, 10)
             break
           case 'FLOAT':
-            value = parseFloat(value)
-            if (isNaN(value)) {
-              return res.status(400).json({
-                status: 400,
-                message: `El campo "${templateField.name}" debe ser un número decimal.`
+            if (
+              typeof value === 'string' ||
+              typeof value === 'boolean' ||
+              Array.isArray(value) ||
+              isNaN(parseFloat(value))
+            ) {
+              return res.status(405).json({
+                status: 405,
+                message: COMMON_MSG.INVALID_FIELD_TYPE_FLOAT
               })
             }
+            value = parseFloat(value)
             break
           case 'CHOICE':
+            if (typeof value !== 'string' && typeof value !== 'number') {
+              return res.status(405).json({
+                status: 405,
+                message: COMMON_MSG.INVALID_FIELD_TYPE_CHOICE
+              })
+            }
             if (!templateField.options.includes(value)) {
-              return res.status(400).json({
-                status: 400,
-                message: `El valor "${value}" no es válido para el campo "${templateField.name}".`
+              return res.status(405).json({
+                status: 405,
+                message: COMMON_MSG.INVALID_FIELD_VALUE_CHOICE
               })
             }
             break
           case 'TEXT':
           case 'SHORT_TEXT':
             if (typeof value !== 'string') {
-              return res.status(400).json({
-                status: 400,
-                message: `El campo "${templateField.name}" debe ser un texto.`
+              return res.status(405).json({
+                status: 405,
+                message:
+                  templateField.type === 'TEXT'
+                    ? COMMON_MSG.INVALID_FIELD_TYPE_TEXT
+                    : COMMON_MSG.INVALID_FIELD_TYPE_SHORT_TEXT
               })
             }
             break
           default:
-            return res.status(400).json({
-              status: 400,
+            return res.status(405).json({
+              status: 405,
               message: `Tipo de campo "${templateField.type}" no reconocido.`
             })
         }
@@ -297,22 +327,24 @@ exports.deleteRecord = async (req, res) => {
     if (!validMongoId(res, recordId, COMMON_MSG.INVALID_RECORD_ID)) return
     if (!validMongoId(res, doctorId, COMMON_MSG.INVALID_DOCTOR_ID)) return
 
+    if (!(await doctorActive(res, doctorId))) return
+
     if (!(await checkDoctor(res, Record, doctorId, recordId))) return
 
-    /* when endpoints for file management are created
     const files = await File.find({ record: recordId })
 
     if (files.length > 0) {
       return res
         .status(409)
-        .json({ status: 409, message: COMMON_MSG.RECORD_HAS_FILES })
-    }*/
+        .json({ status: 409, message: COMMON_MSG.OPERATION_REJECTED })
+    }
 
     await Record.findByIdAndDelete(recordId)
 
-    res.status(200).json({ status: 200, message: COMMON_MSG.RECORD_DELETED })
+    res.status(200).json({ status: 200, message: COMMON_MSG.REQUEST_SUCCESS })
   } catch (error) {
-    res.status(500).json({ status: 500, error: COMMON_MSG.SERVER_ERROR })
+    console.error('Error deleting record:', error)
+    res.status(500).json({ status: 500, error: error.message })
   }
 }
 
