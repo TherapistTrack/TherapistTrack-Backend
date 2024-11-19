@@ -64,12 +64,15 @@ exports.createRecord = async (req, res) => {
 
       let value = patientField ? patientField.value : null
 
-      if (
-        !checkFieldType(res, templateField.type, value, templateField.options)
+      const is_valid = checkFieldType(
+        res,
+        templateField.type,
+        value,
+        templateField.options
       )
-        return
+      if (!is_valid) return
 
-      if (value !== null && value !== undefined) {
+      /*if (value !== null && value !== undefined) {
         switch (templateField.type) {
           case 'DATE': {
             if (
@@ -164,7 +167,7 @@ exports.createRecord = async (req, res) => {
             })
           }
         }
-      }
+      }*/
 
       return {
         name: templateField.name,
@@ -277,7 +280,15 @@ exports.editRecord = async (req, res) => {
         }
       }
 
-      if (fieldInRequest) {
+      const is_valid = checkFieldType(
+        res,
+        templateField.type,
+        fieldInRequest.value,
+        templateField.options
+      )
+      if (!is_valid) return
+
+      /*if (fieldInRequest) {
         const value = fieldInRequest.value
 
         switch (templateField.type) {
@@ -391,7 +402,7 @@ exports.editRecord = async (req, res) => {
             })
           }
         }
-      }
+      }*/
     }
 
     await Record.findByIdAndUpdate(
@@ -422,6 +433,16 @@ exports.deleteRecord = async (req, res) => {
     if (!validMongoId(res, doctorId, COMMON_MSG.INVALID_DOCTOR_ID)) return
 
     if (!(await doctorActive(res, doctorId))) return
+
+    if (
+      !(await checkExistenceId(
+        res,
+        Record,
+        recordId,
+        COMMON_MSG.RECORD_NOT_FOUND
+      ))
+    )
+      return
 
     if (!(await checkDoctor(res, Record, doctorId, recordId))) return
 

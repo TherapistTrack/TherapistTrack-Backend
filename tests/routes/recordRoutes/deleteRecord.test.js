@@ -72,29 +72,6 @@ describe('Delete Records Tests', () => {
   })
 
   // TODO:
-  test('should succeed with 200 deleting a record', async () => {
-    const deleteBody = {
-      recordId: recordId,
-      doctorId: doctorId
-    }
-
-    try {
-      const response = await axios.delete(REQUEST_URL, {
-        headers: HEADERS,
-        data: deleteBody
-      })
-      expect(response.status).toBe(200)
-      expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS)
-    } catch (error) {
-      console.error(
-        'Error deleting record:',
-        error.response ? error.response.data : error.message
-      )
-      throw error
-    }
-  })
-
-  // TODO:
   test('should fail with 400 if recordId is not passed', async () => {
     await checkFailDeleteRequest(
       {
@@ -153,7 +130,7 @@ describe('Delete Records Tests', () => {
   })
 
   // TODO:
-  test('should fail with 409 if recordId has files stored within', async () => {
+  /*test('should fail with 409 if recordId has files stored within', async () => {
     // can only be implemented when endpoints for file managemente are created.
     await checkFailDeleteRequest(
       {
@@ -163,5 +140,28 @@ describe('Delete Records Tests', () => {
       409,
       COMMON_MSG.OPERATION_REJECTED
     )
+  })*/
+
+  // TODO:
+  test('should succeed with 200 deleting a record', async () => {
+    const deleteBody = {
+      recordId: recordId,
+      doctorId: doctorId
+    }
+
+    try {
+      const response = await axios.delete(REQUEST_URL, {
+        headers: HEADERS,
+        data: deleteBody
+      })
+      expect(response.status).toBe(200)
+      expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS)
+    } catch (error) {
+      console.error(
+        'Error deleting record:',
+        error.response ? error.response.data : error.message
+      )
+      throw error
+    }
   })
 })
