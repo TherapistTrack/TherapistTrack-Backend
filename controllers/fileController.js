@@ -4,11 +4,11 @@ const {
   generateS3PreSignedUrl
 } = require('../controllers/s3ClientController')
 const mongoose = require('mongoose')
+const { isValidValue } = require('../utils/validatorConfig')
 const File = require('../models/fileModel')
 const Record = require('../models/recordModel')
 const FileTemplate = require('../models/fileTemplateModel')
 const COMMON_MSG = require('../utils/errorMsg')
-const Usuario = require('../models/userModel')
 const pdf = require('pdf-parse')
 const {
   checkExistenceName,
@@ -71,7 +71,7 @@ exports.createFile = async (req, res) => {
     ) {
       return res.status(400).send({
         status: 400,
-        message: COMMON_MSG.INVALID_ID_FORMAT
+        message: COMMON_MSG.INVALID_DOCTOR_ID
       })
     }
 
@@ -95,9 +95,9 @@ exports.createFile = async (req, res) => {
       fileTemplate.doctor.toString() !== doctorId ||
       record.doctor.toString() !== doctorId
     ) {
-      return res.status(403).send({
-        status: 403,
-        message: COMMON_MSG.DOCTOR_IS_NOT_OWNER
+      return res.status(404).send({
+        status: 404,
+        message: COMMON_MSG.DOCTOR_NOT_FOUND
       })
     }
 
@@ -107,14 +107,45 @@ exports.createFile = async (req, res) => {
     }
 
     const metadataArray = []
+    const receivedFieldsMap = new Map(
+      fields.map((field) => [field.name, field.value])
+    )
+
+    for (const templateField of fileTemplate.fields) {
+      const receivedValue = receivedFieldsMap.get(templateField.name)
+
+      if (
+        templateField.required &&
+        (receivedValue === undefined ||
+          receivedValue === null ||
+          receivedValue === '')
+      ) {
+        return res.status(404).send({
+          status: 404,
+          message: COMMON_MSG.MISSING_FIELDS_IN_TEMPLATE
+        })
+      }
+    }
+
     for (const field of fields) {
       const templateField = templateFieldsMap[field.name]
       if (!templateField) {
-        return res.status(400).send({
-          status: 400,
+        return res.status(404).send({
+          status: 404,
           message: `Field "${field.name}" not found in template.`
         })
       }
+
+      const isValid = checkFieldType(
+        res,
+        templateField.type,
+        field.value,
+        templateField.options
+      )
+      if (!isValid) {
+        return
+      }
+
       const metadataField = {
         name: field.name,
         type: templateField.type,
@@ -139,7 +170,8 @@ exports.createFile = async (req, res) => {
     }
 
     const timestamp = Date.now()
-    const key = `${doctorId}/${recordId}/${timestamp}-${uploadfile.originalname}`
+    const sanitizedFilename = uploadfile.originalname.replace(/\s+/g, '_')
+    const key = `${doctorId}/${recordId}/${timestamp}-${sanitizedFilename}`
     const s3Response = await s3Upload(key, uploadfile.buffer)
     const location = s3Response.Location.split('.com/')[1]
 
@@ -157,8 +189,8 @@ exports.createFile = async (req, res) => {
     const file = new File(fileData)
     await file.save()
 
-    return res.status(201).send({
-      status: 201,
+    return res.status(200).send({
+      status: 200,
       message: COMMON_MSG.REQUEST_SUCCESS,
       fileId: file._id
     })
@@ -201,7 +233,7 @@ exports.updateFile = async (req, res) => {
 
     const [record, fileWithNameExist] = await Promise.all([
       Record.findById(file.record),
-      File.findOne({ name: name })
+      File.findOne({ name: name, record: file.record })
     ])
 
     if (record.doctor.toString() !== doctorId) {
@@ -219,20 +251,13 @@ exports.updateFile = async (req, res) => {
 
     // 405
     const baseFields = file.metadata
-    // console.log(baseFields)
-    // console.log("===============")
-    // console.log(fields)
 
     for (const baseField of baseFields) {
       for (const newField of fields) {
         let { name, value } = newField
         let { type, options } = baseField
         if (name === baseField.name) {
-          console.log(
-            `name: ${name}, type: ${type}, value :${value}, options: ${options}`
-          )
           if (!checkFieldType(res, type, value, options)) {
-            console.log(newField.name)
             return
           } else {
             baseField.value = value
@@ -266,6 +291,8 @@ exports.deleteFile = async (req, res) => {
         message: COMMON_MSG.MISSING_FIELDS
       })
     }
+
+    if (!(await doctorActive(res, doctorId))) return
 
     const file = await File.findById(fileId)
     if (!file) {
@@ -373,6 +400,8 @@ exports.getFileById = async (req, res) => {
       })
     }
 
+    if (!(await doctorActive(res, doctorId))) return
+
     const file = await File.findById(fileId)
     if (!file) {
       return res.status(404).send({
@@ -449,15 +478,17 @@ exports.searchAndFilterFiles = async (req, res) => {
 
   try {
     if (!doctorId || !recordId || !category || !fields || !sorts || !filters) {
-      return res.status(400).json({ error: COMMON_MSG.MISSING_FIELDS })
+      return res
+        .status(400)
+        .json({ status: 400, message: COMMON_MSG.MISSING_FIELDS })
     }
 
     if (!mongoose.Types.ObjectId.isValid(doctorId)) {
-      return res.status(400).json({ error: 'Invalid doctor ID' })
+      return res.status(400).json({ message: 'Invalid doctor ID' })
     }
 
     if (!mongoose.Types.ObjectId.isValid(recordId)) {
-      return res.status(400).json({ error: 'Invalid record ID' })
+      return res.status(400).json({ message: 'Invalid record ID' })
     }
 
     // Check if the doctor has access to the record
@@ -518,7 +549,7 @@ exports.searchAndFilterFiles = async (req, res) => {
 
     res.status(200).json({
       status: 200,
-      message: 'Request Successful',
+      message: COMMON_MSG.REQUEST_SUCCESS,
       files,
       total: totalCount
     })

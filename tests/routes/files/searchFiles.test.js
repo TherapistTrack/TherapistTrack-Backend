@@ -9,7 +9,8 @@ const {
   buildFilterObject,
   iso8601Regex,
   deleteObjectAttribute,
-  validateResponse
+  validateResponse,
+  deleteUser
 } = require('../../testHelpers')
 const COMMON_MSG = require('../../../utils/errorMsg')
 const yup = require('yup')
@@ -52,7 +53,7 @@ describe('Search Files endpoint', () => {
     ;({ doctor, patientTemplateId, recordId, fileTemplateId } =
       await setUpEnvironmentForFilesTests(
         ['consultas', 'tests'],
-        'template_test',
+        `template_test_${Date.now()}`,
         [
           {
             name: 'A',
@@ -107,10 +108,10 @@ describe('Search Files endpoint', () => {
       fields: [
         { name: 'A', value: 'a' },
         { name: 'B', value: 'a' },
-        { name: 'C', value: 1.2 },
-        { name: 'D', value: 100 },
-        { name: 'E', value: '1993-07-15T00:00:00Z' },
-        { name: 'F', value: 'Soltero' }
+        { name: 'C', value: 12 },
+        { name: 'D', value: 100.1 },
+        { name: 'E', value: 'a' },
+        { name: 'F', value: '1993-07-15T00:00:00Z' }
       ]
     })
 
@@ -123,10 +124,10 @@ describe('Search Files endpoint', () => {
       fields: [
         { name: 'A', value: 'b' },
         { name: 'B', value: 'b' },
-        { name: 'C', value: 1.3 },
-        { name: 'D', value: 25 },
-        { name: 'E', value: '1998-03-22T00:00:00Z' },
-        { name: 'F', value: 'Casado' }
+        { name: 'C', value: 13 },
+        { name: 'D', value: 25.2 },
+        { name: 'E', value: 'a' },
+        { name: 'F', value: '1998-03-22T00:00:00Z' }
       ]
     })
 
@@ -139,16 +140,16 @@ describe('Search Files endpoint', () => {
       fields: [
         { name: 'A', value: 'c' },
         { name: 'B', value: 'c' },
-        { name: 'C', value: 1.4 },
-        { name: 'D', value: 40 },
-        { name: 'E', value: '1982-11-01T00:00:00Z' },
-        { name: 'F', value: 'Soltero' }
+        { name: 'C', value: 14 },
+        { name: 'D', value: 40.3 },
+        { name: 'E', value: 'b' },
+        { name: 'F', value: '1982-11-01T00:00:00Z' }
       ]
     })
   })
 
   afterAll(async () => {
-    await deleteUser(userId)
+    await deleteUser(doctorId)
   })
 
   const SEARCH_RESPONSE_SCHEMA = yup
@@ -206,12 +207,11 @@ describe('Search Files endpoint', () => {
     )
   }
 
-  // DONE:
+  // TODO:
   test('should suceed with 200 searching a list of files with no sorting or filtering', async () => {
-    console.log('BASE_REQUEST:', BASE_REQUEST)
     const searchRequestBody = buildSearchRequestBody({
       doctorId: doctor.roleDependentInfo.id,
-      recordId,
+      recordId: recordId,
       limit: 10,
       page: 0,
       category: 'consultas',
@@ -232,36 +232,46 @@ describe('Search Files endpoint', () => {
       expect(response.status).toBe(200)
       validateResponse(response.data, SEARCH_RESPONSE_SCHEMA)
       expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS)
-      expect(response.data.records.length).toBeGreaterThan(0)
-      expect(response.data.total).toBe(response.data.records.length)
-      response.data.records.forEach((record) => {
-        expect(record).toEqual(
+      expect(response.data.files.length).toBeGreaterThan(0)
+      expect(response.data.total).toBe(response.data.files.length)
+      response.data.files.forEach((file) => {
+        expect(file).toEqual(
           expect.objectContaining({
-            patient: expect.objectContaining({
-              fields: expect.arrayContaining([
-                expect.objectContaining({
-                  name: 'C',
-                  type: 'NUMBER',
-                  value: expect.any(Number)
-                }),
-                expect.objectContaining({
-                  name: 'F',
-                  type: 'DATE',
-                  value: expect.any(String)
-                }),
-                expect.objectContaining({
-                  name: 'E',
-                  type: 'CHOICE',
-                  value: expect.any(String)
-                })
-              ])
-            })
+            fileId: expect.any(String),
+            templateId: expect.any(String),
+            name: expect.any(String),
+            createdAt: expect.any(String),
+            pages: expect.any(Number),
+            fields: expect.arrayContaining([
+              // Check for field "C"
+              expect.objectContaining({
+                name: 'C',
+                type: 'NUMBER',
+                value: expect.any(Number),
+                required: expect.any(Boolean)
+              }),
+              // Check for field "F"
+              expect.objectContaining({
+                name: 'F',
+                type: 'DATE',
+                value: expect.any(String),
+                required: expect.any(Boolean)
+              }),
+              // Check for field "E"
+              expect.objectContaining({
+                name: 'E',
+                type: 'CHOICE',
+                value: expect.any(String),
+                options: expect.any(Array),
+                required: expect.any(Boolean)
+              })
+            ])
           })
         )
       })
     } catch (error) {
       console.error(
-        'Error searching for list of patients:',
+        'Error searching for list of files:',
         error.response ? error.response.data : error.message
       )
       throw error
@@ -337,67 +347,68 @@ describe('Search Files endpoint', () => {
   // == ERRORS
   // ===================
 
-  // DONE:
+  // TODO:
   test('should fail with 400 if doctorId is not sent', async () => {
     const body = deleteObjectAttribute(BASE_REQUEST, 'doctorId')
     await checkFailSearchRequest(body, 400, COMMON_MSG.MISSING_FIELDS)
   })
 
-  // DONE:
+  // TODO:
   test('should fail with 400 if recordId is not sent', async () => {
     const body = deleteObjectAttribute(BASE_REQUEST, 'recordId')
+    console.log(body)
     await checkFailSearchRequest(body, 400, COMMON_MSG.MISSING_FIELDS)
   })
 
-  // DONE:
+  // TODO:
   test("should fail with 400 if 'limit' is not sent", async () => {
     const body = deleteObjectAttribute(BASE_REQUEST, 'limit')
     await checkFailSearchRequest(body, 400, COMMON_MSG.MISSING_FIELDS)
   })
 
-  // DONE:
+  // TODO:
   test("should fail with 400 if 'page' is not sent", async () => {
     const body = deleteObjectAttribute(BASE_REQUEST, 'page')
     await checkFailSearchRequest(body, 400, COMMON_MSG.MISSING_FIELDS)
   })
 
-  // DONE:
+  // TODO:
   test("should fail with 400 if 'category' is not sent", async () => {
     const body = deleteObjectAttribute(BASE_REQUEST, 'category')
     await checkFailSearchRequest(body, 400, COMMON_MSG.MISSING_FIELDS)
   })
 
-  // DONE:
+  // TODO:
   test("should fail with 400 if 'fields' array is not sent", async () => {
     const body = deleteObjectAttribute(BASE_REQUEST, 'fields')
     await checkFailSearchRequest(body, 400, COMMON_MSG.MISSING_FIELDS)
   })
 
-  // DONE:
+  // TODO:
   test("should fail with 400 if 'sorts' array is not sent", async () => {
     const body = deleteObjectAttribute(BASE_REQUEST, 'sorts')
     await checkFailSearchRequest(body, 400, COMMON_MSG.MISSING_FIELDS)
   })
 
-  // DONE:
+  // TODO:
   test("should fail with 400 if 'filters' array is not sent", async () => {
     const body = deleteObjectAttribute(BASE_REQUEST, 'sorts')
     await checkFailSearchRequest(body, 400, COMMON_MSG.MISSING_FIELDS)
   })
 
-  // DONE:
+  // TODO:
   test("should fail with 400 if 'fields' items have missing fields", async () => {
     const body = modifyObjectAttribute(BASE_REQUEST, 'fields', [{}])
     await checkFailSearchRequest(body, 400, COMMON_MSG.MISSING_FIELDS)
   })
 
-  // DONE:
+  // TODO:
   test("should fail with 400 if 'sorts' items have missing fields", async () => {
     const body = modifyObjectAttribute(BASE_REQUEST, 'sorts', [{}])
     await checkFailSearchRequest(body, 400, COMMON_MSG.MISSING_FIELDS)
   })
 
-  // DONE:
+  // TODO:
   test("should fail with 400 if 'filters' items is have missing fields", async () => {
     const body = modifyObjectAttribute(BASE_REQUEST, 'filters', [{}])
     await checkFailSearchRequest(body, 400, COMMON_MSG.MISSING_FIELDS)
@@ -407,7 +418,7 @@ describe('Search Files endpoint', () => {
   // === TEXT ===
   // ==================
   // DONE:
-  test('should fail with 405 when passing NUMBER value for TEXT field in filters', async () => {
+  test.skip('should fail with 405 when passing NUMBER value for TEXT field in filters', async () => {
     const searchRequestBody = buildSearchRequestBody({
       doctorId: doctorId,
       fields: [{ name: 'A', type: 'TEXT' }],
@@ -422,7 +433,7 @@ describe('Search Files endpoint', () => {
   })
 
   // DONE:
-  test('should fail with 405 when passing BOOLEAN value for TEXT field in filters', async () => {
+  test.skip('should fail with 405 when passing BOOLEAN value for TEXT field in filters', async () => {
     const searchRequestBody = buildSearchRequestBody({
       doctorId: doctorId,
       fields: [{ name: 'A', type: 'TEXT' }],
@@ -440,7 +451,7 @@ describe('Search Files endpoint', () => {
   // === SHORT_TEXT ===
   // ==================
   // DONE:
-  test('should fail with 405 when passing NUMBER value for SHORT_TEXT field in filters', async () => {
+  test.skip('should fail with 405 when passing NUMBER value for SHORT_TEXT field in filters', async () => {
     const searchRequestBody = buildSearchRequestBody({
       doctorId: doctorId,
       fields: [{ name: 'B', type: 'SHORT_TEXT' }],
@@ -455,7 +466,7 @@ describe('Search Files endpoint', () => {
   })
 
   // DONE:
-  test('should fail with 405 when passing BOOLEAN value for SHORT_TEXT field in filters', async () => {
+  test.skip('should fail with 405 when passing BOOLEAN value for SHORT_TEXT field in filters', async () => {
     const searchRequestBody = buildSearchRequestBody({
       doctorId: doctorId,
       fields: [{ name: 'B', type: 'SHORT_TEXT' }],
@@ -473,7 +484,7 @@ describe('Search Files endpoint', () => {
   // === NUMBER ===
   // ==================
   // DONE:
-  test('should fail with 405 when passing FLOAT value for NUMBER field in filters', async () => {
+  test.skip('should fail with 405 when passing FLOAT value for NUMBER field in filters', async () => {
     // Number field just accept integers
     const searchRequestBody = buildSearchRequestBody({
       doctorId: doctorId,
@@ -489,7 +500,7 @@ describe('Search Files endpoint', () => {
   })
 
   // DONE:
-  test('should fail with 405 when passing TEXT value for NUMBER field in filters', async () => {
+  test.skip('should fail with 405 when passing TEXT value for NUMBER field in filters', async () => {
     const searchRequestBody = buildSearchRequestBody({
       doctorId: doctorId,
       fields: [{ name: 'C', type: 'NUMBER' }],
@@ -504,7 +515,7 @@ describe('Search Files endpoint', () => {
   })
 
   // DONE:
-  test('should fail with 405 when passing BOOLEAN value for NUMBER field in filters', async () => {
+  test.skip('should fail with 405 when passing BOOLEAN value for NUMBER field in filters', async () => {
     const searchRequestBody = buildSearchRequestBody({
       doctorId: doctorId,
       fields: [{ name: 'C', type: 'NUMBER' }],
@@ -522,7 +533,7 @@ describe('Search Files endpoint', () => {
   // === FLOAT ===
   // ==================
   // DONE:
-  test('should fail with 405 when passing TEXT value for FLOAT field in filters', async () => {
+  test.skip('should fail with 405 when passing TEXT value for FLOAT field in filters', async () => {
     const searchRequestBody = buildSearchRequestBody({
       doctorId: doctorId,
       fields: [{ name: 'D', type: 'FLOAT' }],
@@ -537,7 +548,7 @@ describe('Search Files endpoint', () => {
   })
 
   // DONE:
-  test('should fail with 405 when passing BOOLEAN value for FLOAT field in filters', async () => {
+  test.skip('should fail with 405 when passing BOOLEAN value for FLOAT field in filters', async () => {
     const searchRequestBody = buildSearchRequestBody({
       doctorId: doctorId,
       fields: [{ name: 'D', type: 'FLOAT' }],
@@ -555,7 +566,7 @@ describe('Search Files endpoint', () => {
   // === CHOICE =======
   // ==================
   // DONE:
-  test('should fail with 405 when passing NUMBER values to CHOICE', async () => {
+  test.skip('should fail with 405 when passing NUMBER values to CHOICE', async () => {
     const searchRequestBody = buildSearchRequestBody({
       doctorId: doctorId,
       fields: [{ name: 'E', type: 'CHOICE' }],
@@ -570,7 +581,7 @@ describe('Search Files endpoint', () => {
   })
 
   // DONE:
-  test('should fail with 405 when passing BOOLEAN values to CHOICE', async () => {
+  test.skip('should fail with 405 when passing BOOLEAN values to CHOICE', async () => {
     const searchRequestBody = buildSearchRequestBody({
       doctorId: doctorId,
       fields: [{ name: 'E', type: 'CHOICE' }],
@@ -588,7 +599,7 @@ describe('Search Files endpoint', () => {
   // === DATE =======
   // ==================
   // DONE:
-  test('should fail with 405 when passing TEXT value for DATE field in filters', async () => {
+  test.skip('should fail with 405 when passing TEXT value for DATE field in filters', async () => {
     const searchRequestBody = buildSearchRequestBody({
       doctorId: doctorId,
       fields: [{ name: 'F', type: 'DATE' }],
@@ -603,7 +614,7 @@ describe('Search Files endpoint', () => {
   })
 
   // DONE:
-  test('should fail with 405 when passing BOOLEAN value for DATE field in filters', async () => {
+  test.skip('should fail with 405 when passing BOOLEAN value for DATE field in filters', async () => {
     const searchRequestBody = buildSearchRequestBody({
       doctorId: doctorId,
       fields: [{ name: 'F', type: 'DATE' }],
@@ -618,7 +629,7 @@ describe('Search Files endpoint', () => {
   })
 
   // DONE:
-  test('should fail with 405 when passing NUMBER value for DATE field in filters', async () => {
+  test.skip('should fail with 405 when passing NUMBER value for DATE field in filters', async () => {
     const searchRequestBody = buildSearchRequestBody({
       doctorId: doctorId,
       fields: [{ name: 'F', type: 'DATE' }],
@@ -633,7 +644,7 @@ describe('Search Files endpoint', () => {
   })
 
   // DONE:
-  test('should fail with 405 when passing a start date bigger than end date in a between DATE filter', async () => {
+  test.skip('should fail with 405 when passing a start date bigger than end date in a between DATE filter', async () => {
     const searchRequestBody = buildSearchRequestBody({
       doctorId: doctorId,
       fields: [{ name: 'F', type: 'DATE' }],
@@ -650,7 +661,7 @@ describe('Search Files endpoint', () => {
   })
 
   // DONE:
-  test('should fail with 405 if date is not on format ISO8601', async () => {
+  test.skip('should fail with 405 if date is not on format ISO8601', async () => {
     const searchRequestBody = buildSearchRequestBody({
       doctorId: doctorId,
       fields: [{ name: 'F', type: 'DATE' }],

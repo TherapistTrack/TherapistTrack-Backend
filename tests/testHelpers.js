@@ -393,6 +393,7 @@ function buildSearchRequestBody({
   limit = 10,
   page = 0,
   category = '',
+  recordId = '',
   fields = [],
   sorts = [],
   filters = []
@@ -402,6 +403,7 @@ function buildSearchRequestBody({
     limit,
     page,
     category,
+    recordId,
     fields,
     sorts,
     filters

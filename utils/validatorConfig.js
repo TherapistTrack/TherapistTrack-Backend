@@ -38,4 +38,30 @@ const validateAndFormatFieldValue = (field) => {
   }
 }
 
-module.exports = { validateAndFormatFieldValue }
+const isValidValue = (value, type, options = []) => {
+  switch (type) {
+    case 'TEXT':
+    case 'SHORT_TEXT':
+      return typeof value === 'string'
+
+    case 'NUMBER':
+      return typeof value === 'number' && Number.isInteger(value)
+
+    case 'FLOAT':
+      return typeof value === 'number'
+
+    case 'BOOLEAN':
+      return typeof value === 'boolean'
+
+    case 'DATE':
+      return typeof value === 'string' && !isNaN(Date.parse(value))
+
+    case 'CHOICE':
+      return typeof value === 'string' && options.includes(value)
+
+    default:
+      return false
+  }
+}
+
+module.exports = { validateAndFormatFieldValue, isValidValue }

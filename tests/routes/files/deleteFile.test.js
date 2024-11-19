@@ -69,42 +69,48 @@ describe('Delete Files Tests', () => {
   }
 
   beforeAll(async () => {
-    secondDoctor = createTestDoctor()
+    secondDoctor = await createTestDoctor()
     ;({ doctor, recordId, fileTemplateId } =
       await setUpEnvironmentForFilesTests(
         ['consultas', 'tests'],
-        'template_test',
+        `template_test_${Date.now()}`,
         [
           {
             name: 'Notas adicionales',
             type: 'TEXT',
-            required: true
+            required: true,
+            description: '_'
           },
           {
             name: 'Instrucciones de administracion',
             type: 'SHORT_TEXT',
-            required: true
+            required: true,
+            description: '_'
           },
           {
             name: 'Dosis (mg)',
             type: 'NUMBER',
-            required: true
+            required: true,
+            description: '_'
           },
           {
             name: 'Concentracion',
             type: 'FLOAT',
-            required: true
+            required: true,
+            description: '_'
           },
           {
             name: 'Forma de dosis',
             type: 'CHOICE',
             options: ['Oral', 'Capsula'],
-            required: true
+            required: true,
+            description: '_'
           },
           {
             name: 'Fecha de preescripcion',
             type: 'DATE',
-            required: true
+            required: true,
+            description: '_'
           }
         ]
       ))
@@ -112,15 +118,72 @@ describe('Delete Files Tests', () => {
     BASE_FILE.recordId = recordId
     BASE_FILE.templateId = fileTemplateId
 
-    fileId = createTestFile(BASE_FILE)
+    fileId = await createTestFile(BASE_FILE)
   })
 
   afterAll(async () => {
-    await deleteUser(doctor.id)
+    await Promise.all([deleteUser(doctor.id), deleteUser(secondDoctor.id)])
   })
 
-  // DONE:
-  test('should succeed with 200 deleting a record', async () => {
+  // TODO:
+  test('should fail with 400 if fileId is not passed', async () => {
+    await checkFailDeleteRequest(
+      {
+        doctorId: doctor.roleDependentInfo.id
+      },
+      400,
+      COMMON_MSG.MISSING_FIELDS
+    )
+  })
+
+  // TODO:
+  test('should fail with 400 if doctorId is not passed', async () => {
+    await checkFailDeleteRequest(
+      {
+        fileId: fileId
+      },
+      400,
+      COMMON_MSG.MISSING_FIELDS
+    )
+  })
+
+  // TODO:
+  test('should fail with 403 if doctor is not owner of file', async () => {
+    await checkFailDeleteRequest(
+      {
+        fileId: fileId,
+        doctorId: secondDoctor.roleDependentInfo.id
+      },
+      403,
+      COMMON_MSG.DOCTOR_IS_NOT_OWNER
+    )
+  })
+
+  // TODO:
+  test('should fail with 404 if doctorId is from a non-existent/active user', async () => {
+    await checkFailDeleteRequest(
+      {
+        fileId: fileId,
+        doctorId: generateObjectId()
+      },
+      404,
+      COMMON_MSG.DOCTOR_NOT_FOUND
+    )
+  })
+
+  // TODO:
+  test('should fail with 404 if fileId is from a non-existent file', async () => {
+    await checkFailDeleteRequest(
+      {
+        doctorId: doctor.roleDependentInfo.id,
+        fileId: generateObjectId()
+      },
+      404,
+      COMMON_MSG.FILE_NOT_FOUND
+    )
+  })
+
+  test('should succeed with 200 deleting a file', async () => {
     const deleteBody = {
       fileId: fileId,
       doctorId: doctor.roleDependentInfo.id
@@ -140,63 +203,5 @@ describe('Delete Files Tests', () => {
       )
       throw error
     }
-  })
-
-  // DONE:
-  test('should fail with 400 if fileId is not passed', async () => {
-    await checkFailDeleteRequest(
-      {
-        doctorId: doctor.roleDependentInfo.id
-      },
-      400,
-      COMMON_MSG.MISSING_FIELDS
-    )
-  })
-
-  // DONE:
-  test('should fail with 400 if doctorId is not passed', async () => {
-    await checkFailDeleteRequest(
-      {
-        fileId: fileId
-      },
-      400,
-      COMMON_MSG.MISSING_FIELDS
-    )
-  })
-
-  // DONE:
-  test('should fail with 403 if doctor is not owner of file', async () => {
-    await checkFailDeleteRequest(
-      {
-        fileId: fileId,
-        doctorId: secondDoctor.roleDependentInfo.id
-      },
-      403,
-      COMMON_MSG.DOCTOR_IS_NOT_OWNER
-    )
-  })
-
-  // DONE:
-  test('should fail with 404 if doctorId is from a non-existent/active user', async () => {
-    await checkFailDeleteRequest(
-      {
-        fileId: fileId,
-        doctorId: generateObjectId()
-      },
-      404,
-      COMMON_MSG.DOCTOR_NOT_FOUND
-    )
-  })
-
-  // DONE:
-  test('should fail with 404 if fileId is from a non-existent file', async () => {
-    await checkFailDeleteRequest(
-      {
-        doctor: doctor.roleDependentInfo.id,
-        doctorId: generateObjectId()
-      },
-      404,
-      COMMON_MSG.FILE_NOT_FOUND
-    )
   })
 })

@@ -40,7 +40,7 @@ describe('List possible fields', () => {
 
     await createTestPatientTemplate(
       doctorId,
-      `Plantilla de Prueba_1`,
+      `Plantilla de Prueba_${Date.now()}`,
       ['General'],
       [
         {
@@ -53,7 +53,7 @@ describe('List possible fields', () => {
     )
     await createTestPatientTemplate(
       doctorId,
-      `Plantilla de Prueba_2`,
+      `Plantilla de Prueba 2_${Date.now()}`,
       ['General'],
       [
         {
@@ -87,7 +87,7 @@ describe('List possible fields', () => {
       .required()
   })
 
-  // DONE:
+  // TODO:
   test('Should succeed with 200 in retreiving available record fields', async () => {
     try {
       const response = await axios.get(REQUEST_URL, {
@@ -110,12 +110,12 @@ describe('List possible fields', () => {
     }
   })
 
-  // DONE:
+  // TODO:
   test('Should fail with 400 if doctorId is not sent', async () => {
     await checkFailListRequest({}, 400, COMMON_MSG.MISSING_FIELDS)
   })
 
-  // DONE:
+  // TODO:
   test('Should fail with 404 if doctorId not correspond to and existent/valid user', async () => {
     const nonExistentDoctorId = 'nonExistentDoctorId12345'
 
