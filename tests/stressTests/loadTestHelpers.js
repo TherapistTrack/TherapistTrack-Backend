@@ -46,6 +46,7 @@ function generateUserData(role) {
 /**
  * Generates patient template data.
  *
+ * @param {string} ownerId - The ID of the user that owns the template.
  * @returns {Object} Patient template data - payload for creating a patient template.
  */
 function generatePatientTemplateData(ownerId) {
@@ -55,6 +56,30 @@ function generatePatientTemplateData(ownerId) {
     doctorId: ownerId,
     name: `Test Template - ${timestamp}`,
     categories: ['Test Category'],
+    fields: [
+      {
+        name: 'Test Field',
+        type: 'TEXT',
+        options: [],
+        required: true,
+        description: 'Test Description'
+      }
+    ]
+  }
+}
+
+/**
+ * Generates file template data.
+ *
+ * @param {string} ownerId - The ID of the owner of the file template.
+ * @returns {Object} File template data - payload for creating a file template.
+ */
+function generateFileTemplateData(ownerId) {
+  const timestamp = new Date().toISOString()
+
+  return {
+    doctorId: ownerId,
+    name: `Test Template - ${timestamp}`,
     fields: [
       {
         name: 'Test Field',
@@ -82,5 +107,6 @@ function generateRandomString(length) {
 module.exports = {
   generateUserData,
   generatePatientTemplateData,
-  generateRandomString
+  generateRandomString,
+  generateFileTemplateData
 }
