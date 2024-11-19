@@ -65,7 +65,7 @@ exports.createRecord = async (req, res) => {
 
       if (value !== null && value !== undefined) {
         switch (templateField.type) {
-          case 'DATE':
+          case 'DATE': {
             if (
               typeof value === 'number' ||
               typeof value === 'boolean' ||
@@ -85,7 +85,8 @@ exports.createRecord = async (req, res) => {
               })
             }
             break
-          case 'NUMBER':
+          }
+          case 'NUMBER': {
             if (
               typeof value === 'string' ||
               typeof value === 'boolean' ||
@@ -100,7 +101,8 @@ exports.createRecord = async (req, res) => {
             }
             value = parseInt(value, 10)
             break
-          case 'FLOAT':
+          }
+          case 'FLOAT': {
             if (
               typeof value === 'string' ||
               typeof value === 'boolean' ||
@@ -114,7 +116,8 @@ exports.createRecord = async (req, res) => {
             }
             value = parseFloat(value)
             break
-          case 'CHOICE':
+          }
+          case 'CHOICE': {
             if (typeof value !== 'string' && typeof value !== 'number') {
               return res.status(405).json({
                 status: 405,
@@ -128,8 +131,9 @@ exports.createRecord = async (req, res) => {
               })
             }
             break
+          }
           case 'TEXT':
-          case 'SHORT_TEXT':
+          case 'SHORT_TEXT': {
             if (typeof value !== 'string') {
               return res.status(405).json({
                 status: 405,
@@ -140,11 +144,13 @@ exports.createRecord = async (req, res) => {
               })
             }
             break
-          default:
+          }
+          default: {
             return res.status(405).json({
               status: 405,
               message: `Tipo de campo "${templateField.type}" no reconocido.`
             })
+          }
         }
       }
 
@@ -254,46 +260,107 @@ exports.editRecord = async (req, res) => {
         ) {
           return res.status(400).json({
             status: 400,
-            error: `Missing required field: ${templateField.name}`
+            message: `Missing required field: ${templateField.name}`
           })
         }
       }
 
       if (fieldInRequest) {
-        if (
-          (templateField.type === 'TEXT' ||
-            templateField.type === 'SHORT_TEXT') &&
-          typeof fieldInRequest.value !== 'string'
-        ) {
-          return res.status(400).json({
-            status: 400,
-            error: `Invalid value for field ${fieldInRequest.name}`
-          })
-        }
-        if (
-          (templateField.type === 'NUMBER' || templateField.type === 'FLOAT') &&
-          isNaN(Number(fieldInRequest.value))
-        ) {
-          return res.status(405).json({
-            status: 405,
-            error: `Invalid value for field ${fieldInRequest.name}`
-          })
-        }
-        if (
-          templateField.type === 'CHOICE' &&
-          !templateField.options.includes(fieldInRequest.value)
-        ) {
-          return res.status(405).json({
-            status: 405,
-            error: `Invalid value for field ${fieldInRequest.name}`
-          })
-        }
-        if (templateField.type === 'DATE') {
-          const date = new Date(fieldInRequest.value)
-          if (isNaN(date.getTime())) {
+        const value = fieldInRequest.value
+
+        switch (templateField.type) {
+          case 'TEXT':
+          case 'SHORT_TEXT': {
+            if (
+              !isNaN(parseInt(value)) ||
+              typeof value === 'boolean' ||
+              Array.isArray(value)
+            ) {
+              return res.status(405).json({
+                status: 405,
+                message:
+                  templateField.type === 'TEXT'
+                    ? COMMON_MSG.INVALID_FIELD_TYPE_TEXT
+                    : COMMON_MSG.INVALID_FIELD_TYPE_SHORT_TEXT
+              })
+            }
+            break
+          }
+
+          case 'NUMBER': {
+            if (
+              typeof value === 'string' ||
+              typeof value === 'boolean' ||
+              Array.isArray(value) ||
+              isNaN(parseFloat(value)) ||
+              !Number.isInteger(parseFloat(value))
+            ) {
+              return res.status(405).json({
+                status: 405,
+                message: COMMON_MSG.INVALID_FIELD_TYPE_NUMBER
+              })
+            }
+            break
+          }
+
+          case 'FLOAT': {
+            if (
+              typeof value === 'string' ||
+              typeof value === 'boolean' ||
+              Array.isArray(value) ||
+              isNaN(parseFloat(value))
+            ) {
+              return res.status(405).json({
+                status: 405,
+                message: COMMON_MSG.INVALID_FIELD_TYPE_FLOAT
+              })
+            }
+            break
+          }
+
+          case 'CHOICE': {
+            if (
+              typeof value !== 'string' &&
+              typeof value !== 'number' // Solo permite cadenas o números
+            ) {
+              return res.status(405).json({
+                status: 405,
+                message: COMMON_MSG.INVALID_FIELD_TYPE_CHOICE
+              })
+            }
+            const normalizedValue = value.toString()
+            const normalizedOptions = templateField.options.map((option) =>
+              option.toString()
+            )
+            if (!normalizedOptions.includes(normalizedValue)) {
+              return res.status(405).json({
+                status: 405,
+                message: COMMON_MSG.INVALID_CHOICE_VALUE
+              })
+            }
+            break
+          }
+
+          case 'DATE': {
+            const date = new Date(value)
+            if (
+              typeof value === 'number' ||
+              typeof value === 'boolean' ||
+              Array.isArray(value) ||
+              isNaN(date.getTime())
+            ) {
+              return res.status(405).json({
+                status: 405,
+                message: COMMON_MSG.INVALID_FIELD_TYPE_DATE
+              })
+            }
+            break
+          }
+
+          default: {
             return res.status(405).json({
               status: 405,
-              error: `Invalid value for field ${fieldInRequest.name}`
+              message: `Unrecognized field type: ${templateField.type}`
             })
           }
         }
@@ -314,7 +381,7 @@ exports.editRecord = async (req, res) => {
 
     res.status(200).json({ status: 200, message: COMMON_MSG.REQUEST_SUCCESS })
   } catch (error) {
-    res.status(500).json({ status: 500, error: error.message })
+    res.status(500).json({ status: 500, message: error.message })
   }
 }
 
@@ -389,6 +456,13 @@ exports.getRecordById = async (req, res) => {
   try {
     if (!emptyFields(res, doctorId, recordId)) {
       return
+    }
+
+    if (!doctorId || !recordId) {
+      return res.status(400).json({
+        status: 400,
+        message: COMMON_MSG.MISSING_FIELDS
+      })
     }
 
     if (!validMongoId(res, doctorId, COMMON_MSG.DOCTOR_NOT_FOUND)) return
