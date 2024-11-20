@@ -7,6 +7,7 @@ const {
   createTestRecord,
   checkFailRequest,
   validateResponse,
+  generateObjectId,
   iso8601Regex
 } = require('../../testHelpers')
 const COMMON_MSG = require('../../../utils/errorMsg')
@@ -29,7 +30,7 @@ describe('Get Record by ID', () => {
       REQUEST_URL,
       HEADERS,
       params,
-      null,
+      {},
       expectedCode,
       expectedMsg
     )

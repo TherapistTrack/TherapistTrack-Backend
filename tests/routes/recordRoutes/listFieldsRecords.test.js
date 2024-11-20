@@ -57,10 +57,10 @@ describe('List possible fields', () => {
       ['General'],
       [
         {
-          name: 'Height',
-          type: 180.0,
+          name: 'Tests',
+          type: 'NUMBER',
           required: true,
-          description: 'Altura del paciente'
+          description: 'Edad del paciente'
         }
       ]
     )
@@ -120,7 +120,7 @@ describe('List possible fields', () => {
     const nonExistentDoctorId = 'nonExistentDoctorId12345'
 
     await checkFailListRequest(
-      { doctorId: nonExistentDoctorId },
+      { doctorId: 'nonExistentDoctorId12345' },
       404,
       COMMON_MSG.DOCTOR_NOT_FOUND
     )
