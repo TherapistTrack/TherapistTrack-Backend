@@ -139,7 +139,7 @@ exports.buildProjection = (fields, filters) => {
     recordId: { $toString: '$_id' },
     templateId: { $toString: '$template' },
     createdAt: {
-      $dateToString: { format: '%Y/%m/%d', date: '$createdAt' }
+      $dateToString: { format: '%Y-%m-%d', date: '$createdAt' }
     },
     'patient.names': 1,
     'patient.lastNames': 1

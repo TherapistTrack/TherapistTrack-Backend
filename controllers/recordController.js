@@ -466,7 +466,6 @@ exports.deleteRecord = async (req, res) => {
 
 exports.listRecords = async (req, res) => {
   const { doctorId } = req.query
-  console.log('Request:', req.query)
 
   try {
     if (!emptyFields(res, doctorId)) return
@@ -576,6 +575,8 @@ exports.getRecordById = async (req, res) => {
 
 exports.searchAndFilterRecords = async (req, res) => {
   const { doctorId, limit, page, fields, sorts, filters } = req.body
+  console.log('AQUI INICIA--------------------------')
+  console.log('doctor:' + doctorId)
   console.log('Request:', req.body)
 
   try {
