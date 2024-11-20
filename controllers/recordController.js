@@ -9,6 +9,7 @@ const {
   validFields,
   validMongoId,
   validField,
+  emptyPage,
   checkFieldType
 } = require('../utils/fieldCheckers')
 const {
@@ -465,10 +466,12 @@ exports.deleteRecord = async (req, res) => {
 
 exports.listRecords = async (req, res) => {
   const { doctorId } = req.query
+  console.log('Request:', req.query)
 
   try {
     if (!emptyFields(res, doctorId)) return
     if (!validMongoId(res, doctorId, COMMON_MSG.DOCTOR_NOT_FOUND)) return
+    if (!(await doctorActive(res, doctorId))) return
 
     const records = await PatientTemplate.find({ doctor: doctorId })
 
@@ -573,10 +576,27 @@ exports.getRecordById = async (req, res) => {
 
 exports.searchAndFilterRecords = async (req, res) => {
   const { doctorId, limit, page, fields, sorts, filters } = req.body
+  console.log('Request:', req.body)
 
   try {
-    if (!emptyFields(res, doctorId, limit, page, fields, sorts, filters)) {
+    if (!emptyFields(res, doctorId, limit, fields, sorts, filters)) {
       return
+    }
+
+    if (!emptyPage(res, page)) return
+
+    if (fields.length === 0) {
+      return res
+        .status(400)
+        .json({ status: 400, error: 'Fields array is empty' })
+    } else {
+      for (const field of fields) {
+        if (field.name === undefined || field.type === undefined) {
+          return res
+            .status(400)
+            .json({ status: 400, error: COMMON_MSG.MISSING_FIELDS })
+        }
+      }
     }
 
     if (!mongoose.Types.ObjectId.isValid(doctorId)) {

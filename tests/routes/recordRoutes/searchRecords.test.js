@@ -900,7 +900,7 @@ describe('Search Records endpoint', () => {
   // DONE:
   test("should fail with 400 if 'fields' items have missing fields", async () => {
     const body = deleteObjectAttribute(BASE_REQUEST, 'fields')
-    await checkFailSearchRequest(body, 400, COMMON_MSG.INVALID_FIELD_STRUCTURE)
+    await checkFailSearchRequest(body, 400, COMMON_MSG.MISSING_FIELDS)
   })
 
   // ==================
