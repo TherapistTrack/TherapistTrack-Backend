@@ -22,13 +22,13 @@ describe('List possible fields', () => {
     Origin: 'http://localhost'
   }
 
-  async function checkFailListRequest(body, expectedCode, expectedMsg) {
+  async function checkFailListRequest(params, expectedCode, expectedMsg) {
     return checkFailRequest(
       'get',
       REQUEST_URL,
       HEADERS,
+      params,
       {},
-      body,
       expectedCode,
       expectedMsg
     )
