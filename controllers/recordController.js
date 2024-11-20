@@ -572,7 +572,7 @@ exports.getRecordById = async (req, res) => {
 }
 
 exports.searchAndFilterRecords = async (req, res) => {
-  const { doctorId, limit, pages, fields, sorts, filters } = req.body
+  const { doctorId, limit, page, fields, sorts, filters } = req.body
 
   try {
     if (!emptyFields(res, doctorId, limit, page, fields, sorts, filters)) {
