@@ -119,7 +119,7 @@ describe('Search Records endpoint', () => {
       fields: [
         { name: 'Notas cortas', value: 'a' },
         { name: 'Notas', value: 'a' },
-        { name: 'altura', value: 1.2 },
+        { name: 'Altura', value: 1.2 },
         { name: 'Edad', value: 100 },
         { name: 'Fecha de nacimiento', value: '1993-07-15T00:00:00Z' },
         { name: 'Estado civil', value: 'Soltero' }
@@ -132,7 +132,7 @@ describe('Search Records endpoint', () => {
       fields: [
         { name: 'Notas cortas', value: 'b' },
         { name: 'Notas', value: 'b' },
-        { name: 'altura', value: 1.3 },
+        { name: 'Altura', value: 1.3 },
         { name: 'Edad', value: 25 },
         { name: 'Fecha de nacimiento', value: '1998-03-22T00:00:00Z' },
         { name: 'Estado civil', value: 'Casado' }
@@ -145,7 +145,7 @@ describe('Search Records endpoint', () => {
       fields: [
         { name: 'Notas cortas', value: 'c' },
         { name: 'Notas', value: 'c' },
-        { name: 'altura', value: 1.4 },
+        { name: 'Altura', value: 1.4 },
         { name: 'Edad', value: 40 },
         { name: 'Fecha de nacimiento', value: '1982-11-01T00:00:00Z' },
         { name: 'Estado civil', value: 'Soltero' }

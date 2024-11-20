@@ -120,7 +120,7 @@ describe('List possible fields', () => {
     const nonExistentDoctorId = 'nonExistentDoctorId12345'
 
     await checkFailListRequest(
-      { doctorId: nonExistentDoctorId },
+      { doctorId: 'nonExistentDoctorId12345' },
       404,
       COMMON_MSG.DOCTOR_NOT_FOUND
     )

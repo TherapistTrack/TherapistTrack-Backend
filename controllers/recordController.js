@@ -572,9 +572,13 @@ exports.getRecordById = async (req, res) => {
 }
 
 exports.searchAndFilterRecords = async (req, res) => {
-  const { doctorId, limit = 10, page = 1, fields, sorts, filters } = req.body
+  const { doctorId, limit, pages, fields, sorts, filters } = req.body
 
   try {
+    if (!emptyFields(res, doctorId, limit, page, fields, sorts, filters)) {
+      return
+    }
+
     if (!mongoose.Types.ObjectId.isValid(doctorId)) {
       return res.status(400).json({ error: 'Invalid doctor ID' })
     }
@@ -632,7 +636,7 @@ exports.searchAndFilterRecords = async (req, res) => {
 
     res.status(200).json({
       status: 200,
-      message: 'Search successful',
+      message: COMMON_MSG.REQUEST_SUCCESS,
       records,
       total: totalCount
     })
