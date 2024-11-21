@@ -14,6 +14,16 @@ const emptyFields = (res, ...fields) => {
   return true
 }
 
+const emptyPage = (res, page) => {
+  if (page === 0) {
+    return true
+  } else if (!page || page < 0) {
+    res.status(400).json({ status: 400, message: COMMON_MSG.MISSING_FIELDS })
+    return false
+  }
+  return true
+}
+
 const validArrays = (res, ...fields) => {
   for (let field of fields) {
     if (!Array.isArray(field) || field.length === 0) {
@@ -143,5 +153,6 @@ module.exports = {
   validFields,
   validMongoId,
   validField,
-  checkFieldType
+  checkFieldType,
+  emptyPage
 }

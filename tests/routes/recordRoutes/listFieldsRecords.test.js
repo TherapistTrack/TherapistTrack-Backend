@@ -5,7 +5,8 @@ const {
   createTestPatientTemplate,
   deleteUser,
   checkFailRequest,
-  validateResponse
+  validateResponse,
+  generateObjectId
 } = require('../../testHelpers')
 const COMMON_MSG = require('../../../utils/errorMsg')
 const yup = require('yup')
@@ -21,13 +22,13 @@ describe('List possible fields', () => {
     Origin: 'http://localhost'
   }
 
-  async function checkFailListRequest(body, expectedCode, expectedMsg) {
+  async function checkFailListRequest(params, expectedCode, expectedMsg) {
     return checkFailRequest(
       'get',
       REQUEST_URL,
       HEADERS,
+      params,
       {},
-      body,
       expectedCode,
       expectedMsg
     )
@@ -111,18 +112,18 @@ describe('List possible fields', () => {
   })
 
   // TODO:
-  test('Should fail with 400 if doctorId is not sent', async () => {
-    await checkFailListRequest({}, 400, COMMON_MSG.MISSING_FIELDS)
-  })
-
-  // TODO:
   test('Should fail with 404 if doctorId not correspond to and existent/valid user', async () => {
     const nonExistentDoctorId = 'nonExistentDoctorId12345'
 
     await checkFailListRequest(
-      { doctorId: 'nonExistentDoctorId12345' },
+      { doctorId: generateObjectId() },
       404,
       COMMON_MSG.DOCTOR_NOT_FOUND
     )
+  })
+
+  // TODO:
+  test('Should fail with 400 if doctorId is not sent', async () => {
+    await checkFailListRequest({}, 400, COMMON_MSG.MISSING_FIELDS)
   })
 })
