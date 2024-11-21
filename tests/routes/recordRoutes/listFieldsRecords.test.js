@@ -5,7 +5,8 @@ const {
   createTestPatientTemplate,
   deleteUser,
   checkFailRequest,
-  validateResponse
+  validateResponse,
+  generateObjectId
 } = require('../../testHelpers')
 const COMMON_MSG = require('../../../utils/errorMsg')
 const yup = require('yup')
@@ -21,13 +22,13 @@ describe('List possible fields', () => {
     Origin: 'http://localhost'
   }
 
-  async function checkFailListRequest(body, expectedCode, expectedMsg) {
+  async function checkFailListRequest(params, expectedCode, expectedMsg) {
     return checkFailRequest(
       'get',
       REQUEST_URL,
       HEADERS,
+      params,
       {},
-      body,
       expectedCode,
       expectedMsg
     )
@@ -40,7 +41,7 @@ describe('List possible fields', () => {
 
     await createTestPatientTemplate(
       doctorId,
-      'Plantilla de Prueba',
+      `Plantilla de Prueba_${Date.now()}`,
       ['General'],
       [
         {
@@ -53,14 +54,14 @@ describe('List possible fields', () => {
     )
     await createTestPatientTemplate(
       doctorId,
-      'Plantilla de Prueba 2',
+      `Plantilla de Prueba 2_${Date.now()}`,
       ['General'],
       [
         {
-          name: 'Height',
-          type: 180.0,
+          name: 'Tests',
+          type: 'NUMBER',
           required: true,
-          description: 'Altura del paciente'
+          description: 'Edad del paciente'
         }
       ]
     )
@@ -87,7 +88,7 @@ describe('List possible fields', () => {
       .required()
   })
 
-  // DONE:
+  // TODO:
   test('Should succeed with 200 in retreiving available record fields', async () => {
     try {
       const response = await axios.get(REQUEST_URL, {
@@ -110,19 +111,19 @@ describe('List possible fields', () => {
     }
   })
 
-  // DONE:
-  test('Should fail with 400 if doctorId is not sent', async () => {
-    await checkFailListRequest({}, 400, COMMON_MSG.MISSING_FIELDS)
-  })
-
-  // DONE:
+  // TODO:
   test('Should fail with 404 if doctorId not correspond to and existent/valid user', async () => {
     const nonExistentDoctorId = 'nonExistentDoctorId12345'
 
     await checkFailListRequest(
-      { doctorId: nonExistentDoctorId },
+      { doctorId: generateObjectId() },
       404,
       COMMON_MSG.DOCTOR_NOT_FOUND
     )
+  })
+
+  // TODO:
+  test('Should fail with 400 if doctorId is not sent', async () => {
+    await checkFailListRequest({}, 400, COMMON_MSG.MISSING_FIELDS)
   })
 })

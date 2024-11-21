@@ -1,340 +1,452 @@
 const Record = require('../models/recordModel')
-const { options } = require('../routes/recordRoutes')
+const PatientTemplate = require('../models/patientTemplateModel')
+const mongoose = require('mongoose')
+const { validateAndFormatFieldValue } = require('../utils/validatorConfig')
+const COMMON_MSG = require('../utils/errorMsg')
+const {
+  emptyFields,
+  validArrays,
+  validFields,
+  validMongoId,
+  validField,
+  emptyPage,
+  checkFieldType
+} = require('../utils/fieldCheckers')
+const {
+  checkExistenceName,
+  checkExistenceId,
+  checkDoctor,
+  checkExistingField,
+  doctorActive
+} = require('../utils/requestCheckers')
+const {
+  buildFilterExpression,
+  buildSortStage,
+  buildProjection
+} = require('../utils/filterUtils')
+const File = require('../models/fileModel')
 
-// Create a new record
 exports.createRecord = async (req, res) => {
-  const { doctor, template, patient } = req.body
-
-  /*
-    const isValidObjectId = mongoose.Types.ObjectId.isValid(doctor)
-    const isValidtemplateId = mongoose.Types.ObjectId.isValid(template)
-    if (!isValidObjectId || !isValidtemplateId) {
-       return res.status(400).send({ status: 'error', message: 'Invalid record or template ID' });
-    }
-    */
+  const { doctorId, templateId, patient } = req.body
 
   try {
-    for (const field of patient.fields) {
-      if (field.type === 'DATE' && isNaN(Date.parse(field.value))) {
-        return res
-          .status(400)
-          .json({ error: `Invalid date format for field ${field.name}` })
-      } else if (
-        (field.type === 'NUMBER' || field.type === 'FLOAT') &&
-        isNaN(Number(field.value))
+    if (!emptyFields(res, doctorId, templateId, patient)) {
+      return
+    }
+
+    if (!emptyFields(res, patient.fields)) return
+
+    if (!emptyFields(res, patient.names, patient.lastnames)) return
+
+    if (!validMongoId(res, doctorId, COMMON_MSG.DOCTOR_NOT_FOUND)) return
+    if (!validMongoId(res, templateId, COMMON_MSG.TEMPLATE_NOT_FOUND)) return
+
+    if (!(await doctorActive(res, doctorId))) return
+
+    const template = await PatientTemplate.findById(templateId)
+    if (!template) {
+      return res.status(404).json({
+        status: 404,
+        message: COMMON_MSG.TEMPLATE_NOT_FOUND
+      })
+    }
+
+    const formattedFields = template.fields.map((templateField) => {
+      const patientField = patient.fields.find(
+        (field) => field.name === templateField.name
+      )
+
+      if (!patientField) {
+        return res.status(404).json({
+          status: 404,
+          message: COMMON_MSG.MISSING_FIELDS_IN_TEMPLATE
+        })
+      }
+
+      let value = patientField ? patientField.value : null
+
+      const is_valid = checkFieldType(
+        res,
+        templateField.type,
+        value,
+        templateField.options
+      )
+      if (!is_valid) return
+
+      return {
+        name: templateField.name,
+        type: templateField.type,
+        options: Array.isArray(templateField.options)
+          ? templateField.options
+          : [],
+        value,
+        required: templateField.required
+      }
+    })
+
+    for (const field of formattedFields) {
+      if (
+        field.required &&
+        (field.value === null || field.value === undefined)
       ) {
-        return res
-          .status(400)
-          .json({ error: `Invalid number format for field ${field.name}` })
-      } else if (
-        field.type === 'CHOICE' &&
-        !field.options.includes(field.value)
-      ) {
-        return res
-          .status(400)
-          .json({
-            error: `Choice "${field.value}" is not a valid option for field ${field.name}`
-          })
+        return res.status(400).json({
+          status: 400,
+          message: `El campo "${field.name}" es requerido y no tiene un valor asignado.`
+        })
       }
     }
 
-    const newRecord = new Record({
-      doctor,
-      template,
-      patient
+    const record = new Record({
+      doctor: doctorId,
+      template: templateId,
+      patient: {
+        names: patient.names,
+        lastNames: patient.lastnames,
+        fields: formattedFields
+      }
     })
 
-    const savedRecord = await newRecord.save()
+    const recordSaved = await record.save()
 
-    res.status(201).json({
-      recordId: savedRecord._id,
-      message: 'Record created successfully'
+    res.status(200).json({
+      status: 200,
+      message: COMMON_MSG.REQUEST_SUCCESS,
+      recordId: recordSaved._id
     })
   } catch (error) {
-    res.status(500).json({ error: error.message })
+    if (!res.headersSent) {
+      res.status(500).json({ status: 500, message: error.message })
+    }
   }
 }
 
-// Edit a record
 exports.editRecord = async (req, res) => {
-  const { doctorId, recordId, patient } = req.body
-
-  /*
-    const isValidObjectId = mongoose.Types.ObjectId.isValid(recordId)
-    if (!isValidObjectId) {
-       return res.status(400).send({ status: 'error', message: 'Invalid record ID' });
-    }
-    */
+  const { recordId, doctorId, patient } = req.body
 
   try {
-    const record = await Record.findById(recordId)
-
-    if (record.doctor.toString() !== doctorId) {
-      return res.status(403).json({ error: 'Unauthorized' })
-    }
+    if (!emptyFields(res, doctorId, recordId, patient)) return
+    if (!validArrays(res, patient.fields)) return
+    if (!validMongoId(res, recordId, COMMON_MSG.INVALID_RECORD_ID)) return
+    if (!validMongoId(res, doctorId, COMMON_MSG.DOCTOR_NOT_FOUND)) return
 
     if (
-      patient.fields.type === 'DATE' &&
-      isNaN(Date.parse(patient.fields.value))
-    ) {
-      return res.status(400).json({ error: 'Invalid date format' })
-    } else if (
-      patient.fields.type === 'NUMBER' ||
-      (patient.fields.type === 'FLOAT' && isNaN(Number(patient.fields.value)))
-    ) {
-      return res.status(400).json({ error: 'Invalid number format' })
+      !(await checkExistenceId(
+        res,
+        Record,
+        recordId,
+        COMMON_MSG.RECORD_NOT_FOUND
+      ))
+    )
+      return
+    if (!(await checkDoctor(res, Record, doctorId, recordId))) return
+
+    const record = await Record.findById(recordId)
+    const template = await PatientTemplate.findById(record.template)
+    const templateFields = template.fields
+
+    let updatedPatient = { ...record.patient }
+
+    for (let field of patient.fields) {
+      const existingField = updatedPatient.fields.find(
+        (f) => f.name === field.name
+      )
+      if (existingField) {
+        existingField.value = field.value
+      }
     }
 
-    const updatedRecord = await Record.findByIdAndUpdate(
+    for (let templateField of templateFields) {
+      const patientField = patient.fields.find(
+        (field) => field.name === templateField.name
+      )
+
+      if (!patientField) {
+        return res.status(404).json({
+          status: 404,
+          message: COMMON_MSG.MISSING_FIELDS_IN_TEMPLATE
+        })
+      }
+
+      const fieldInRequest = updatedPatient.fields.find(
+        (field) => field.name === templateField.name
+      )
+
+      if (templateField.required) {
+        if (
+          !fieldInRequest ||
+          fieldInRequest.value === undefined ||
+          fieldInRequest.value === null
+        ) {
+          return res.status(400).json({
+            status: 400,
+            message: `Missing required field: ${templateField.name}`
+          })
+        }
+      }
+
+      const is_valid = checkFieldType(
+        res,
+        templateField.type,
+        fieldInRequest.value,
+        templateField.options
+      )
+      if (!is_valid) return
+    }
+
+    await Record.findByIdAndUpdate(
       recordId,
-      { patient },
+      {
+        patient: {
+          ...updatedPatient,
+          names: patient.names || updatedPatient.names,
+          lastnames: patient.lastnames || updatedPatient.lastnames
+        }
+      },
       { new: true }
     )
 
-    if (!updatedRecord) {
-      return res.status(404).json({ error: 'Record not found' })
-    }
-
-    res.status(200).json({ message: 'Record updated successfully' })
+    res.status(200).json({ status: 200, message: COMMON_MSG.REQUEST_SUCCESS })
   } catch (error) {
-    res.status(500).json({ error: 'Error updating the record' })
+    res.status(500).json({ status: 500, message: error.message })
   }
 }
 
-// Delete a record
 exports.deleteRecord = async (req, res) => {
   const { doctorId, recordId } = req.body
 
-  /*
-    const isValidObjectId = mongoose.Types.ObjectId.isValid(recordId)
-    if (!isValidObjectId) {
-       return res.status(400).send({ status: 'error', message: 'Invalid record ID' });
-    }
-    */
-
   try {
-    const record = await Record.findById(recordId)
+    if (!emptyFields(res, doctorId, recordId)) return
 
-    if (!record) {
-      return res.status(404).json({ error: 'Record not found' })
-    }
+    if (!validMongoId(res, recordId, COMMON_MSG.INVALID_RECORD_ID)) return
+    if (!validMongoId(res, doctorId, COMMON_MSG.INVALID_DOCTOR_ID)) return
 
-    if (record.doctor.toString() !== doctorId) {
-      return res.status(403).json({ error: 'Unauthorized' })
+    if (!(await doctorActive(res, doctorId))) return
+
+    if (
+      !(await checkExistenceId(
+        res,
+        Record,
+        recordId,
+        COMMON_MSG.RECORD_NOT_FOUND
+      ))
+    )
+      return
+
+    if (!(await checkDoctor(res, Record, doctorId, recordId))) return
+
+    const files = await File.find({ record: recordId })
+
+    if (files.length > 0) {
+      return res
+        .status(409)
+        .json({ status: 409, message: COMMON_MSG.OPERATION_REJECTED })
     }
 
     await Record.findByIdAndDelete(recordId)
 
-    res.status(200).json({ message: 'Record deleted successfully' })
+    res.status(200).json({ status: 200, message: COMMON_MSG.REQUEST_SUCCESS })
   } catch (error) {
-    res.status(500).json({ error: 'Error deleting the record' })
+    console.error('Error deleting record:', error)
+    res.status(500).json({ status: 500, error: error.message })
   }
 }
 
-// List records
 exports.listRecords = async (req, res) => {
-  const { doctorId, limit, offset, sorts, filters } = req.body
+  const { doctorId } = req.query
 
   try {
-    let query = { doctor: doctorId }
+    if (!emptyFields(res, doctorId)) return
+    if (!validMongoId(res, doctorId, COMMON_MSG.DOCTOR_NOT_FOUND)) return
+    if (!(await doctorActive(res, doctorId))) return
 
-    if (filters && filters.length > 0) {
-      filters.forEach((filter) => {
-        const { name, operation, value, logicGate } = filter
-        const filterQuery = {}
+    const records = await PatientTemplate.find({ doctor: doctorId })
 
-        //TEXT and LARGE TEXT
-        if (operation === 'contains') {
-          filterQuery[`patient.fields`] = {
-            $elemMatch: { name, value: { $regex: value, $options: 'i' } }
-          }
-        } else if (operation === 'starts_with') {
-          filterQuery[`patient.fields`] = {
-            $elemMatch: { name, value: { $regex: `^${value}`, $options: 'i' } }
-          }
-        } else if (operation === 'ends_with') {
-          filterQuery[`patient.fields`] = {
-            $elemMatch: { name, value: { $regex: `${value}$`, $options: 'i' } }
-          }
-        }
+    let allFields = records.flatMap((record) => record.fields)
 
-        // DATE
-        if (operation === 'after') {
-          // Verificar si el value es un valor de tipo Date válido
-          if (!isNaN(Date.parse(value))) {
-            filterQuery['patient.fields'] = {
-              $elemMatch: { name, value: { $gte: new Date(value) } }
-            }
-          } else {
-            throw new Error(
-              `Invalid date format for 'after' operation: ${value}`
-            )
-          }
-        } else if (operation === 'before') {
-          // Verificar si el value es un valor de tipo Date válido
-          if (!isNaN(Date.parse(value))) {
-            filterQuery['patient.fields'] = {
-              $elemMatch: { name, value: { $lt: new Date(value) } }
-            }
-          } else {
-            throw new Error(
-              `Invalid date format for 'before' operation: ${value}`
-            )
-          }
-        } else if (operation === 'between') {
-          // Verificar si ambos valores son de tipo Date válido
-          if (
-            Array.isArray(value) &&
-            value.length === 2 &&
-            !isNaN(Date.parse(value[0])) &&
-            !isNaN(Date.parse(value[1]))
-          ) {
-            filterQuery['patient.fields'] = {
-              $elemMatch: {
-                name,
-                value: { $gt: new Date(value[0]), $lt: new Date(value[1]) }
-              }
-            }
-          } else {
-            throw new Error(
-              `Invalid date format for 'between' operation: ${value}`
-            )
-          }
-        }
+    const uniqueFields = []
+    const seenFields = new Set()
 
-        // NUMBER and FLOAT
-        if (operation === 'greater_than') {
-          // Verificar si el value es un número válido
-          if (!isNaN(Number(value))) {
-            filterQuery[`patient.fields`] = {
-              $elemMatch: { name, value: { $gte: Number(value) } }
-            }
-          } else {
-            throw new Error(
-              `Invalid number format for 'greater_than' operation: ${value}`
-            )
-          }
-        } else if (operation === 'less_than') {
-          // Verificar si el value es un número válido
-          if (!isNaN(Number(value))) {
-            filterQuery[`patient.fields`] = {
-              $elemMatch: { name, value: { $lt: Number(value) } }
-            }
-          } else {
-            throw new Error(
-              `Invalid number format for 'less_than' operation: ${value}`
-            )
-          }
-        } else if (operation === 'equal_than') {
-          // Verificar si el value es un número válido
-          if (!isNaN(Number(value))) {
-            filterQuery[`patient.fields`] = {
-              $elemMatch: { name, value: { $eq: Number(value) } }
-            }
-          } else {
-            throw new Error(
-              `Invalid number format for 'equal_than' operation: ${value}`
-            )
-          }
-        }
-
-        // CHOICE
-        if (operation === 'is') {
-          filterQuery[`patient.fields`] = {
-            $elemMatch: { name, value: value, options: { $in: [value] } }
-          }
-        } else if (operation === 'is_not') {
-          filterQuery[`patient.fields`] = {
-            $elemMatch: {
-              name,
-              value: { $ne: value, options: { $in: [value] } }
-            }
-          }
-        } else if (operation === 'is_not_empty') {
-          filterQuery[`patient.fields`] = {
-            $elemMatch: {
-              name,
-              value: { $ne: '' },
-              options: { $exists: true, $ne: [] }
-            }
-          }
-        }
-
-        //LOGIC GATE
-        if (logicGate === 'or') {
-          query = { $or: [query, filterQuery] }
-        } else {
-          //default to AND logic
-          query = { ...query, ...filterQuery }
-        }
-      })
-    }
-
-    const records = await Record.find(query)
-      .skip(parseInt(offset))
-      .limit(parseInt(limit))
-
-    if (records.length > 0 && records[0].doctor.toString() !== doctorId) {
-      return res.status(403).json({ error: 'Unauthorized' })
-    }
-
-    if (!records || records.length === 0) {
-      return res.status(404).json({ error: 'Records not found' })
-    }
-
-    // Realizar el sort después de encontrar los records
-    if (sorts && sorts.length > 0) {
-      records.sort((a, b) => {
-        let result = 0
-
-        sorts.forEach(({ name, mode }) => {
-          const fieldA =
-            a.patient.fields.find((field) => field.name === name)?.value || ''
-          const fieldB =
-            b.patient.fields.find((field) => field.name === name)?.value || ''
-
-          if (fieldA < fieldB) {
-            result = mode === 'asc' ? -1 : 1
-          } else if (fieldA > fieldB) {
-            result = mode === 'asc' ? 1 : -1
-          }
+    allFields.forEach((field) => {
+      const fieldIdentifier = `${field.name}_${field.type}`
+      if (!seenFields.has(fieldIdentifier)) {
+        seenFields.add(fieldIdentifier)
+        uniqueFields.push({
+          name: field.name,
+          type: field.type
         })
+      }
+    })
 
-        return result
-      })
-    }
-
-    const total = await Record.countDocuments(query)
-
-    res.status(200).json({ records, total })
+    res.status(200).json({
+      status: 200,
+      message: COMMON_MSG.REQUEST_SUCCESS,
+      fields: uniqueFields
+    })
   } catch (error) {
-    res.status(500).json({ error: error.message })
+    res.status(500).json({ error: 'Error getting the records' })
   }
 }
 
-// Get a record by its ID
 exports.getRecordById = async (req, res) => {
   const { doctorId, recordId } = req.query
 
-  /*
-    const isValidObjectId = mongoose.Types.ObjectId.isValid(recordId)
-    if (!isValidObjectId) {
-       return res.status(400).send({ status: 'error', message: 'Invalid record ID' });
+  try {
+    if (!emptyFields(res, doctorId, recordId)) {
+      return
     }
-    */
+
+    if (!validMongoId(res, doctorId, COMMON_MSG.DOCTOR_NOT_FOUND)) return
+    if (!validMongoId(res, recordId, COMMON_MSG.RECORD_NOT_FOUND)) return
+
+    if (!(await doctorActive(res, doctorId))) return
+
+    if (
+      !(await checkExistenceId(
+        res,
+        Record,
+        recordId,
+        COMMON_MSG.RECORD_NOT_FOUND
+      ))
+    )
+      return
+
+    if (!(await checkDoctor(res, Record, doctorId, recordId))) return
+
+    const record = await Record.findById(recordId)
+    if (!record) {
+      return res.status(404).json({
+        status: 404,
+        message: COMMON_MSG.RECORD_NOT_FOUND
+      })
+    }
+
+    const patientTemplate = await PatientTemplate.findById(record.template)
+    if (!patientTemplate) {
+      return res.status(404).json({
+        status: 404,
+        message: COMMON_MSG.TEMPLATE_NOT_FOUND
+      })
+    }
+
+    const { _id, template, createdAt, patient } = record
+
+    const filteredFields = patient.fields.map(
+      ({ _id, name, type, options, value, required }) => ({
+        _id,
+        name,
+        type,
+        options,
+        value,
+        required
+      })
+    )
+
+    res.status(200).json({
+      status: 200,
+      message: COMMON_MSG.REQUEST_SUCCESS,
+      recordId: _id,
+      templateId: template,
+      categories: patientTemplate.categories,
+      createdAt,
+      patient: {
+        names: patient.names,
+        lastnames: patient.lastNames,
+        fields: filteredFields
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching record:', error)
+    res.status(500).json({ status: 500, error: 'Error getting the record' })
+  }
+}
+
+exports.searchAndFilterRecords = async (req, res) => {
+  const { doctorId, limit, page, fields, sorts, filters } = req.body
 
   try {
-    const record = await Record.findById(recordId)
-
-    if (!record) {
-      return res.status(404).json({ error: 'Record not found' })
-    }
-    if (record.doctor.toString() !== doctorId) {
-      return res.status(403).json({ error: 'Unauthorized' })
+    if (!emptyFields(res, doctorId, limit, fields, sorts, filters)) {
+      return
     }
 
-    res.status(200).json({ record })
+    if (!emptyPage(res, page)) return
+
+    if (fields.length === 0) {
+      return res
+        .status(400)
+        .json({ status: 400, error: 'Fields array is empty' })
+    } else {
+      for (const field of fields) {
+        if (field.name === undefined || field.type === undefined) {
+          return res
+            .status(400)
+            .json({ status: 400, error: COMMON_MSG.MISSING_FIELDS })
+        }
+      }
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(doctorId)) {
+      return res.status(400).json({ error: 'Invalid doctor ID' })
+    }
+
+    const limitNum = parseInt(limit)
+    const pageNum = parseInt(page) > 0 ? parseInt(page) - 1 : 0
+
+    let pipeline = []
+
+    // Stage 1: Match doctorId
+    pipeline.push({
+      $match: {
+        doctor: new mongoose.Types.ObjectId(doctorId)
+      }
+    })
+
+    // Stage 2: Add sort fields
+    if (sorts && sorts.length > 0) {
+      const { addFields: sortAddFields, sort } = buildSortStage(sorts)
+
+      // Add fields for sorting
+      if (Object.keys(sortAddFields).length > 0) {
+        pipeline.push({ $addFields: sortAddFields })
+      }
+
+      // Add sort stage
+      if (Object.keys(sort).length > 0) {
+        pipeline.push({ $sort: sort })
+      }
+    }
+
+    // Stage 3: Pagination
+    pipeline.push({ $skip: pageNum * limitNum }, { $limit: limitNum })
+
+    // Stage 4: Projection
+    const projection = buildProjection(fields, filters)
+    pipeline.push({ $project: projection })
+
+    console.log('Pipeline:', JSON.stringify(pipeline, null, 2))
+    // Execute the query
+    const records = await Record.aggregate(pipeline)
+
+    // Count pipeline
+    const countPipeline = [
+      {
+        $match: {
+          doctor: new mongoose.Types.ObjectId(doctorId)
+        }
+      },
+      { $count: 'total' }
+    ]
+
+    const totalResult = await Record.aggregate(countPipeline)
+    const totalCount = totalResult.length > 0 ? totalResult[0].total : 0
+
+    res.status(200).json({
+      status: 200,
+      message: COMMON_MSG.REQUEST_SUCCESS,
+      records,
+      total: totalCount
+    })
   } catch (error) {
-    res.status(500).json({ error: 'Error getting the record' })
+    console.error(error)
+    res.status(500).json({ error: error.message })
   }
 }

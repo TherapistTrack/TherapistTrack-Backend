@@ -1,7 +1,8 @@
 const axios = require('axios')
 const { BASE_URL, getAuthToken } = require('./jest.setup')
-const yup = require('yup')
-const { response } = require('express')
+const fs = require('fs') // Import the 'fs' module
+const path = require('path') // Import the 'path' module
+const FormData = require('form-data') // Import 'form-data' module
 
 // OTHER EXPRESIONS
 const iso8601Regex =
@@ -157,6 +158,7 @@ async function createTestPatientTemplate(
     categories: categories,
     fields: fields
   }
+  // console.log(testTemplate)
 
   try {
     const response = await axios.post(
@@ -166,10 +168,9 @@ async function createTestPatientTemplate(
     )
     return response.data.data.patientTemplateId // Guardar el ID de la plantilla creada
   } catch (error) {
-    console.error(
-      'Error creating template:',
-      error.response ? error.response.data : error.message
-    )
+    if (error.response) {
+      console.log(`Error creating template: ${JSON.stringify(error.response)}`)
+    } else console.log(JSON.stringify(error, '', '  '))
     throw error
   }
 }
@@ -392,6 +393,7 @@ function buildSearchRequestBody({
   limit = 10,
   page = 0,
   category = '',
+  recordId = '',
   fields = [],
   sorts = [],
   filters = []
@@ -401,6 +403,7 @@ function buildSearchRequestBody({
     limit,
     page,
     category,
+    recordId,
     fields,
     sorts,
     filters
@@ -465,7 +468,8 @@ async function setUpEnvironmentForFilesTests(
         {
           name: 'edad',
           type: 'NUMBER',
-          required: true
+          required: true,
+          description: '_'
         }
       ]
     )
@@ -476,10 +480,10 @@ async function setUpEnvironmentForFilesTests(
     )
     const recordId = await createTestRecord(
       doctor.roleDependentInfo.id,
-      templateId,
+      patientTemplateId,
       {
         names: 'user',
-        lastNames: 'test',
+        lastnames: 'test',
         fields: [
           {
             name: 'edad',
@@ -488,9 +492,9 @@ async function setUpEnvironmentForFilesTests(
         ]
       }
     )
-    return doctor, patientTemplateId, recordId, fileTemplateId
+    return { doctor, patientTemplateId, recordId, fileTemplateId }
   } catch (error) {
-    console.error(`Error setting up environments for files.`)
+    console.error(`Error setting up environments for files. ${error}`)
     throw error
   }
 }
@@ -502,7 +506,7 @@ function createFormDataWithFile(body) {
   form.append('metadata', JSON.stringify(body))
 
   // Append a test PDF file.
-  const filePath = path.join(__dirname, 'testFile.pdf')
+  const filePath = path.join(__dirname, './routes/files/testFile.pdf')
   const fileName = 'testFile.pdf'
   form.append('file', fs.createReadStream(filePath), { fileName: fileName })
 

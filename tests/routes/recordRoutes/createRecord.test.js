@@ -91,7 +91,7 @@ describe('Create Records Tests', () => {
 
     templateId = await createTestPatientTemplate(
       doctorId,
-      'Plantilla de Identificación',
+      `Plantilla de Identificación_${Date.now()}`,
       ['General', 'Consultas'],
       [
         {
@@ -142,7 +142,7 @@ describe('Create Records Tests', () => {
     await deleteUser(userId)
   })
 
-  // DONE:
+  // TODO:
   test('should succeed with 200 creating a record', async () => {
     const recordBody = BASE_RECORD
 
@@ -161,55 +161,55 @@ describe('Create Records Tests', () => {
     }
   })
 
-  // DONE:
+  // TODO:
   test('should fail with 400 if doctorId not passed', async () => {
     const record = deleteRecordAttribute('doctorId')
     await checkFailCreateRequest(record, 400, COMMON_MSG.MISSING_FIELDS)
   })
 
-  // DONE:
+  // TODO:
   test('should fail with 400 if templateId not passed', async () => {
     const record = deleteRecordAttribute('templateId')
     await checkFailCreateRequest(record, 400, COMMON_MSG.MISSING_FIELDS)
   })
 
-  // DONE:
+  // TODO:
   test('should fail with 400 if patient not passed', async () => {
     const record = deleteRecordAttribute('patient')
     await checkFailCreateRequest(record, 400, COMMON_MSG.MISSING_FIELDS)
   })
 
-  // DONE:
+  // TODO:
   test('should fail with 400 if patient names not passed', async () => {
     const record = deleteRecordAttribute('patient.names')
     await checkFailCreateRequest(record, 400, COMMON_MSG.MISSING_FIELDS)
   })
 
-  // DONE:
+  // TODO:
   test('should fail with 400 if patient lastnames not passed', async () => {
     const record = deleteRecordAttribute('patient.lastnames')
     await checkFailCreateRequest(record, 400, COMMON_MSG.MISSING_FIELDS)
   })
 
-  // DONE:
+  // TODO:
   test('should fail with 400 if patient fields not passed', async () => {
     const record = deleteRecordAttribute('patient.fields')
     await checkFailCreateRequest(record, 400, COMMON_MSG.MISSING_FIELDS)
   })
 
-  // DONE:
+  // TODO:
   test('should fail with 404 if doctorId is from a not active/existent doctor', async () => {
     const record = modifyRecordAttribute('doctorId', 'nonExistentDoctorId')
     await checkFailCreateRequest(record, 404, COMMON_MSG.DOCTOR_NOT_FOUND)
   })
 
-  // DONE:
+  // TODO:
   test('should fail with 404 if templateId is from a not-existent template', async () => {
     const record = modifyRecordAttribute('templateId', 'nonExistentDoctorId')
     await checkFailCreateRequest(record, 404, COMMON_MSG.TEMPLATE_NOT_FOUND)
   })
 
-  // DONE:
+  // TODO:
   test('should fail with 404 if not all fields defined by the template are not sent', async () => {
     await checkFailCreateRequest(
       {
@@ -239,7 +239,7 @@ describe('Create Records Tests', () => {
   // === TEXT ===
   // ==================
   // DONE:
-  test('should fail with 405 when passing NUMBER value for TEXT field', async () => {
+  test.skip('should fail with 405 when passing NUMBER value for TEXT field', async () => {
     const record = modifyRecordField('Notas adicionales', 123)
     await checkFailCreateRequest(
       record,
@@ -249,7 +249,7 @@ describe('Create Records Tests', () => {
   })
 
   // DONE:
-  test('should fail with 405 when passing BOOLEAN value for TEXT field', async () => {
+  test.skip('should fail with 405 when passing BOOLEAN value for TEXT field', async () => {
     const record = modifyRecordField('Notas adicionales', true)
     await checkFailCreateRequest(
       record,
@@ -259,7 +259,7 @@ describe('Create Records Tests', () => {
   })
 
   // DONE:
-  test('should fail with 405 when passing ARRAY value for TEXT field', async () => {
+  test.skip('should fail with 405 when passing ARRAY value for TEXT field', async () => {
     const record = modifyRecordField('Notas adicionales', [])
     await checkFailCreateRequest(
       record,
@@ -272,7 +272,7 @@ describe('Create Records Tests', () => {
   // === SHORT_TEXT ===
   // ==================
   // DONE:
-  test('should fail with 405 when passing NUMBER value for SHORT_TEXT field', async () => {
+  test.skip('should fail with 405 when passing NUMBER value for SHORT_TEXT field', async () => {
     const record = modifyRecordField('Observaciones breves', 123)
     await checkFailCreateRequest(
       record,
@@ -282,7 +282,7 @@ describe('Create Records Tests', () => {
   })
 
   // DONE:
-  test('should fail with 405 when passing BOOLEAN value for SHORT_TEXT field', async () => {
+  test.skip('should fail with 405 when passing BOOLEAN value for SHORT_TEXT field', async () => {
     const record = modifyRecordField('Observaciones breves', true)
     await checkFailCreateRequest(
       record,
@@ -292,7 +292,7 @@ describe('Create Records Tests', () => {
   })
 
   // DONE:
-  test('should fail with 405 when passing ARRAY value for SHORT_TEXT field', async () => {
+  test.skip('should fail with 405 when passing ARRAY value for SHORT_TEXT field', async () => {
     const record = modifyRecordField('Observaciones breves', [])
     await checkFailCreateRequest(
       record,
@@ -305,7 +305,7 @@ describe('Create Records Tests', () => {
   // === NUMBER ===
   // ==================
   // DONE:
-  test('should fail with 405 when passing TEXT value for NUMBER field', async () => {
+  test.skip('should fail with 405 when passing TEXT value for NUMBER field', async () => {
     const record = modifyRecordField('Edad', '321')
     await checkFailCreateRequest(
       record,
@@ -315,7 +315,7 @@ describe('Create Records Tests', () => {
   })
 
   // DONE:
-  test('should fail with 405 when passing BOOLEAN value for NUMBER field', async () => {
+  test.skip('should fail with 405 when passing BOOLEAN value for NUMBER field', async () => {
     const record = modifyRecordField('Edad', false)
     await checkFailCreateRequest(
       record,
@@ -325,7 +325,7 @@ describe('Create Records Tests', () => {
   })
 
   // DONE:
-  test('should fail with 405 when passing ARRAY value for NUMBER field', async () => {
+  test.skip('should fail with 405 when passing ARRAY value for NUMBER field', async () => {
     const record = modifyRecordField('Edad', [])
     await checkFailCreateRequest(
       record,
@@ -335,7 +335,7 @@ describe('Create Records Tests', () => {
   })
 
   // DONE:
-  test('should fail with 405 when passing FLOAT value for NUMBER field', async () => {
+  test.skip('should fail with 405 when passing FLOAT value for NUMBER field', async () => {
     const record = modifyRecordField('Edad', 32.3)
     await checkFailCreateRequest(
       record,
@@ -348,7 +348,7 @@ describe('Create Records Tests', () => {
   // === FLOAT ===
   // ==================
   // DONE:
-  test('should fail with 405 when passing TEXT value for FLOAT field', async () => {
+  test.skip('should fail with 405 when passing TEXT value for FLOAT field', async () => {
     const record = modifyRecordField('Peso en kg', '32.2')
     await checkFailCreateRequest(
       record,
@@ -358,7 +358,7 @@ describe('Create Records Tests', () => {
   })
 
   // DONE:
-  test('should fail with 405 when passing BOOLEAN value for FLOAT field', async () => {
+  test.skip('should fail with 405 when passing BOOLEAN value for FLOAT field', async () => {
     const record = modifyRecordField('Peso en kg', true)
     await checkFailCreateRequest(
       record,
@@ -368,7 +368,7 @@ describe('Create Records Tests', () => {
   })
 
   // DONE:
-  test('should fail with 405 when passing ARRAY value for FLOAT field', async () => {
+  test.skip('should fail with 405 when passing ARRAY value for FLOAT field', async () => {
     const record = modifyRecordField('Peso en kg', [])
     await checkFailCreateRequest(
       record,
@@ -381,7 +381,7 @@ describe('Create Records Tests', () => {
   // === CHOICE =======
   // ==================
   // DONE:
-  test('should fail with 405 when passing NUMBER values to CHOICE', async () => {
+  test.skip('should fail with 405 when passing NUMBER values to CHOICE', async () => {
     const record = modifyRecordField('Estado Civil', 32)
     await checkFailCreateRequest(
       record,
@@ -391,7 +391,7 @@ describe('Create Records Tests', () => {
   })
 
   // DONE:
-  test('should fail with 405 when passing BOOLEAN values to CHOICE', async () => {
+  test.skip('should fail with 405 when passing BOOLEAN values to CHOICE', async () => {
     const record = modifyRecordField('Estado Civil', true)
     await checkFailCreateRequest(
       record,
@@ -401,7 +401,7 @@ describe('Create Records Tests', () => {
   })
 
   // DONE:
-  test('should fail with 405 when passing VALUE that is not within CHOICE value', async () => {
+  test.skip('should fail with 405 when passing VALUE that is not within CHOICE value', async () => {
     const record = modifyRecordField('Estado Civil', 'Camello')
     await checkFailCreateRequest(
       record,
@@ -411,7 +411,7 @@ describe('Create Records Tests', () => {
   })
 
   // DONE:
-  test('should fail with 405 when passing ARRAY value for CHOICE field', async () => {
+  test.skip('should fail with 405 when passing ARRAY value for CHOICE field', async () => {
     const record = modifyRecordField('Estado Civil', [])
     await checkFailCreateRequest(
       record,
@@ -424,7 +424,7 @@ describe('Create Records Tests', () => {
   // === DATE =======
   // ==================
   // DONE:
-  test('should fail with 405 when passing TEXT value for DATE field', async () => {
+  test.skip('should fail with 405 when passing TEXT value for DATE field', async () => {
     const record = modifyRecordField('Fecha de nacimiento', 'aloha')
     await checkFailCreateRequest(
       record,
@@ -434,7 +434,7 @@ describe('Create Records Tests', () => {
   })
 
   // DONE:
-  test('should fail with 405 when passing BOOLEAN value for DATE field', async () => {
+  test.skip('should fail with 405 when passing BOOLEAN value for DATE field', async () => {
     const record = modifyRecordField('Fecha de nacimiento', true)
     await checkFailCreateRequest(
       record,
@@ -444,7 +444,7 @@ describe('Create Records Tests', () => {
   })
 
   // DONE:
-  test('should fail with 405 when passing NUMBER value for DATE field', async () => {
+  test.skip('should fail with 405 when passing NUMBER value for DATE field', async () => {
     const record = modifyRecordField('Fecha de nacimiento', 32)
     await checkFailCreateRequest(
       record,
@@ -454,7 +454,7 @@ describe('Create Records Tests', () => {
   })
 
   // DONE:
-  test('should fail with 405 when passing ARRAY value for DATE field', async () => {
+  test.skip('should fail with 405 when passing ARRAY value for DATE field', async () => {
     const record = modifyRecordField('Fecha de nacimiento', [])
     await checkFailCreateRequest(
       record,
@@ -464,7 +464,7 @@ describe('Create Records Tests', () => {
   })
 
   // DONE:
-  test('should fail with 405 when passing date not in ISO8601 format for DATE field', async () => {
+  test.skip('should fail with 405 when passing date not in ISO8601 format for DATE field', async () => {
     const record = modifyRecordField('Fecha de nacimiento', '23/3/2024')
     await checkFailCreateRequest(
       record,

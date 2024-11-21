@@ -3,6 +3,7 @@ const { BASE_URL, getAuthToken } = require('../../jest.setup')
 const COMMON_MSG = require('../../../utils/errorMsg')
 
 const {
+  generateObjectId,
   deleteUser,
   checkFailRequest,
   setUpEnvironmentForFilesTests,
@@ -87,61 +88,75 @@ describe('Edit Files Tests', () => {
   }
 
   beforeAll(async () => {
-    secondDoctor = createTestDoctor()
+    secondDoctor = await createTestDoctor()
     ;({ doctor, recordId, fileTemplateId } =
       await setUpEnvironmentForFilesTests(
         ['consultas', 'tests'],
-        'template_test',
+        `template_${Date.now()}`,
         [
           {
             name: 'Notas adicionales',
             type: 'TEXT',
-            required: true
+            required: true,
+            description: '_'
           },
           {
             name: 'Instrucciones de administracion',
             type: 'SHORT_TEXT',
-            required: true
+            required: true,
+            description: '_'
           },
           {
             name: 'Dosis (mg)',
             type: 'NUMBER',
-            required: true
+            required: true,
+            description: '_'
           },
           {
             name: 'Concentracion',
             type: 'FLOAT',
-            required: true
+            required: true,
+            description: '_'
           },
           {
             name: 'Forma de dosis',
             type: 'CHOICE',
             options: ['Oral', 'Capsula'],
-            required: true
+            required: true,
+            description: '_'
           },
           {
             name: 'Fecha de preescripcion',
             type: 'DATE',
-            required: true
+            required: true,
+            description: '_'
           }
         ]
       ))
+
     BASE_FILE.doctorId = doctor.roleDependentInfo.id
     BASE_FILE.recordId = recordId
     BASE_FILE.templateId = fileTemplateId
-    fileId = createTestFile(BASE_FILE)
+    fileId = await createTestFile(BASE_FILE)
+    /*
+    BASE_FILE.doctorId = '673682619176c55f7d69992a'
+    BASE_FILE.recordId = '673682619176c55f7d699935'
+    BASE_FILE.templateId = '673682619176c55f7d699931'
+    fileId = "673682629176c55f7d699939"
+    */
     BASE_FILE.fileId = fileId
+    // console.log(JSON.stringify(BASE_FILE, "", "  "))
   })
 
   afterAll(async () => {
-    await deleteUser(doctor.id)
+    // await deleteUser(doctor.id)
   })
 
   // DONE:
   test('should succeed with 200 editing a record', async () => {
     const fileEditBody = {
-      doctorId: doctor.roleDependentInfo.id,
-      fileId: fileId,
+      doctorId: BASE_FILE.doctorId,
+      fileId: BASE_FILE.fileId,
       name: 'test_file',
       category: 'consultas',
       fields: [
@@ -155,7 +170,7 @@ describe('Edit Files Tests', () => {
         },
         {
           name: 'Dosis (mg)',
-          value: 32
+          value: 334
         },
         {
           name: 'Concentracion',
@@ -171,6 +186,7 @@ describe('Edit Files Tests', () => {
         }
       ]
     }
+    // console.log(JSON.stringify(fileEditBody, '', '  '))
 
     try {
       const response = await axios.put(REQUEST_URL, fileEditBody, {
@@ -178,6 +194,7 @@ describe('Edit Files Tests', () => {
       })
 
       expect(response.status).toBe(200)
+      console.log(response.data)
       expect(response.data.message).toBe(COMMON_MSG.REQUEST_SUCCESS)
     } catch (error) {
       console.error(
@@ -244,19 +261,20 @@ describe('Edit Files Tests', () => {
   // ==================
   // DONE:
   test('should fail with 405 when passing NUMBER value for TEXT field', async () => {
-    const file = modifyFileField('Notas Adicionales', 123)
+    const file = modifyFileField('Notas adicionales', 123)
+    console.log(JSON.stringify(file, '', '  '))
     await checkFailEditRequest(file, 405, COMMON_MSG.INVALID_FIELD_TYPE_TEXT)
   })
 
   // DONE:
   test('should fail with 405 when passing BOOLEAN value for TEXT field', async () => {
-    const file = modifyFileField('Notas Adicionales', true)
+    const file = modifyFileField('Notas adicionales', true)
     await checkFailEditRequest(file, 405, COMMON_MSG.INVALID_FIELD_TYPE_TEXT)
   })
 
   // DONE:
   test('should fail with 405 when passing ARRAY value for TEXT field', async () => {
-    const file = modifyFileField('Notas Adicionales', [])
+    const file = modifyFileField('Notas adicionales', [])
     await checkFailEditRequest(file, 405, COMMON_MSG.INVALID_FIELD_TYPE_TEXT)
   })
 
@@ -265,7 +283,7 @@ describe('Edit Files Tests', () => {
   // ==================
   // DONE:
   test('should fail with 405 when passing NUMBER value for SHORT_TEXT field', async () => {
-    const file = modifyFileField('Instruccciones de administracion', 123)
+    const file = modifyFileField('Instrucciones de administracion', 123)
     await checkFailEditRequest(
       file,
       405,
@@ -275,7 +293,7 @@ describe('Edit Files Tests', () => {
 
   // DONE:
   test('should fail with 405 when passing BOOLEAN value for SHORT_TEXT field', async () => {
-    const file = modifyFileField('Instruccciones de administracion', true)
+    const file = modifyFileField('Instrucciones de administracion', true)
     await checkFailEditRequest(
       file,
       405,
@@ -285,7 +303,7 @@ describe('Edit Files Tests', () => {
 
   // DONE:
   test('should fail with 405 when passing ARRAY value for SHORT_TEXT field', async () => {
-    const file = modifyFileField('Instruccciones de administracion', true)
+    const file = modifyFileField('Instrucciones de administracion', true)
     await checkFailEditRequest(
       file,
       405,
