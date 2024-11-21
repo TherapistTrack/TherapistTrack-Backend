@@ -42,7 +42,6 @@ describe('Create File Template Tests', () => {
 
   // DONE:
   test('should create a new file template correctly with all required fields', async () => {
-    console.log('doctorId:', doctorId)
     const testTemplate = {
       doctorId: doctorId,
       name: `testTemplate`,
